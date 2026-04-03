@@ -71,7 +71,7 @@ Post-action logic:
 **Bug was fixed** --> Look for: testing skills (MANDATORY), verification skills
 **Feature completed** --> Look for: testing skills, review skills, documentation skills
 **Session getting long (>50 messages)** --> Look for: handoff/session management skills
-**Skill recommended but not installed** --> Suggest how to find and install it
+**No installed skill matches the user's request** --> Use `/find-skills` (if installed) to search for and suggest installable skills from the community. If `/find-skills` is not installed either, suggest: `npx skills find <keyword>` so the user can discover skills themselves.
 
 ## Combo Detection
 
