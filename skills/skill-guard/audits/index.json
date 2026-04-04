@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Community-driven security audit registry for Claude Code skills.",
-  "total_audits": 70,
+  "total_audits": 71,
   "authors": [
     "ablerz",
     "anthropic",
@@ -71,12 +71,12 @@
     },
     {
       "skill": "j4rk0r/skill-guard",
-      "sha": "4f5e3867",
-      "score": 97,
+      "sha": "0d0d3303",
+      "score": 95,
       "verdict": "GREEN",
       "date": "2026-04-04",
       "critical_findings": 0,
-      "report": "j4rk0r/skill-guard/4f5e3867.json"
+      "report": "j4rk0r/skill-guard/0d0d3303.json"
     },
     {
       "skill": "j4rk0r/skill-judge",
@@ -95,6 +95,15 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "j4rk0r/skill-learner/d98a1fbd.json"
+    },
+    {
+      "skill": "j4rk0r/skill-advisor",
+      "sha": "7696406f",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "j4rk0r/skill-advisor/7696406f.json"
     },
     {
       "skill": "joshuadavidthomas/crafting-effective-readmes",

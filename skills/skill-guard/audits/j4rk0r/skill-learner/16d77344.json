@@ -1,0 +1,41 @@
+{
+  "skill": "j4rk0r/claude-skills@skill-learner",
+  "date": "2026-04-04",
+  "sha256": "16d77344f9d1a1ef9301133d7bb4a085db505645b6dc2aa0121b685593bb38a8",
+  "files_analyzed": ["SKILL.md", "references/correction-patterns.md"],
+  "score": 92,
+  "verdict": "GREEN",
+  "scan_type": "full",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 12,
+      "content": "allowed-tools: Read Edit Write Glob",
+      "explanation": "Write access to ~/.claude/CLAUDE.md is declared in Step 5 workflow. While scoped and user-confirmed, modifying CLAUDE.md affects all future Claude sessions. The skill asks permission before writing, which mitigates the risk."
+    },
+    {
+      "severity": "LOW",
+      "layer": 5,
+      "file": "SKILL.md",
+      "line": 130,
+      "content": "append to the user's global ~/.claude/CLAUDE.md",
+      "explanation": "Data flow: conversation corrections → ~/.claude/skill-corrections/*.md AND ~/.claude/CLAUDE.md. All destinations are local, dedicated directories. No network egress. CLAUDE.md modification is gated behind user confirmation."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 85,
+    "static_patterns": 100,
+    "semantic": 95,
+    "scripts": 100,
+    "data_flow": 95,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 85,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1",
+  "auditor": "j4rk0r"
+}

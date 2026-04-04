@@ -1,0 +1,72 @@
+{
+  "skill": "j4rk0r/skill-guard",
+  "date": "2026-04-04",
+  "sha256": "0d0d33037063758fd7eea558849cc4fdb055609f57e36d1ede1f45026c21afcf",
+  "files_analyzed": [
+    "SKILL.md",
+    "README.md",
+    "references/patterns.md",
+    "schemas/audit-v1.json"
+  ],
+  "total_files": 4,
+  "total_size_kb": 30,
+  "score": 95,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "SKILL.md",
+      "line": 30,
+      "content": "IP 45.33.12.8",
+      "explanation": "Raw IP address appears in documentation as an EXAMPLE of what to flag during audits. Not an actual network destination. Used in a sentence illustrating threat reporting. No risk."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "SKILL.md",
+      "line": 346,
+      "content": "commit: `audit: {skill-name}`, push",
+      "explanation": "Skill instructs git commit and push as part of its audit persistence workflow. This is a documented, user-consented operation to save audit results to the registry repo. The push target is the known j4rk0r/claude-skills repo, not an arbitrary remote."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "references/patterns.md",
+      "line": null,
+      "content": "Multiple sensitive patterns: curl, wget, eval, exec, rm -rf, ~/.ssh, $GITHUB_TOKEN, etc.",
+      "explanation": "The references/patterns.md file is a REFERENCE CATALOG of dangerous patterns for the auditor to grep against. These are documentation examples, not executable instructions. Every pattern is inside a descriptive table or bullet list explaining what to look for."
+    },
+    {
+      "severity": "LOW",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 5,
+      "content": "allowed-tools: Read Grep Glob Bash(shasum:*) Bash(find:*) Bash(gh:*) Bash(git:*) Bash(wc:*) Bash(ls:*) Bash(file:*) Bash(grep:*) Bash(mkdir:*) Bash(cp:*)",
+      "explanation": "Bash(gh:*) and Bash(git:*) allow arbitrary gh and git subcommands. For a security auditor that checks repos and pushes audit results, this is justified. Bash(git:*) could theoretically be used for `git push --force` but the SKILL.md explicitly limits push to the audit registry. Bash(cp:*) could copy files but is needed for audit file operations. All permissions are coherent with stated purpose."
+    },
+    {
+      "severity": "INFO",
+      "layer": 6,
+      "file": "SKILL.md",
+      "line": null,
+      "content": "No MCP tool references found",
+      "explanation": "Skill does not reference any mcp__ tools. Clean."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 95,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 100,
+    "anti_evasion": 100
+  },
+  "notes": "Re-audit after SHA change (previous: 4f5e3867, quick scan only). Full 9-layer audit this time. Skill is a pure-markdown security auditor with no bundled scripts. All sensitive patterns found are documentation examples in a reference catalog, not executable instructions. The git push/commit instructions are part of the documented audit persistence workflow. Permissions are well-scoped with specific Bash prefixes. No MCP abuse, no exfiltration chains, no unicode tricks, no self-modification. Author is j4rk0r (first-party, repo owner).",
+  "analyzed_by": "skill-guard-v1",
+  "auditor": "j4rk0r"
+}

@@ -1,0 +1,66 @@
+{
+  "skill": "j4rk0r/skill-advisor",
+  "date": "2026-04-04",
+  "sha256": "7696406f2a0ef739451e8ac095bc013862bd9059a420f151bceee58f94169ef7",
+  "sha256_prefix": "7696406f",
+  "files_analyzed": [
+    "SKILL.md",
+    "README.md",
+    "references/gap-maps.md",
+    "references/pipelines.md"
+  ],
+  "total_files": 4,
+  "total_size_kb": 14,
+  "scan_type": "full (All 9 layers)",
+  "score": 97,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": null,
+      "content": "No allowed-tools declaration in frontmatter",
+      "explanation": "Missing allowed-tools means unlimited tool access (Bash, WebFetch, MCP, everything). This skill instructs running npx commands and ls, which require Bash. However, it could function with a restricted declaration like Bash(npx:*) Bash(ls:*) Read Glob. The absence is not exploitative given the skill's content, but violates least-privilege principle."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "README.md",
+      "line": 58,
+      "content": "https://github.com/softaworks/agent-toolkit",
+      "explanation": "Reference URL to the skill-judge evaluation tool. This is a documentation link in README, not a network call or data destination. No security concern."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "SKILL.md",
+      "line": 99,
+      "content": "npx skills find <keyword> / npx skills add <owner/repo@skill> -y --agent claude-code",
+      "explanation": "Shell commands for the official skills ecosystem package manager. These are the core functionality of the skill (searching and installing skills). The skill explicitly requires user confirmation before each installation (line 116: 'NEVER install without user confirmation at each step'). Legitimate and expected."
+    },
+    {
+      "severity": "INFO",
+      "layer": 5,
+      "file": "SKILL.md",
+      "line": 127,
+      "content": "Data flow: system-reminder + ls ~/.claude/skills/ -> analysis -> stdout",
+      "explanation": "All data flows are local: reads installed skill metadata from system context and local directories, processes internally, outputs to user. No external data destinations. The npx commands interact with the public skills registry which is expected for a skill installer."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 85,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 100,
+    "anti_evasion": 100
+  },
+  "notes": "Pure advisory/routing skill with no scripts, no MCP references, no external data flows. Only finding is the missing allowed-tools declaration, which is a best-practice gap rather than a security threat. The skill explicitly enforces user confirmation before every installation action. First-party skill by j4rk0r (repo owner). References files contain only domain knowledge maps, no executable instructions.",
+  "analyzed_by": "skill-guard-v1",
+  "auditor": "j4rk0r"
+}
