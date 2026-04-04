@@ -1,0 +1,25 @@
+{
+  "skill": "j4rk0r/claude-skills@skill-advisor",
+  "date": "2026-04-04",
+  "sha256": "7b78ba133036d4048e7b054e136f018be636e12538942640aef24744529e7a1b",
+  "files_analyzed": ["SKILL.md", "README.md", "references/gap-maps.md", "references/pipelines.md"],
+  "score": 100,
+  "verdict": "GREEN",
+  "scan_type": "full",
+  "critical_findings": 0,
+  "findings": [],
+  "layer_scores": {
+    "frontmatter": 100,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 100,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1",
+  "auditor": "j4rk0r",
+  "notes": "Re-audit after adding allowed-tools: Bash(npx:*) Bash(ls:*) Read Glob. Previous finding resolved. Perfect score."
+}
