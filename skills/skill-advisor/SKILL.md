@@ -34,36 +34,26 @@ When the user gives ANY instruction, before doing anything:
 
 **How to match:** Read each skill's description field. The description says WHEN to use it. Compare that against what the user just asked. If the user says "fix this bug" and there's a skill that says "Use when encountering any bug or test failure", that's a match.
 
-**Intent matching patterns** (use these as thinking framework, not as a lookup table):
+**Intent matching framework** — Don't pattern-match literally. Ask yourself:
 
-| User intent | Look for skills that mention... |
-|---|---|
-| Fix bug, error, not working | debugging, bug, test failure, unexpected behavior |
-| Build UI, page, component | frontend, design, web components, UI |
-| Figma URL, implement design | figma, design-to-code, implement |
-| Write tests, QA | testing, test plans, QA, playwright |
-| Commit, push, PR | verification, commit, review, PR |
-| Plan, architecture, how to build | planning, brainstorming, requirements, architecture |
-| Write docs, spec, proposal | documentation, writing, specs |
-| Review, audit, check quality | review, audit, guidelines, compliance |
-| Drupal, module, entity, hook | drupal, module |
-| Diagram, flowchart, visual | diagram, mermaid, excalidraw, architecture |
-| Video, image, media | video, image, generation |
-| PDF, merge, extract | pdf |
-| Pricing, monetization | pricing, strategy |
-| Search, research | search, research, web |
-| Create skill, improve skill | skill creator, skill |
-| Simple direct task | No skill needed |
+> "The user wants to ____. Is there an installed skill whose description says 'Use when ____'?"
 
-**This table does NOT reference specific skill names.** It maps user intent to keywords you should look for in skill descriptions. Whatever skills the user has installed, this framework works.
+For non-obvious matches, think laterally:
+- User says "make it look better" --> could match: design skills, animation skills, accessibility audit skills
+- User says "I'm stuck" --> could match: debugging skills, brainstorming skills, requirements clarity skills
+- User says "ship it" --> could match: verification skills, commit skills, review skills (in that order)
+- User says "explain this to the team" --> could match: documentation skills, presentation skills, communication skills
+
+The skill's description field is your matching key. Read it. If it says "Use when X" and the user is doing X, that's a match.
 
 ### Mode 2: POST-ACTION (after every meaningful action)
 
-After code changes, bug fixes, feature completion, or any significant work:
+After code changes, bug fixes, feature completion, or any significant work, ask yourself:
 
 1. **What changed?** — `git diff --stat`, `git status`
 2. **What phase is the user in now?** — Just finished building? Debugging? Planning?
-3. **What's the logical next step?** — Scan installed skills for one that fits.
+3. **What could go wrong next?** — What's the highest-risk mistake if no skill is used?
+4. **Which installed skill prevents that?** — Scan system-reminder for a match.
 
 Post-action logic:
 
