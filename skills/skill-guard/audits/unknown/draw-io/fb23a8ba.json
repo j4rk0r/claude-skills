@@ -1,0 +1,46 @@
+{
+  "skill": "unknown/draw-io",
+  "date": "2026-04-04",
+  "sha256": "fb23a8baa3a3166cccdb92e306233d15979f42d21fd6e6fac7840932692ab87a",
+  "files_analyzed": [
+    "SKILL.md",
+    "README.md",
+    "scripts/convert-drawio-to-png.sh",
+    "scripts/find_aws_icon.py",
+    "references/layout-guidelines.md",
+    "references/aws-icons.md"
+  ],
+  "score": 93,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools grants unlimited access. Skill needs Bash (drawio CLI, python3, git add), Read, Write/Edit for .drawio XML files. Without restriction, also gets WebFetch, MCP, etc. No malicious use detected. Recommend: allowed-tools: Bash(drawio:*), Bash(python3:*), Bash(git:add), Bash(mise:*), Read, Write, Edit"
+    },
+    {
+      "severity": "LOW",
+      "layer": 2,
+      "file": "scripts/convert-drawio-to-png.sh",
+      "line": 23,
+      "content": "git add \"${generated_files[@]}\"",
+      "explanation": "Auto-stages generated PNG files to git index. Expected behavior for pre-commit hook workflow. Only stages files the script itself generated — no arbitrary git operations."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 95,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}
