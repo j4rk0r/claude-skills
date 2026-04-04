@@ -125,11 +125,32 @@ npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
 
 skill-learner brise ce cycle. Quand une skill ou Claude se trompe, il capture ce qui s'est mal passe, pourquoi, et quoi faire a la place — sous forme de fichier de correction persistant qui survit entre les sessions.
 
+### Comment ca marche
+
+```
+Quelque chose s'est mal passe
+        |
+        v
+skill-learner detecte quel skill (ou comportement general) a echoue
+        |
+        v
+Pose des questions ciblees jusqu'a comprendre l'erreur
+        |
+        v
+Sauvegarde une correction structuree dans ~/.claude/skill-corrections/
+        |
+        v
+Prochaine execution de ce skill → la correction est disponible
+        |
+        v
+Optionnellement: genere une proposition d'amelioration pour l'auteur
+```
+
 ### Caracteristiques cles
 
-- **Auto-detecte la skill defaillante** a partir du contexte de conversation
+- **Auto-detecte le skill defaillant** a partir du contexte de conversation
 - **Deduplique** — verifie INDEX.md avant de creer, fusionne si le meme probleme existe deja
-- **7 regles NEVER** — empeche les corrections vagues, doublons et bypass de securite
+- **9 regles NEVER** — empeche les corrections vagues, doublons et bypass de securite
 - **Test de lecture a froid** — verifie que chaque correction est claire pour un agent different
 - **Propositions d'amelioration** — genere des propositions avec diffs pour l'auteur de la skill
 - **Bilingue** — ecrit les corrections dans la langue de l'utilisateur

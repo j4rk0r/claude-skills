@@ -14,8 +14,8 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | Skill | Que hace | Puntuacion |
 |-------|----------|------------|
-| **[skill-advisor](../skills/skill-advisor/)** | Instalaste 50 skills y usas 5. Esto conecta cada tarea con tu mejor herramienta para que ninguna acumule polvo. | 120/120 |
-| **[skill-guard](../skills/skill-guard/)** | Detecta skills maliciosas antes de que toquen tus archivos, tokens o claves. Analisis en 9 capas + registro de auditorias verificado. | 120/120 |
+| **[skill-advisor](../skills/skill-advisor/)** | Analiza cada instruccion y recomienda la skill correcta antes de ejecutar. Nunca mas olvides una skill instalada. | 120/120 |
+| **[skill-guard](../skills/skill-guard/)** | Auditor de seguridad — deteccion de amenazas en 9 capas para skills antes de instalarlas. Registro comunitario de auditorias. | 120/120 |
 | **[skill-learner](../skills/skill-learner/)** | Captura errores y persiste correcciones para que el mismo fallo no se repita. Funciona con skills Y comportamiento general de Claude. Opcionalmente genera propuestas de mejora para autores. | 120/120 |
 
 ## skill-guard
@@ -84,6 +84,30 @@ npx skills add j4rk0r/claude-skills@skill-guard --yes --global
 
 skill-advisor arregla esto. Se situa entre tu y Claude, analizando cada instruccion para encontrar la mejor skill de TU coleccion instalada — antes de empezar a trabajar.
 
+### Dos modos
+
+**Pre-accion** — Antes de que Claude empiece a trabajar, recomienda skills que mejorarian el resultado:
+
+```
+> "fix this login bug"
+
+Evaluacion de skills:
+1. /systematic-debugging — coincide con "bug, test failure, unexpected behavior"
+2. /webapp-testing — verificar el arreglo despues
+
+Procedemos con estas? O directamente sin skill?
+```
+
+**Post-accion** — Al terminar un trabajo, sugiere el siguiente paso logico:
+
+```
+> [codigo modificado]
+
+Skills recomendadas:
+1. /webapp-testing — codigo modificado, tests necesarios
+2. /verification-before-completion — antes de dar por terminado
+```
+
 ### Como funciona
 
 ```
@@ -150,7 +174,7 @@ Opcionalmente: genera una propuesta de mejora para el autor de la skill
 
 - **Auto-detecta la skill que fallo** del contexto de la conversacion
 - **Deduplica** — consulta INDEX.md antes de crear, fusiona si el mismo problema ya existe
-- **7 reglas NEVER** — previene correcciones vagas, duplicadas, scope creep y bypass de seguridad
+- **9 reglas NEVER** — previene correcciones vagas, duplicadas, scope creep y bypass de seguridad
 - **Test de lectura en frio** — verifica que cada correccion es clara para un agente diferente en otra sesion
 - **Propuestas de mejora** — genera propuestas con diffs, guardadas en local para que el usuario las suba
 - **Bilingue** — escribe correcciones en el idioma del usuario para preservar matices

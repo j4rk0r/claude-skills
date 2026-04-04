@@ -129,7 +129,45 @@ skill-learner durchbricht diesen Kreislauf. Wenn ein Skill oder Claude selbst ei
 
 - **Erkennt den fehlerhaften Skill automatisch** aus dem Gespraechskontext
 - **Dedupliziert** — prueft INDEX.md vor dem Erstellen, fusioniert bei gleichem Problem
-- **7 NEVER-Regeln** — verhindert vage Korrekturen, Duplikate und Sicherheits-Bypass
+- **9 NEVER-Regeln** — verhindert vage Korrekturen, Duplikate und Sicherheits-Bypass
+- **Kaltlesetest** — stellt sicher, dass jede Korrektur fuer einen anderen Agenten verstaendlich ist
+- **Verbesserungsvorschlaege** — erstellt Vorschlaege mit Diffs fuer den Skill-Autor
+- **Zweisprachig** — schreibt Korrekturen in der Sprache des Benutzers
+
+### Installieren
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner --yes --global
+```
+
+---
+
+### Wie es funktioniert
+
+```
+Etwas ist schiefgelaufen
+        |
+        v
+skill-learner erkennt welcher Skill (oder allgemeines Verhalten) fehlschlug
+        |
+        v
+Stellt gezielte Fragen bis der Fehler verstanden ist
+        |
+        v
+Speichert eine strukturierte Korrektur in ~/.claude/skill-corrections/
+        |
+        v
+Naechste Ausfuehrung dieses Skills → Korrektur ist verfuegbar
+        |
+        v
+Optional: erstellt einen Verbesserungsvorschlag fuer den Skill-Autor
+```
+
+### Hauptmerkmale
+
+- **Erkennt den fehlerhaften Skill automatisch** aus dem Gespraechskontext
+- **Dedupliziert** — prueft INDEX.md vor dem Erstellen, fusioniert bei gleichem Problem
+- **9 NEVER-Regeln** — verhindert vage Korrekturen, Duplikate und Sicherheits-Bypass
 - **Kaltlesetest** — stellt sicher, dass jede Korrektur fuer einen anderen Agenten verstaendlich ist
 - **Verbesserungsvorschlaege** — erstellt Vorschlaege mit Diffs fuer den Skill-Autor
 - **Zweisprachig** — schreibt Korrekturen in der Sprache des Benutzers

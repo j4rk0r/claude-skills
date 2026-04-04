@@ -67,7 +67,7 @@ Each rule exists because of a real attack pattern observed in the wild:
 3. **LLM Semantic Analysis** (30%) — Prompt injection, trojans, social engineering, time bombs
 4. **Bundled Scripts** (15%) — Reads EVERY script. Dangerous imports, obfuscation, data exfiltration
 5. **Data Flow** (10%) — Maps source → destination. Sensitive data reaching external URLs = confirmed threat
-6. **MCP & Tools** — Undeclared MCP server usage, exfiltration via Slack/GitHub/Monday
+6. **MCP & Tools** (0%) — Undeclared MCP server usage, exfiltration via Slack/GitHub/Monday
 7. **Supply Chain** (2%) — Typosquatting, unpinned versions, fake repos
 8. **Reputation** (3%) — Author profile, repo age, trojan forks
 9. **Anti-Evasion** (5%) — Unicode tricks, homoglyphs, self-modification, environment fingerprinting
@@ -80,6 +80,8 @@ Each rule exists because of a real attack pattern observed in the wild:
 ### Community audit registry
 
 Every audit is saved to [`skills/skill-guard/audits/`](skills/skill-guard/audits/). Before analyzing, skill-guard checks if someone already audited that version. Instant results if SHA matches.
+
+**Trust model:** Only the system generates and publishes audit results. Community members request audits via PR to `audits/requests/` — the maintainer runs skill-guard and publishes the result. This prevents tampered audits from entering the registry.
 
 ### Practices what it preaches
 
@@ -138,7 +140,7 @@ Recommended skills:
 
 ### What makes it different
 
-- **Reads YOUR skills** — No hardcoded list. Scans the system-reminder dynamically. Install a new skill today, skill-advisor sees it tomorrow.
+- **Reads YOUR skills** — No hardcoded list. Scans the system-reminder dynamically. Install a new skill and skill-advisor sees it immediately.
 - **Thinks laterally** — "make it look better" matches design skills, animation skills, AND accessibility audit skills. Not just literal keyword matching.
 - **Knows when to shut up** — Simple tasks (rename a variable, read a file) get no recommendations. It asks itself: "would the user thank me or be annoyed?"
 - **Recommends pipelines** — Detects multi-step scenarios and suggests the full combo: brainstorming → writing-plans → subagent-driven-development.
@@ -194,7 +196,7 @@ Optionally: generates an improvement proposal for the skill author
 
 - **Auto-detects the failing skill** from conversation context — doesn't ask if obvious
 - **Deduplicates** — checks INDEX.md before creating, merges if same issue exists
-- **7 NEVER rules** — prevents vague corrections, duplicates, scope creep, and security bypass
+- **9 NEVER rules** — prevents vague corrections, duplicates, scope creep, and security bypass
 - **Cold-reader test** — verifies each correction is clear enough for a different agent in a different session
 - **Improvement proposals** — generates author-ready proposals with diffs, saved locally for the user to submit
 - **Bilingual** — writes corrections in the user's language to preserve nuance
@@ -242,3 +244,4 @@ skills/
 ## License
 
 [MIT](LICENSE)
+

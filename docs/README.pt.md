@@ -125,7 +125,45 @@ skill-learner quebra esse ciclo. Quando uma skill ou o Claude erra, captura o qu
 
 - **Detecta automaticamente a skill com falha** a partir do contexto da conversa
 - **Deduplica** — verifica INDEX.md antes de criar, mescla se o mesmo problema ja existe
-- **7 regras NEVER** — previne correcoes vagas, duplicatas e bypass de seguranca
+- **9 regras NEVER** — previne correcoes vagas, duplicatas e bypass de seguranca
+- **Teste de leitura a frio** — verifica que cada correcao e clara para um agente diferente
+- **Propostas de melhoria** — gera propostas com diffs para o autor da skill
+- **Bilingue** — escreve correcoes no idioma do usuario
+
+### Instalar
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner --yes --global
+```
+
+---
+
+### Como funciona
+
+```
+Algo deu errado
+        |
+        v
+skill-learner detecta qual skill (ou comportamento geral) falhou
+        |
+        v
+Faz perguntas focadas ate entender o erro
+        |
+        v
+Salva uma correcao estruturada em ~/.claude/skill-corrections/
+        |
+        v
+Proxima execucao da skill → correcao disponivel
+        |
+        v
+Opcionalmente: gera uma proposta de melhoria para o autor da skill
+```
+
+### Caracteristicas principais
+
+- **Detecta automaticamente a skill com falha** a partir do contexto da conversa
+- **Deduplica** — verifica INDEX.md antes de criar, mescla se o mesmo problema ja existe
+- **9 regras NEVER** — previne correcoes vagas, duplicatas e bypass de seguranca
 - **Teste de leitura a frio** — verifica que cada correcao e clara para um agente diferente
 - **Propostas de melhoria** — gera propostas com diffs para o autor da skill
 - **Bilingue** — escreve correcoes no idioma do usuario
