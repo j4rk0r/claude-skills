@@ -1,6 +1,6 @@
 ---
 name: skill-advisor
-description: "Pre-execution assistant that builds a full execution plan with installed skills (✅) AND uninstalled gaps (❌) the task needs, then offers to install missing skills one by one. Use BEFORE starting any multi-step task — code, design, planning, debugging, docs, testing, commits, PRs, strategy."
+description: "Pre-execution assistant that builds a full execution plan with installed skills (✅) AND uninstalled gaps (❌) the task needs, then offers to install missing skills one by one. Use BEFORE starting any multi-step task. Triggers: 'recommend skills', 'what skill should I use', 'advise', 'suggest', 'help me with', or any work instruction involving code, design, planning, debugging, docs, testing, commits, PRs, strategy."
 disable-model-invocation: false
 user-invocable: true
 ---
@@ -55,12 +55,14 @@ Por instalar (recomendado): 4, 5, 9, 10
 - **"empezar"** — arrancamos solo con las instaladas
 ```
 
-**Post-action format** (after completing work):
+### Concrete Example: user just finished implementing a feature
+
 ```
 ## Siguiente paso recomendado
 
-1. ✅ /skill-name — [razón concreta]
-2. ❌ skill-no-instalada — [mejoraría X]
+1. ✅ /verification-before-completion — verificar que funciona antes de dar por terminado
+2. ✅ /commit-work — commit limpio con mensaje descriptivo
+3. ❌ Testing — sin tests, cualquier cambio futuro puede romper esto silenciosamente
 
 - **"instalar todas"** — busco e instalo los gaps
 - **"aplica todas"** — ejecutar skills instaladas
@@ -72,7 +74,7 @@ Por instalar (recomendado): 4, 5, 9, 10
 
 1. **Parse intent** — What is the user trying to accomplish?
 2. **Match installed skills** — Scan system-reminder descriptions for matches
-3. **Identify gaps** — MANDATORY. Load [`references/gap-maps.md`](references/gap-maps.md) for the relevant domain. Apply the three thinking questions above.
+3. **Identify gaps** — MANDATORY. Load [`references/gap-maps.md`](references/gap-maps.md) for the relevant domain. Apply the three thinking questions above. **Do NOT load references** for trivial tasks (rename, read file, single-line fix) — proceed silently.
 4. **Build pipeline** — Load [`references/pipelines.md`](references/pipelines.md) for the relevant project type. Map each step to ✅, ❌, or ⚡.
 5. **Present and wait** — Show the plan, offer "instalar todas" / "empezar"
 
@@ -145,15 +147,15 @@ On explicit `/skill-advisor` invocation only, perform ecosystem scan:
 
 ## NEVER
 
-- NEVER present only installed skills — if gaps exist, the plan MUST include ❌ items
-- NEVER recommend uninstalled skills AS IF they were installed — ❌ marker is mandatory
-- NEVER skip the "instalar todas" / "empezar" prompt when ❌ gaps exist
-- NEVER repeat a rejected skill in the same session — they said no, respect it
-- NEVER recommend without citing why it applies to THIS specific task — "might be useful" is noise
-- NEVER recommend skills for stacks not in the project — check before suggesting
-- NEVER skip QA/testing after code changes if user has any testing skill
-- NEVER let user claim "done" without verification if user has a verification skill
-- NEVER exceed 12 total steps in the plan — beyond that, users stop reading
+- NEVER present only installed skills — gaps are what separate a "skill list" from a "professional execution plan"
+- NEVER recommend uninstalled skills AS IF they were installed — mixing ✅/❌ without markers destroys trust in the plan
+- NEVER skip the "instalar todas" / "empezar" prompt when ❌ gaps exist — the user must always have agency over their tooling
+- NEVER repeat a rejected skill in the same session — they said no, respect it; re-suggesting signals you weren't listening
+- NEVER recommend without citing why it applies to THIS specific task — "might be useful" erodes trust and users start ignoring all suggestions
+- NEVER recommend skills for stacks not in the project — a React skill for a Python project signals incompetence
+- NEVER skip QA/testing after code changes — untested code shipped is a bug deployed; if user has any testing skill, recommend it
+- NEVER let user claim "done" without verification — the last 5% of bugs hide in the "it's done" moment
+- NEVER exceed 12 total steps in the plan — beyond 12, users skim instead of reading and miss critical gaps
 
 ## Quality Check
 
