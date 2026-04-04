@@ -1,0 +1,52 @@
+{
+  "skill": "unknown/dependency-updater",
+  "date": "2026-04-04",
+  "sha256": "e3a63ca4bbf78d97d79d5a0dc30b7634974190479ee1e0d8a5280fce4001759f",
+  "files_analyzed": [
+    "SKILL.md",
+    "README.md",
+    "scripts/check-tool.sh",
+    "scripts/run-taze.sh"
+  ],
+  "score": 92,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools grants unlimited access. Skill needs Bash for package managers (npm, pip, go, cargo, etc.), Read for package files, AskUserQuestionTool for major version prompts. Without restriction, also gets WebFetch, MCP, Write to arbitrary paths. No malicious use detected in code."
+    },
+    {
+      "severity": "LOW",
+      "layer": 2,
+      "file": "SKILL.md",
+      "line": 233,
+      "content": "rm -rf node_modules package-lock.json, rm -rf venv, rm go.sum",
+      "explanation": "Destructive commands documented as 'Emergency Fixes / Nuclear reset'. Context is appropriate — standard dependency troubleshooting. Risk: Claude could execute these without sufficient user confirmation. Mitigated by being in a 'Deep Dive' details section."
+    },
+    {
+      "severity": "LOW",
+      "layer": 2,
+      "file": "SKILL.md",
+      "line": 106,
+      "content": "npm install -g taze",
+      "explanation": "Global package installation modifies system outside project. Documented as prerequisite. User should confirm before global installs."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 95,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}
