@@ -1,6 +1,7 @@
 ---
 name: skill-advisor
 description: "Pre-execution assistant that builds a full execution plan with installed skills (✅) AND uninstalled gaps (❌) the task needs, then offers to install missing skills one by one. Use BEFORE starting any multi-step task. Triggers: 'recommend skills', 'what skill should I use', 'advise', 'suggest', 'help me with', or any work instruction involving code, design, planning, debugging, docs, testing, commits, PRs, strategy."
+allowed-tools: Bash(npx:*) Bash(ls:*) Read Glob
 disable-model-invocation: false
 user-invocable: true
 ---
