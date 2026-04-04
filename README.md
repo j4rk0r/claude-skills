@@ -14,8 +14,8 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | Skill | What it does | Score |
 |-------|-------------|-------|
-| **[skill-advisor](skills/skill-advisor/)** | Builds execution plans that combine your installed skills with gaps you're missing — then offers to install them. Never start a task under-equipped. | 120/120 |
 | **[skill-guard](skills/skill-guard/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | 120/120 |
+| **[skill-advisor](skills/skill-advisor/)** | Builds execution plans that combine your installed skills with gaps you're missing — then offers to install them. Never start a task under-equipped. | 120/120 |
 | **[skill-learner](skills/skill-learner/)** | Captures mistakes and persists corrections so the same error never happens twice. Works for skills AND general Claude behavior. Optionally generates improvement proposals for skill authors. | 120/120 |
 
 ## skill-guard
