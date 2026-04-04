@@ -1,0 +1,43 @@
+{
+  "skill": "unknown/qa-test-planner",
+  "date": "2026-04-04",
+  "sha256": "64adcbcf148712c6a67e9f05c5cee91b81e65da2f6ee458775c593fb0f5b657c",
+  "files_analyzed": [
+    "SKILL.md", "README.md", "scripts/create_bug_report.sh", "scripts/generate_test_cases.sh",
+    "references/regression_testing.md", "references/test_case_templates.md",
+    "references/bug_report_templates.md", "references/figma_validation.md"
+  ],
+  "score": 88,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools. Scripts are interactive markdown generators. No network calls."
+    },
+    {
+      "severity": "MEDIUM",
+      "layer": 4,
+      "file": "scripts/create_bug_report.sh",
+      "line": 31,
+      "content": "eval \"$var_name=\\\"$input\\\"\"",
+      "explanation": "Uses eval for variable assignment in interactive bash script. In this controlled context (assigning user input to named variables), risk is minimal. Not exploitable remotely — scripts are interactive and require terminal input."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 85,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}

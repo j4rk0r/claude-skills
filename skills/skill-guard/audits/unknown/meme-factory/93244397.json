@@ -1,0 +1,42 @@
+{
+  "skill": "unknown/meme-factory",
+  "date": "2026-04-04",
+  "sha256": "93244397e6ff47a2833a76b86d21a409b4d0aef076f2607edd65a63065777364",
+  "files_analyzed": [
+    "SKILL.md", "README.md", "scripts/meme_generator.py",
+    "references/examples.md", "references/markdown-memes-guide.md"
+  ],
+  "score": 90,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools. Skill needs Bash (python3, curl for testing). Script only constructs URLs, doesn't make network requests itself."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "SKILL.md",
+      "line": 28,
+      "content": "https://api.memegen.link/* URLs throughout",
+      "explanation": "External API URLs for meme generation. Free, public, no-auth API. URLs are well-known service. No data sent — URLs encode text only."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}

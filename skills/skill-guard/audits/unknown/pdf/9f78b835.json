@@ -1,0 +1,37 @@
+{
+  "skill": "unknown/pdf",
+  "date": "2026-04-04",
+  "sha256": "9f78b8359fbd4943ad260a7a1e436e5a96503406d6c34e99f69223d647d85b9c",
+  "files_analyzed": [
+    "SKILL.md", "LICENSE.txt", "forms.md", "reference.md",
+    "scripts/check_bounding_boxes.py", "scripts/check_fillable_fields.py",
+    "scripts/convert_pdf_to_images.py", "scripts/create_validation_image.py",
+    "scripts/extract_form_field_info.py", "scripts/extract_form_structure.py",
+    "scripts/fill_fillable_fields.py", "scripts/fill_pdf_form_with_annotations.py"
+  ],
+  "score": 93,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools. Skill needs Bash (python3, pdftotext, qpdf, pdftk), Read, Write. All 8 scripts are pure local file processing with no network calls."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}

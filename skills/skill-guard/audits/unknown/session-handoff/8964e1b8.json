@@ -1,0 +1,53 @@
+{
+  "skill": "unknown/session-handoff",
+  "date": "2026-04-04",
+  "sha256": "8964e1b846170ac9cdbaa4c3c510e3493e08917620761cbb492c46d8d3567e64",
+  "files_analyzed": [
+    "SKILL.md", "README.md",
+    "scripts/create_handoff.py", "scripts/validate_handoff.py",
+    "scripts/list_handoffs.py", "scripts/check_staleness.py",
+    "evals/setup_test_env.py",
+    "references/handoff-template.md", "references/resume-checklist.md"
+  ],
+  "score": 90,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools. Scripts use subprocess for git commands and local file operations only."
+    },
+    {
+      "severity": "INFO",
+      "layer": 4,
+      "file": "scripts/create_handoff.py",
+      "line": 30,
+      "content": "subprocess.run(['git', ...], cwd=project_path)",
+      "explanation": "Uses subprocess to run git commands (branch, log, diff). Legitimate for gathering project state. No network calls beyond git. Timeout of 10s prevents hanging."
+    },
+    {
+      "severity": "INFO",
+      "layer": 4,
+      "file": "scripts/validate_handoff.py",
+      "line": 23,
+      "content": "SECRET_PATTERNS regex list for detecting secrets",
+      "explanation": "Positive security feature: validates handoff documents to detect accidentally included secrets (API keys, tokens, passwords). This IMPROVES security posture."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}

@@ -1,0 +1,34 @@
+{
+  "skill": "unknown/plugin-forge",
+  "date": "2026-04-04",
+  "sha256": "8179b93434f814607d2a028631e105fe46a3d7ba488c64fa70c8cb01cfc84104",
+  "files_analyzed": [
+    "SKILL.md", "README.md", "scripts/create_plugin.py", "scripts/bump_version.py",
+    "references/workflows.md", "references/marketplace-schema.md", "references/plugin-structure.md"
+  ],
+  "score": 93,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools. Scripts are pure filesystem operations (json, pathlib). No network, no env vars."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}

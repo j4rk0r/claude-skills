@@ -46,6 +46,69 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/draw-io/fb23a8ba.json"
+    },
+    {
+      "skill": "unknown/mcp-builder",
+      "sha": "0f4592dc",
+      "score": 85,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/mcp-builder/0f4592dc.json"
+    },
+    {
+      "skill": "unknown/meme-factory",
+      "sha": "93244397",
+      "score": 90,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/meme-factory/93244397.json"
+    },
+    {
+      "skill": "unknown/pdf",
+      "sha": "9f78b835",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/pdf/9f78b835.json"
+    },
+    {
+      "skill": "unknown/plugin-forge",
+      "sha": "8179b934",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/plugin-forge/8179b934.json"
+    },
+    {
+      "skill": "unknown/qa-test-planner",
+      "sha": "64adcbcf",
+      "score": 88,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/qa-test-planner/64adcbcf.json"
+    },
+    {
+      "skill": "unknown/session-handoff",
+      "sha": "8964e1b8",
+      "score": 90,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/session-handoff/8964e1b8.json"
+    },
+    {
+      "skill": "unknown/systematic-debugging",
+      "sha": "4999cb85",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/systematic-debugging/4999cb85.json"
     }
   ]
 }
