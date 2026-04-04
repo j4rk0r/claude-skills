@@ -17,6 +17,17 @@ npx skills add j4rk0r/claude-skills --yes --global
 | **[skill-advisor](skills/skill-advisor/)** | Analyzes every instruction and recommends the right skill before execution. Never miss an installed skill again. | 120/120 |
 | **[skill-guard](skills/skill-guard/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | 120/120 |
 
+### Project-local skills
+
+These skills are project-specific and live in `.claude/skills/`:
+
+| Skill | What it does |
+|-------|-------------|
+| **analytics-tracking** | Set up, improve, or audit analytics tracking — GA4, GTM, Mixpanel, Segment, conversion tracking, UTM parameters |
+| **copywriting** | Write, rewrite, or improve marketing copy — homepages, landing pages, pricing pages, CTAs, value propositions |
+| **performance** | Optimize web performance — page speed, load time, Core Web Vitals, performance audits |
+| **seo-audit** | Audit and diagnose SEO issues — technical SEO, meta tags, crawl errors, indexing, ranking drops |
+
 ## skill-guard
 
 > **You install a skill. It reads your `~/.ssh`, grabs your `$GITHUB_TOKEN`, and sends it to a remote server. You never notice.**
@@ -154,24 +165,13 @@ Ecosystem detected:
 - Ready to recommend on every instruction.
 ```
 
-### Project-level overrides
+### Install
 
-Customize behavior per project without modifying the global skill:
-
-```yaml
-# .claude/skills/skill-advisor/SKILL.md
----
-name: skill-advisor
-description: "Project overrides for skill-advisor"
-user-invocable: false
----
-
-## Stack Context
-This is a Django project. Only recommend Python/Django skills.
-
-## Post-QA Workflow
-After QA passes, always create PR on branch `feature/my-name`.
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
 ```
+
+---
 
 ## Quality Standards
 
