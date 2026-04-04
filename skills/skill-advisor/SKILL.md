@@ -84,6 +84,28 @@ Post-action logic:
 **Session getting long (>50 messages)** --> Look for: handoff/session management skills
 **No installed skill matches the user's request** --> Fallback (see below)
 
+## Gap Analysis: Missing Capabilities
+
+After recommending installed skills, ALWAYS analyze what the task **would ideally need** that the user DOESN'T have. Think about the full lifecycle of the task:
+
+**For any task, ask:** What disciplines does this task touch beyond code?
+
+- **Web project** --> SEO, copywriting, marketing, analytics, accessibility, performance, legal (privacy/cookies)
+- **Product launch** --> pricing strategy, landing page copy, social media, email marketing, A/B testing
+- **API development** --> documentation, security audit, rate limiting, monitoring, SDK generation
+- **Mobile app** --> ASO (app store optimization), push notifications, analytics, crash reporting
+- **E-commerce** --> payments, tax compliance, inventory, shipping, fraud detection
+- **Content platform** --> content strategy, editorial workflow, localization, search optimization
+
+**How to surface gaps:**
+
+1. Identify ALL disciplines the task touches (not just the technical ones)
+2. Check which are covered by installed skills
+3. For uncovered disciplines, suggest with `npx skills find <keyword>` commands
+4. Group suggestions by priority: critical gaps vs nice-to-have
+
+**Cap:** Maximum 3 gap suggestions per interaction. Pick the highest-impact ones.
+
 ## Fallback: No Skill Matches
 
 When no installed skill fits the user's request:
@@ -101,7 +123,7 @@ When you detect a multi-step scenario, recommend the full pipeline of installed 
 - **Debugging** --> debugging skill --> fix --> testing skill --> verification skill
 - **Writing docs** --> documentation skill + writing quality skill (if both installed)
 
-Only recommend combos from skills the user actually has installed.
+Mark each step as ✅ (installed) or ❌ (gap). This makes pipeline holes visible at a glance.
 
 ## Prioritization
 
@@ -113,7 +135,7 @@ When multiple skills match, rank by:
 
 ## NEVER
 
-- NEVER reference skills the user doesn't have installed — only recommend from system-reminder list
+- NEVER recommend uninstalled skills AS IF they were installed — clearly separate "installed" from "gap suggestions"
 - NEVER recommend more than 5 — long lists get ignored
 - NEVER recommend skills for stacks not in the project — check the project before suggesting
 - NEVER repeat a rejected skill this session — they said no, respect it
@@ -158,17 +180,24 @@ Present in the user's language, concise:
 
 **Pre-action** (before starting work):
 ```
-Evaluacion de skills:
+Skills instaladas relevantes:
 1. /skill-name -- [por que aplica a esta instruccion]
 2. /skill-name -- [por que aplica]
 
-Procedo con estas? O directamente sin skill?
+Gaps detectados (no instaladas):
+- [disciplina]: npx skills find <keyword>
+- [disciplina]: npx skills find <keyword>
+
+Procedo con las instaladas? Quieres buscar alguna de los gaps primero?
 ```
 
 **Post-action** (after completing work):
 ```
 Skills recomendadas como siguiente paso:
 1. /skill-name -- [razon concreta]
+
+Gaps para mejorar resultado:
+- [disciplina]: npx skills find <keyword>
 
 Ejecutar todas: "aplica todas" | Una sola: escribe el comando
 ```
