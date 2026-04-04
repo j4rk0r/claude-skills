@@ -12,11 +12,11 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 ## Skills
 
-| Skill | Description | Installer | Score |
-|-------|------------|-----------|-------|
-| **[skill-guard](../skills/skill-guard/)** | Detecte les skills malveillantes avant qu'elles ne touchent vos fichiers, tokens ou cles. Analyse en 9 couches + registre d'audits verifie. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` | 120/120 |
-| **[skill-advisor](../skills/skill-advisor/)** | Construit des plans d'execution combinant vos skills installees et les gaps manquants — puis propose de les installer. Ne commencez jamais sous-equipe. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` | 120/120 |
-| **[skill-learner](../skills/skill-learner/)** | Capture les erreurs et persiste les corrections pour que la meme faute ne se reproduise plus. Fonctionne pour les skills ET le comportement general de Claude. Genere optionnellement des propositions d'amelioration pour les auteurs. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` | 120/120 |
+| Skill | Description | Installer |
+|-------|------------|-----------|
+| **[skill-guard](../skills/skill-guard/)** | Detecte les skills malveillantes avant qu'elles ne touchent vos fichiers, tokens ou cles. Analyse en 9 couches + registre d'audits verifie. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` |
+| **[skill-advisor](../skills/skill-advisor/)** | Construit des plans d'execution combinant vos skills installees et les gaps manquants — puis propose de les installer. Ne commencez jamais sous-equipe. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` |
+| **[skill-learner](../skills/skill-learner/)** | Capture les erreurs et persiste les corrections pour que la meme faute ne se reproduise plus. Fonctionne pour les skills ET le comportement general de Claude. Genere optionnellement des propositions d'amelioration pour les auteurs. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` |
 
 ## skill-guard
 

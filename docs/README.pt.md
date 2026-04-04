@@ -12,11 +12,11 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 ## Skills
 
-| Skill | O que faz | Instalar | Nota |
-|-------|-----------|----------|------|
-| **[skill-guard](../skills/skill-guard/)** | Detecta skills maliciosas antes que toquem seus arquivos, tokens ou chaves. Analise em 9 camadas + registro de auditorias verificado. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` | 120/120 |
-| **[skill-advisor](../skills/skill-advisor/)** | Constroi planos de execucao combinando skills instaladas com gaps que faltam — e oferece instala-los. Nunca comece uma tarefa sem as ferramentas certas. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` | 120/120 |
-| **[skill-learner](../skills/skill-learner/)** | Captura erros e persiste correcoes para que o mesmo erro nunca se repita. Funciona para skills E comportamento geral do Claude. Opcionalmente gera propostas de melhoria para autores. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` | 120/120 |
+| Skill | O que faz | Instalar |
+|-------|-----------|----------|
+| **[skill-guard](../skills/skill-guard/)** | Detecta skills maliciosas antes que toquem seus arquivos, tokens ou chaves. Analise em 9 camadas + registro de auditorias verificado. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` |
+| **[skill-advisor](../skills/skill-advisor/)** | Constroi planos de execucao combinando skills instaladas com gaps que faltam — e oferece instala-los. Nunca comece uma tarefa sem as ferramentas certas. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` |
+| **[skill-learner](../skills/skill-learner/)** | Captura erros e persiste correcoes para que o mesmo erro nunca se repita. Funciona para skills E comportamento geral do Claude. Opcionalmente gera propostas de melhoria para autores. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` |
 
 ## skill-guard
 
