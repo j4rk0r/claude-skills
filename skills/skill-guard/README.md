@@ -40,7 +40,7 @@ skill-guard: [runs 9-layer analysis]
 ## Install
 
 ```bash
-npx skills add j4rk0r/claude-skills@skill-security --yes --global
+npx skills add j4rk0r/claude-skills@skill-guard --yes --global
 ```
 
 ## The 9 Analysis Layers

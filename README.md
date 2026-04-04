@@ -15,7 +15,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 | Skill | What it does | Score |
 |-------|-------------|-------|
 | **[skill-advisor](skills/skill-advisor/)** | Analyzes every instruction and recommends the right skill before execution. Never miss an installed skill again. | 120/120 |
-| **[skill-guard](skill-security/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | — |
+| **[skill-guard](skills/skill-guard/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | — |
 
 ## skill-guard
 
@@ -65,7 +65,7 @@ Every audit is saved to [`skill-security/audits/`](skill-security/audits/). Befo
 ### Install
 
 ```bash
-npx skills add j4rk0r/claude-skills@skill-security --yes --global
+npx skills add j4rk0r/claude-skills@skill-guard --yes --global
 ```
 
 ---

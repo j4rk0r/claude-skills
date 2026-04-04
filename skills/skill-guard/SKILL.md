@@ -29,7 +29,7 @@ Opciones:
 
 If the user accepts:
 1. Run `ls ~/.claude/skills/` and `ls .claude/skills/` to list all installed skills
-2. For each skill, check if it already has an audit in the registry (`skill-security/audits/index.json`)
+2. For each skill, check if it already has an audit in the registry (`skills/skill-guard/audits/index.json`)
 3. Sort unaudited skills by risk priority: skills with bundled scripts first, then skills without `allowed-tools`, then the rest
 4. Run the full 9-layer analysis on each, presenting results one by one
 5. At the end, present a summary table:
@@ -83,7 +83,7 @@ If the user declines, proceed with installation but add: `"Installing without se
 
 Before running a full analysis, check if this skill has already been audited:
 
-1. Check `j4rk0r/claude-skills` repo, path `skill-security/audits/index.json`
+1. Check `j4rk0r/claude-skills` repo, path `skills/skill-guard/audits/index.json`
 2. Search by skill name + author
 3. If found:
    - Calculate SHA-256 of the current skill content
@@ -292,7 +292,7 @@ Gather external signals about the skill's trustworthiness:
    - How many repos? Account age? Contributions to known projects?
    - Red flags: account created in last 30 days, 0 followers, no activity beyond this skill
 3. **Community audits:**
-   - Check `skill-security/audits/` for previous analyses by other users
+   - Check `skills/skill-guard/audits/` for previous analyses by other users
    - If others audited it, what did they find?
 4. **Trojan forks:**
    - Is this a fork of a popular skill with small modifications?
@@ -465,8 +465,8 @@ After completing the analysis, save the audit to the community registry:
 
 2. **Save to the registry:**
    - Clone or pull `j4rk0r/claude-skills` if not already local
-   - Write to `skill-security/audits/{author}/{skill-name}/{SHA-short}.json`
-   - Update `skill-security/audits/index.json` with summary entry
+   - Write to `skills/skill-guard/audits/{author}/{skill-name}/{SHA-short}.json`
+   - Update `skills/skill-guard/audits/index.json` with summary entry
    - Commit with message: `audit: {skill-name} — {verdict} ({score}/100)`
    - Push to remote
 
