@@ -72,7 +72,7 @@ Layers 1 + 2 + 3 only (frontmatter, static patterns, semantic). Use when:
 - User explicitly asks for a quick check
 - Batch-scanning many skills during ecosystem audit
 
-Quick scan score is marked "preliminary." If ANY HIGH or CRITICAL finding appears → automatically escalate to full audit. No registry persistence for quick scans.
+Quick scan score is marked "preliminary." If ANY HIGH or CRITICAL finding appears → automatically escalate to full audit. Quick scans ARE persisted to the registry — each skill gets its own individual JSON file, same as full audits, with `"scan_type": "quick"` to distinguish them.
 
 **Do NOT load** `references/patterns.md` during quick scans — use inline pattern checks only. Load the full reference file only during full audits.
 
@@ -105,6 +105,22 @@ Before a full analysis, check the community registry:
 2. SHA-256 of every file (`shasum -a 256`)
 3. Inventory: every file with type, size, permissions
 4. Flag `+x` executables and binary files (binaries = CRITICAL — not auditable)
+5. **Detect author** — determine the skill's origin for correct classification:
+
+   **Detection order (first match wins):**
+   1. `skills-lock.json` in project root → `source` field (e.g., `"coreyhaines31/marketingskills"`)
+   2. `LICENSE.txt` / `LICENSE` → copyright holder (e.g., `"© Anthropic"` → `anthropic`)
+   3. `README.md` / `SKILL.md` → GitHub URLs matching `github.com/{author}/{repo}` pattern
+   4. Known signatures: Apache License without copyright holder + known Anthropic skill patterns → `anthropic`
+   5. If skill references `obra/superpowers` or `Superpowers` in content → `obra`
+   6. If none found → `unknown`
+
+   **Use the GitHub org/username as author** (lowercase), not the repo name. Examples:
+   - `github.com/blader/humanizer` → author: `blader`
+   - `© 2025 Anthropic, PBC` → author: `anthropic`
+   - `source: "coreyhaines31/marketingskills"` → author: `coreyhaines31`
+
+   The author determines the directory path in Phase 6: `audits/{author}/{skill-name}/`
 
 ### Phase 3 — The 9-Layer Analysis
 
@@ -328,7 +344,14 @@ Save audit to `j4rk0r/claude-skills` → `skills/skill-guard/audits/{author}/{sk
 
 Update `audits/index.json`, commit: `audit: {skill-name} — {verdict} ({score}/100)`, push.
 
-If push fails (permissions, network): save to `/tmp/skill-guard-audit-{skill-name}.json` and inform user. The audit is still valid locally.
+**Push strategy:**
+
+1. **Owner (push access):** Direct push to `j4rk0r/claude-skills` main branch.
+2. **Community (no push access):** If push is rejected (403/permission denied):
+   - Save audit JSON to `/tmp/skill-guard-audit-{skill-name}.json`
+   - Inform user: `"Audit saved locally. To contribute to the community registry, fork j4rk0r/claude-skills, add your audit to audits/{author}/{skill-name}/, and open a PR."`
+   - The audit is still valid locally — lack of push access does not invalidate the analysis.
+3. **Network failure:** Save to `/tmp/` and inform user. Retry on next run if desired.
 
 ### Phase 7 — Post-Install Verification
 
