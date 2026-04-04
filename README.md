@@ -118,11 +118,11 @@ No match?      --> Proceeds silently (or suggests one to install)
 ```
 > "fix this login bug"
 
-Evaluacion de skills:
+Skill evaluation:
 1. /systematic-debugging — matches "bug, test failure, unexpected behavior"
 2. /webapp-testing — verify the fix after
 
-Procedo con estas? O directamente sin skill?
+Proceed with these? Or directly without skill?
 ```
 
 **Post-action** — After completing work, suggests the logical next step:
@@ -130,7 +130,7 @@ Procedo con estas? O directamente sin skill?
 ```
 > [code modified]
 
-Skills recomendadas:
+Recommended skills:
 1. /webapp-testing — code was modified, tests needed
 2. /verification-before-completion — before claiming done
 ```
@@ -148,10 +148,10 @@ Skills recomendadas:
 On first explicit invocation (`/skill-advisor`), it scans your ecosystem and reports what it found:
 
 ```
-Ecosystem detectado:
-- 47 skills instaladas (global + proyecto)
-- Categorias: debugging, testing, frontend, docs, planning, ...
-- Listo para recomendar en cada instruccion.
+Ecosystem detected:
+- 47 skills installed (global + project)
+- Categories: debugging, testing, frontend, docs, planning, ...
+- Ready to recommend on every instruction.
 ```
 
 ### Project-level overrides

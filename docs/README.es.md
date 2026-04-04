@@ -15,6 +15,61 @@ npx skills add j4rk0r/claude-skills --yes --global
 | Skill | Que hace | Puntuacion |
 |-------|----------|------------|
 | **[skill-advisor](../skills/skill-advisor/)** | Analiza cada instruccion y recomienda la skill correcta antes de ejecutar. No vuelvas a olvidar una skill instalada. | 120/120 |
+| **[skill-guard](../skills/skill-guard/)** | Auditor de seguridad — deteccion de amenazas en 9 capas para skills antes de instalarlas. Registro comunitario de auditorias. | 120/120 |
+
+## skill-guard
+
+> **Instalas una skill. Lee tu `~/.ssh`, coge tu `$GITHUB_TOKEN` y lo envia a un servidor remoto. No te enteras.**
+
+skill-guard previene esto. Audita skills antes de instalarlas usando 9 capas de analisis — desde patrones estaticos hasta analisis semantico con LLM que detecta prompt injection disfrazada de instrucciones normales.
+
+### Como funciona
+
+```
+Quieres instalar una skill
+        |
+        v
+skill-guard consulta el registro comunitario de auditorias
+        |
+        v
+Ya auditada (mismo SHA)?  --> Muestra informe anterior
+No auditada?              --> "Quieres un analisis de seguridad?"
+        |
+        v
+Analisis de 9 capas: permisos, patrones, scripts,
+flujo de datos, abuso MCP, supply chain, reputacion...
+        |
+        v
+Puntuacion 0-100 → VERDE / AMARILLO / ROJO
+        |
+        v
+VERDE: auto-instala | AMARILLO: tu decides | ROJO: advertencia fuerte
+```
+
+### Las 9 capas
+
+1. **Frontmatter y permisos** (20%) — Sin `allowed-tools`? Bash sin restricciones? Secuestro de descripcion?
+2. **Patrones estaticos** (15%) — URLs, IPs, rutas sensibles, comandos peligrosos, variables de entorno
+3. **Analisis semantico LLM** (30%) — Prompt injection, troyanos, ingenieria social, bombas de tiempo
+4. **Scripts bundled** (15%) — Lee CADA script. Imports peligrosos, ofuscacion, exfiltracion
+5. **Flujo de datos** (10%) — Mapea origen → destino. Datos sensibles llegando a URLs externas = amenaza confirmada
+6. **MCP y herramientas** — Uso no declarado de MCP, exfiltracion via Slack/GitHub/Monday
+7. **Supply chain** (2%) — Typosquatting, versiones sin fijar, repos falsos
+8. **Reputacion** (3%) — Perfil del autor, edad del repo, forks troyanos
+9. **Anti-evasion** (5%) — Trucos unicode, homoglifos, auto-modificacion, fingerprinting de entorno
+
+### Dos modos de analisis
+
+- **Auditoria completa** — Las 9 capas, informe completo, persistencia en registro
+- **Escaneo rapido** — Solo capas 1+2+3. Auto-escala a completa si encuentra hallazgos HIGH/CRITICAL
+
+### Instalar
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard --yes --global
+```
+
+---
 
 ## skill-advisor
 
@@ -37,82 +92,29 @@ Sin match?    --> Continua en silencio (o sugiere una para instalar)
 
 ### Dos modos
 
-**Pre-accion** — Antes de que Claude empiece a trabajar, recomienda skills que mejorarian el resultado:
+**Pre-accion** — Antes de que Claude empiece a trabajar, recomienda skills que mejorarian el resultado.
 
-```
-> "arregla este bug de login"
-
-Evaluacion de skills:
-1. /systematic-debugging — coincide con "bug, test failure, unexpected behavior"
-2. /webapp-testing — verificar el fix despues
-
-Procedo con estas? O directamente sin skill?
-```
-
-**Post-accion** — Al terminar un trabajo, sugiere el siguiente paso logico:
-
-```
-> [codigo modificado]
-
-Skills recomendadas:
-1. /webapp-testing — codigo modificado, tests necesarios
-2. /verification-before-completion — antes de dar por terminado
-```
+**Post-accion** — Al terminar un trabajo, sugiere el siguiente paso logico.
 
 ### Que lo hace diferente
 
-- **Lee TUS skills** — Sin lista fija. Escanea el system-reminder dinamicamente. Instala una skill hoy, skill-advisor la ve manana.
-- **Piensa lateralmente** — "hazlo mas bonito" encuentra skills de diseno, animacion Y auditoria de accesibilidad. No solo busqueda literal.
-- **Sabe cuando callarse** — Tareas simples (renombrar variable, leer archivo) no reciben recomendaciones. Se pregunta: "el usuario me agradeceria esto o le molestaria?"
-- **Recomienda pipelines** — Detecta escenarios multi-paso y sugiere el combo completo: brainstorming -> writing-plans -> subagent-driven-development.
-- **Fallback a la comunidad** — Si nada local coincide, sugiere skills instalables via `find-skills` o `npx skills find`.
+- **Lee TUS skills** — Sin lista fija. Escanea el system-reminder dinamicamente.
+- **Piensa lateralmente** — "hazlo mas bonito" encuentra skills de diseno, animacion Y auditoria de accesibilidad.
+- **Sabe cuando callarse** — Tareas simples no reciben recomendaciones.
+- **Recomienda pipelines** — Detecta escenarios multi-paso y sugiere el combo completo.
+- **Fallback a la comunidad** — Si nada local coincide, sugiere skills instalables.
 
-### Primera ejecucion
+### Instalar
 
-En la primera invocacion explicita (`/skill-advisor`), escanea tu ecosistema:
-
-```
-Ecosystem detectado:
-- 47 skills instaladas (global + proyecto)
-- Categorias: debugging, testing, frontend, docs, planning, ...
-- Listo para recomendar en cada instruccion.
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
 ```
 
-### Overrides por proyecto
-
-Personaliza el comportamiento por proyecto sin modificar la skill global:
-
-```yaml
-# .claude/skills/skill-advisor/SKILL.md
 ---
-name: skill-advisor
-description: "Overrides de proyecto para skill-advisor"
-user-invocable: false
----
-
-## Contexto del Stack
-Este es un proyecto Django. Solo recomendar skills de Python/Django.
-
-## Workflow Post-QA
-Despues de QA, siempre crear PR en branch `feature/mi-nombre`.
-```
 
 ## Estandares de Calidad
 
-Cada skill se evalua con el framework [skill-judge](https://github.com/softaworks/agent-toolkit) — 8 dimensiones, 120 puntos max.
-
-| Dimension | Que mide |
-|-----------|----------|
-| Knowledge Delta | Conocimiento experto que Claude no tiene por defecto |
-| Mindset | Patrones de pensamiento, no solo procedimientos |
-| Anti-Patterns | Reglas NEVER especificas con razones reales |
-| Description | Optimizada para activacion automatica |
-| Disclosure | Cuerpo conciso, referencias bajo demanda |
-| Freedom | Nivel correcto de restriccion para el tipo de tarea |
-| Pattern | Sigue patrones de diseno de skills probados |
-| Usability | El agente puede actuar inmediatamente |
-
-**Minimo para inclusion: B (96/120).** Coleccion actual: todo A+ (120/120).
+Cada skill se evalua con el framework [skill-judge](https://github.com/softaworks/agent-toolkit) — 8 dimensiones, 120 puntos max. **Minimo para inclusion: B (96/120).** Coleccion actual: todo A+ (120/120).
 
 ## Contribuir
 

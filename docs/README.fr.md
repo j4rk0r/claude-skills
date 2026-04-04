@@ -15,6 +15,61 @@ npx skills add j4rk0r/claude-skills --yes --global
 | Skill | Description | Score |
 |-------|------------|-------|
 | **[skill-advisor](../skills/skill-advisor/)** | Analyse chaque instruction et recommande la bonne skill avant execution. Ne ratez plus jamais une skill installee. | 120/120 |
+| **[skill-guard](../skills/skill-guard/)** | Auditeur de securite — detection de menaces en 9 couches pour les skills avant installation. Registre communautaire d'audits. | 120/120 |
+
+## skill-guard
+
+> **Vous installez une skill. Elle lit votre `~/.ssh`, prend votre `$GITHUB_TOKEN` et l'envoie a un serveur distant. Vous ne remarquez rien.**
+
+skill-guard empeche cela. Il audite les skills avant installation en utilisant 9 couches d'analyse — des patterns statiques a l'analyse semantique LLM qui detecte l'injection de prompts deguisee en instructions normales.
+
+### Comment ca marche
+
+```
+Vous voulez installer une skill
+        |
+        v
+skill-guard consulte le registre communautaire d'audits
+        |
+        v
+Deja auditee (meme SHA) ?  --> Affiche le rapport precedent
+Non auditee ?               --> "Analyse de securite avant installation ?"
+        |
+        v
+Analyse 9 couches: permissions, patterns, scripts,
+flux de donnees, abus MCP, supply chain, reputation...
+        |
+        v
+Score 0-100 → VERT / JAUNE / ROUGE
+        |
+        v
+VERT: auto-installe | JAUNE: vous decidez | ROUGE: avertissement fort
+```
+
+### Les 9 couches
+
+1. **Frontmatter et permissions** (20%) — `allowed-tools` manquant ? Bash sans restrictions ?
+2. **Patterns statiques** (15%) — URLs, IPs, chemins sensibles, commandes dangereuses
+3. **Analyse semantique LLM** (30%) — Injection de prompts, trojans, ingenierie sociale
+4. **Scripts bundles** (15%) — Lit CHAQUE script. Imports dangereux, obfuscation
+5. **Flux de donnees** (10%) — Mappe source → destination. Donnees sensibles vers URLs externes = menace
+6. **MCP et outils** — Usage MCP non declare, exfiltration via Slack/GitHub/Monday
+7. **Supply chain** (2%) — Typosquatting, versions non fixees, faux repos
+8. **Reputation** (3%) — Profil de l'auteur, age du repo, forks trojans
+9. **Anti-evasion** (5%) — Astuces unicode, homoglyphes, auto-modification
+
+### Deux modes d'analyse
+
+- **Audit complet** — 9 couches, rapport complet, persistance dans le registre
+- **Scan rapide** — Couches 1+2+3 uniquement. Auto-escalade si trouvaille HIGH/CRITICAL
+
+### Installer
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard --yes --global
+```
+
+---
 
 ## skill-advisor
 
@@ -31,52 +86,31 @@ Vous tapez une instruction
 skill-advisor scanne vos skills installees
         |
         v
-Correspondance? --> Recommande 1-5, classees par impact
-Aucune?         --> Continue en silence (ou suggere une a installer)
+Correspondance ? --> Recommande 1-5, classees par impact
+Aucune ?         --> Continue en silence (ou suggere une a installer)
 ```
 
 ### Deux modes
 
-**Pre-action** — Avant que Claude commence, recommande les skills qui amelioreraient le resultat :
+**Pre-action** — Avant que Claude commence, recommande les skills qui amelioreraient le resultat.
 
-```
-> "corrige ce bug de login"
-
-Evaluation des skills:
-1. /systematic-debugging — correspond a "bug, test failure"
-2. /webapp-testing — verifier le fix apres
-
-Je procede avec celles-ci ? Ou directement sans skill ?
-```
-
-**Post-action** — Apres le travail, suggere la prochaine etape logique :
-
-```
-> [code modifie]
-
-Skills recommandees:
-1. /webapp-testing — code modifie, tests necessaires
-2. /verification-before-completion — avant de declarer termine
-```
+**Post-action** — Apres le travail, suggere la prochaine etape logique.
 
 ### Ce qui le rend different
 
 - **Lit VOS skills** — Pas de liste codee en dur. Scanne le system-reminder dynamiquement.
-- **Pense lateralement** — "rends-le plus beau" trouve des skills de design, animation ET audit d'accessibilite.
-- **Sait quand se taire** — Taches simples ? Pas de recommandation. Se demande : "l'utilisateur me remercierait ou serait agace ?"
+- **Pense lateralement** — "rends-le plus beau" trouve design, animation ET audit d'accessibilite.
+- **Sait quand se taire** — Taches simples ? Pas de recommandation.
 - **Recommande des pipelines** — Detecte les scenarios multi-etapes et suggere le combo complet.
-- **Fallback communautaire** — Si rien ne correspond localement, suggere des skills installables.
+- **Fallback communautaire** — Si rien ne correspond, suggere des skills installables.
 
-### Premier lancement
+### Installer
 
-A la premiere invocation (`/skill-advisor`), scanne votre ecosysteme et rapporte :
-
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
 ```
-Ecosysteme detecte:
-- 47 skills installees (global + projet)
-- Categories: debugging, testing, frontend, docs, planning, ...
-- Pret a recommander a chaque instruction.
-```
+
+---
 
 ## Standards de Qualite
 

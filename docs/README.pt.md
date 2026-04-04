@@ -15,6 +15,61 @@ npx skills add j4rk0r/claude-skills --yes --global
 | Skill | O que faz | Nota |
 |-------|-----------|------|
 | **[skill-advisor](../skills/skill-advisor/)** | Analisa cada instrucao e recomenda a skill certa antes da execucao. Nunca mais esqueca uma skill instalada. | 120/120 |
+| **[skill-guard](../skills/skill-guard/)** | Auditor de seguranca — deteccao de ameacas em 9 camadas para skills antes da instalacao. Registro comunitario de auditorias. | 120/120 |
+
+## skill-guard
+
+> **Voce instala uma skill. Ela le seu `~/.ssh`, pega seu `$GITHUB_TOKEN` e envia para um servidor remoto. Voce nao percebe.**
+
+skill-guard previne isso. Audita skills antes da instalacao usando 9 camadas de analise — de padroes estaticos a analise semantica com LLM que detecta injecao de prompt disfarçada de instrucoes normais.
+
+### Como funciona
+
+```
+Voce quer instalar uma skill
+        |
+        v
+skill-guard consulta o registro comunitario de auditorias
+        |
+        v
+Ja auditada (mesmo SHA)?  --> Mostra relatorio anterior
+Nao auditada?              --> "Analise de seguranca antes de instalar?"
+        |
+        v
+Analise de 9 camadas: permissoes, padroes, scripts,
+fluxo de dados, abuso MCP, supply chain, reputacao...
+        |
+        v
+Score 0-100 → VERDE / AMARELO / VERMELHO
+        |
+        v
+VERDE: auto-instala | AMARELO: voce decide | VERMELHO: aviso forte
+```
+
+### As 9 camadas
+
+1. **Frontmatter e permissoes** (20%) — Sem `allowed-tools`? Bash sem restricoes?
+2. **Padroes estaticos** (15%) — URLs, IPs, caminhos sensiveis, comandos perigosos
+3. **Analise semantica LLM** (30%) — Injecao de prompt, trojans, engenharia social
+4. **Scripts bundled** (15%) — Le CADA script. Imports perigosos, ofuscacao
+5. **Fluxo de dados** (10%) — Mapeia origem → destino. Dados sensiveis em URLs externas = ameaca
+6. **MCP e ferramentas** — Uso MCP nao declarado, exfiltracao via Slack/GitHub/Monday
+7. **Supply chain** (2%) — Typosquatting, versoes nao fixadas, repos falsos
+8. **Reputacao** (3%) — Perfil do autor, idade do repo, forks trojans
+9. **Anti-evasao** (5%) — Truques unicode, homoglifos, auto-modificacao
+
+### Dois modos de analise
+
+- **Auditoria completa** — 9 camadas, relatorio completo, persistencia no registro
+- **Scan rapido** — Apenas camadas 1+2+3. Auto-escalada se encontrar HIGH/CRITICAL
+
+### Instalar
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard --yes --global
+```
+
+---
 
 ## skill-advisor
 
@@ -48,6 +103,14 @@ Sem match? --> Continua silenciosamente (ou sugere uma para instalar)
 - **Sabe quando ficar quieto** — Tarefas simples nao recebem recomendacoes.
 - **Recomenda pipelines** — Detecta cenarios multi-etapa e sugere o combo completo.
 - **Fallback para comunidade** — Se nada local corresponder, sugere skills instalaveis.
+
+### Instalar
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
+```
+
+---
 
 ## Padroes de Qualidade
 
