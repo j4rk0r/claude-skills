@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Community-driven security audit registry for Claude Code skills.",
-  "total_audits": 69,
+  "total_audits": 70,
   "authors": [
     "ablerz",
     "anthropic",
@@ -86,6 +86,15 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "j4rk0r/skill-judge/737ef362.json"
+    },
+    {
+      "skill": "j4rk0r/skill-learner",
+      "sha": "d98a1fbd",
+      "score": 90,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "j4rk0r/skill-learner/d98a1fbd.json"
     },
     {
       "skill": "joshuadavidthomas/crafting-effective-readmes",

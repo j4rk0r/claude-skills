@@ -1,0 +1,49 @@
+{
+  "skill": "j4rk0r/Mis-skills@skill-learner",
+  "date": "2026-04-04",
+  "sha256": "d98a1fbd6141f327d79afa24f7e841f157a8c1710f5d41429362248fcc38cb3f",
+  "files_analyzed": ["SKILL.md"],
+  "score": 90,
+  "verdict": "GREEN",
+  "scan_type": "full",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 0,
+      "content": "No allowed-tools frontmatter declared",
+      "explanation": "The skill has no allowed-tools restriction. It only needs Read, Write, and Edit to manage correction files in ~/.claude/skill-corrections/. Without allowed-tools, it inherits full access including Bash and network tools, which exceeds its stated purpose. However, the skill contains zero instructions to use Bash, network, or any tool beyond file I/O, so the actual risk is low."
+    },
+    {
+      "severity": "LOW",
+      "layer": 5,
+      "file": "SKILL.md",
+      "line": 29,
+      "content": "~/.claude/skill-corrections/",
+      "explanation": "The skill writes to ~/.claude/ subdirectory. This is a dedicated subdirectory (skill-corrections/) and does NOT access ~/.claude/settings.json, ~/.claude/CLAUDE.md, or any other sensitive Claude config. The storage location is reasonable for persistent correction data."
+    },
+    {
+      "severity": "LOW",
+      "layer": 3,
+      "file": "SKILL.md",
+      "line": 160,
+      "content": "When ANY skill runs, the executing agent should check ~/.claude/skill-corrections/",
+      "explanation": "The skill proposes that other skills should read its correction files during execution. This is an advisory cross-skill integration pattern, not an actual injection. It cannot force other skills to comply -- it merely documents the intended consumption model. No enforcement mechanism exists."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 85,
+    "static_patterns": 100,
+    "semantic": 90,
+    "scripts": 100,
+    "data_flow": 95,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 85,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1",
+  "auditor": "j4rk0r"
+}
