@@ -89,7 +89,9 @@ Each rule exists because of a real attack pattern observed in the wild:
 
 ### Community audit registry
 
-Every audit is saved to [`skills/skill-guard/audits/`](skills/skill-guard/audits/). Before analyzing, skill-guard checks if someone already audited that version. Instant results if SHA matches.
+Every audit is saved to [`skills/skill-guard/audits/`](skills/skill-guard/audits/), organized by verified author (anthropic, obra, softaworks, etc.). Before analyzing, skill-guard checks if someone already audited that version. Instant results if SHA matches.
+
+**Trust model:** Only the system generates and publishes audit results. Community members request audits via PR to `audits/requests/` — the maintainer runs skill-guard and publishes the result. This prevents tampered audits from entering the registry.
 
 ### Practices what it preaches
 

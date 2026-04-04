@@ -67,17 +67,36 @@ npx skills add j4rk0r/claude-skills@skill-guard --yes --global
 
 ## Community Audit Registry
 
-Every audit is saved to `audits/` in this repo. Before analyzing a skill, skill-guard checks if it's already been audited:
+Every audit is saved to `audits/` in this repo, organized by verified author. Before analyzing a skill, skill-guard checks if it's already been audited:
 
 ```
 audits/
-├── index.json              ← quick lookup
-└── {author}/
+├── index.json              ← quick lookup (69 audits)
+├── requests/               ← community audit request queue
+├── anthropic/              ← Anthropic official skills
+│   ├── skill-creator/
+│   ├── pdf/
+│   ├── mcp-builder/
+│   └── frontend-design/
+├── obra/                   ← obra/superpowers skills
+├── softaworks/             ← softaworks/agent-toolkit skills
+├── j4rk0r/                 ← j4rk0r skills
+└── unknown/                ← skills without verified author
     └── {skill-name}/
-        └── {SHA-short}.json  ← full report
+        └── {SHA-short}.json
 ```
 
 If the SHA-256 matches a previous audit, you get instant results without re-analysis.
+
+### Trust Model
+
+**Only the system owner generates and publishes audit results.** Community members cannot submit audit JSONs directly — this prevents tampered audits from entering the registry.
+
+**To request an audit:**
+1. Fork this repo
+2. Add a request file to `audits/requests/{skill-name}.json`
+3. Open a PR titled `audit-request: {skill-name}`
+4. The maintainer runs skill-guard and publishes the result
 
 ## First Run
 
