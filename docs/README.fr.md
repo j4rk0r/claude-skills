@@ -63,6 +63,12 @@ VERT: auto-installe | JAUNE: vous decidez | ROUGE: avertissement fort
 - **Audit complet** — 9 couches, rapport complet, persistance dans le registre
 - **Scan rapide** — Couches 1+2+3 uniquement. Auto-escalade si trouvaille HIGH/CRITICAL
 
+### Registre communautaire d'audits
+
+Chaque audit est sauvegarde dans [`skills/skill-guard/audits/`](../skills/skill-guard/audits/), organise par auteur verifie (anthropic, obra, softaworks, etc.). Avant d'analyser, skill-guard verifie si quelqu'un a deja audite cette version. Resultats instantanes si le SHA correspond.
+
+**Modele de confiance :** Seul le systeme genere et publie les resultats d'audit. Les membres de la communaute demandent des audits via PR dans `audits/requests/` — le mainteneur execute skill-guard et publie le resultat. Cela empeche les audits falsifies d'entrer dans le registre.
+
 ### Installer
 
 ```bash

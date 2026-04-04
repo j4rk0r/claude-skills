@@ -63,6 +63,8 @@ VERDE: auto-instala | AMARELO: voce decide | VERMELHO: aviso forte
 - **Auditoria completa** — 9 camadas, relatorio completo, persistencia no registro
 - **Scan rapido** — Apenas camadas 1+2+3. Auto-escalada se encontrar HIGH/CRITICAL
 
+**Modelo de confiança:** Apenas o sistema gera e publica resultados de auditoria. Membros da comunidade solicitam auditorias via PR em `audits/requests/` — o mantenedor executa o skill-guard e publica o resultado. Isso impede que auditorias adulteradas entrem no registro.
+
 ### Instalar
 
 ```bash

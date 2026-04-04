@@ -63,6 +63,12 @@ GRUEN: auto-installiert | GELB: Sie entscheiden | ROT: starke Warnung
 - **Vollstaendiges Audit** — 9 Schichten, kompletter Bericht, Register-Persistenz
 - **Schnellscan** — Nur Schichten 1+2+3. Auto-Eskalation bei HIGH/CRITICAL-Befunden
 
+### Gemeinschaftliches Audit-Register
+
+Jedes Audit wird in [`skills/skill-guard/audits/`](../skills/skill-guard/audits/) gespeichert, organisiert nach verifiziertem Autor (anthropic, obra, softaworks, etc.). Vor der Analyse prueft skill-guard, ob jemand diese Version bereits auditiert hat. Sofortergebnisse bei SHA-Uebereinstimmung.
+
+**Vertrauensmodell:** Nur das System erstellt und veroeffentlicht Audit-Ergebnisse. Community-Mitglieder beantragen Audits per PR in `audits/requests/` — der Maintainer fuehrt skill-guard aus und veroeffentlicht das Ergebnis. Das verhindert, dass manipulierte Audits in das Register gelangen.
+
 ### Installieren
 
 ```bash

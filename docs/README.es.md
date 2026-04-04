@@ -63,6 +63,12 @@ VERDE: auto-instala | AMARILLO: tu decides | ROJO: advertencia fuerte
 - **Auditoria completa** — Las 9 capas, informe completo, persistencia en registro
 - **Escaneo rapido** — Solo capas 1+2+3. Auto-escala a completa si encuentra hallazgos HIGH/CRITICAL
 
+### Registro comunitario de auditorias
+
+Cada auditoria se guarda en [`skills/skill-guard/audits/`](../skills/skill-guard/audits/), organizada por autor verificado (anthropic, obra, softaworks, etc.). Antes de analizar, skill-guard comprueba si alguien ya audito esa version. Resultados instantaneos si el SHA coincide.
+
+**Modelo de confianza:** Solo el sistema genera y publica resultados de auditoria. Los miembros de la comunidad solicitan auditorias mediante PR a `audits/requests/` — el mantenedor ejecuta skill-guard y publica el resultado. Esto impide que auditorias manipuladas entren en el registro.
+
 ### Instalar
 
 ```bash
