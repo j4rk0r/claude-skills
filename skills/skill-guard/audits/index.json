@@ -109,6 +109,16 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/systematic-debugging/4999cb85.json"
+    },
+    {
+      "skill": "batch-quick-scan",
+      "sha": "batch",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "batch-quick-scan-2026-04-04.json",
+      "note": "57 prompt-only skills (no scripts), quick scan Layers 1+2+3. 47/57 missing allowed-tools. All GREEN."
     }
   ]
 }
