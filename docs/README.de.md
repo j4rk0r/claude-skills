@@ -12,11 +12,11 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 ## Skills
 
-| Skill | Beschreibung | Bewertung |
-|-------|-------------|-----------|
-| **[skill-guard](../skills/skill-guard/)** | Erkennt schaedliche Skills, bevor sie Ihre Dateien, Tokens oder Schluessel beruehren. 9-Schichten-Analyse + verifiziertes Audit-Register. | 120/120 |
-| **[skill-advisor](../skills/skill-advisor/)** | Erstellt Ausfuehrungsplaene die installierte Skills mit fehlenden Luecken kombinieren — und bietet an, sie zu installieren. Starten Sie nie unterausgeruestet. | 120/120 |
-| **[skill-learner](../skills/skill-learner/)** | Erfasst Fehler und speichert Korrekturen dauerhaft, damit derselbe Fehler nie wieder passiert. Funktioniert fuer Skills UND allgemeines Claude-Verhalten. Erstellt optional Verbesserungsvorschlaege fuer Skill-Autoren. | 120/120 |
+| Skill | Beschreibung | Installieren | Bewertung |
+|-------|-------------|--------------|-----------|
+| **[skill-guard](../skills/skill-guard/)** | Erkennt schaedliche Skills, bevor sie Ihre Dateien, Tokens oder Schluessel beruehren. 9-Schichten-Analyse + verifiziertes Audit-Register. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` | 120/120 |
+| **[skill-advisor](../skills/skill-advisor/)** | Erstellt Ausfuehrungsplaene die installierte Skills mit fehlenden Luecken kombinieren — und bietet an, sie zu installieren. Starten Sie nie unterausgeruestet. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` | 120/120 |
+| **[skill-learner](../skills/skill-learner/)** | Erfasst Fehler und speichert Korrekturen dauerhaft, damit derselbe Fehler nie wieder passiert. Funktioniert fuer Skills UND allgemeines Claude-Verhalten. Erstellt optional Verbesserungsvorschlaege fuer Skill-Autoren. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` | 120/120 |
 
 ## skill-guard
 
