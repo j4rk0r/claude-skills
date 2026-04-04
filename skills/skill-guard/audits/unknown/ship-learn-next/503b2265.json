@@ -1,0 +1,18 @@
+{
+  "skill": "unknown/ship-learn-next",
+  "date": "2026-04-04",
+  "sha256_prefix": "503b2265",
+  "scan_type": "quick (Layers 1+2+3)",
+  "score": 97,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "has_scripts": false,
+  "has_allowed_tools": true,
+  "findings": [],
+  "layer_scores": {
+    "frontmatter": 100,
+    "static_patterns": 100,
+    "semantic": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}

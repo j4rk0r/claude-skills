@@ -1,10 +1,11 @@
 {
   "version": "1.0",
   "description": "Community-driven security audit registry for Claude Code skills. Each audit is a full 9-layer threat analysis performed by skill-guard.",
+  "total_audits": 69,
   "audits": [
     {
       "skill": "anthropic/skill-creator",
-      "sha": "fea15484",
+      "sha": "fea1548",
       "score": 82,
       "verdict": "GREEN",
       "date": "2026-04-04",
@@ -21,6 +22,114 @@
       "report": "obra/brainstorming/bba47904.json"
     },
     {
+      "skill": "unknown/agent-md-refactor",
+      "sha": "f20e68b5",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/agent-md-refactor/f20e68b5.json"
+    },
+    {
+      "skill": "unknown/agentation",
+      "sha": "0b66fa85",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/agentation/0b66fa85.json"
+    },
+    {
+      "skill": "unknown/ai-video-generation",
+      "sha": "ab94b9c4",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/ai-video-generation/ab94b9c4.json"
+    },
+    {
+      "skill": "unknown/animate",
+      "sha": "70b6be1e",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/animate/70b6be1e.json"
+    },
+    {
+      "skill": "unknown/audit-website",
+      "sha": "f438c268",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/audit-website/f438c268.json"
+    },
+    {
+      "skill": "unknown/backend-to-frontend-handoff-docs",
+      "sha": "b77b4b7d",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/backend-to-frontend-handoff-docs/b77b4b7d.json"
+    },
+    {
+      "skill": "unknown/browser-use",
+      "sha": "a8cdeb87",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/browser-use/a8cdeb87.json"
+    },
+    {
+      "skill": "unknown/c4-architecture",
+      "sha": "e27b4bac",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/c4-architecture/e27b4bac.json"
+    },
+    {
+      "skill": "unknown/codex",
+      "sha": "78b3fcf4",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/codex/78b3fcf4.json"
+    },
+    {
+      "skill": "unknown/command-creator",
+      "sha": "250a46eb",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/command-creator/250a46eb.json"
+    },
+    {
+      "skill": "unknown/commit-work",
+      "sha": "888588ea",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/commit-work/888588ea.json"
+    },
+    {
+      "skill": "unknown/crafting-effective-readmes",
+      "sha": "638b271f",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/crafting-effective-readmes/638b271f.json"
+    },
+    {
       "skill": "unknown/daily-meeting-update",
       "sha": "153c2d8d",
       "score": 92,
@@ -28,6 +137,24 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/daily-meeting-update/153c2d8d.json"
+    },
+    {
+      "skill": "unknown/database-schema-designer",
+      "sha": "e485710c",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/database-schema-designer/e485710c.json"
+    },
+    {
+      "skill": "unknown/datadog-cli",
+      "sha": "d65cdb00",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/datadog-cli/d65cdb00.json"
     },
     {
       "skill": "unknown/dependency-updater",
@@ -39,6 +166,51 @@
       "report": "unknown/dependency-updater/e3a63ca4.json"
     },
     {
+      "skill": "unknown/design-system-starter",
+      "sha": "f5efbd84",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/design-system-starter/f5efbd84.json"
+    },
+    {
+      "skill": "unknown/difficult-workplace-conversations",
+      "sha": "99dd7bca",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/difficult-workplace-conversations/99dd7bca.json"
+    },
+    {
+      "skill": "unknown/dispatching-parallel-agents",
+      "sha": "76806091",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/dispatching-parallel-agents/76806091.json"
+    },
+    {
+      "skill": "unknown/doc-coauthoring",
+      "sha": "2e47d788",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/doc-coauthoring/2e47d788.json"
+    },
+    {
+      "skill": "unknown/domain-name-brainstormer",
+      "sha": "49570773",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/domain-name-brainstormer/49570773.json"
+    },
+    {
       "skill": "unknown/draw-io",
       "sha": "fb23a8ba",
       "score": 93,
@@ -46,6 +218,123 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/draw-io/fb23a8ba.json"
+    },
+    {
+      "skill": "unknown/drupal-module",
+      "sha": "c269fbf3",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/drupal-module/c269fbf3.json"
+    },
+    {
+      "skill": "unknown/excalidraw",
+      "sha": "561c01a2",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/excalidraw/561c01a2.json"
+    },
+    {
+      "skill": "unknown/feedback-mastery",
+      "sha": "d0ee923a",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/feedback-mastery/d0ee923a.json"
+    },
+    {
+      "skill": "unknown/find-skills",
+      "sha": "1e85f6f9",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/find-skills/1e85f6f9.json"
+    },
+    {
+      "skill": "unknown/frontend-design",
+      "sha": "b81e2ff8",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/frontend-design/b81e2ff8.json"
+    },
+    {
+      "skill": "unknown/frontend-to-backend-requirements",
+      "sha": "d29acfea",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/frontend-to-backend-requirements/d29acfea.json"
+    },
+    {
+      "skill": "unknown/game-changing-features",
+      "sha": "b700ff1d",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/game-changing-features/b700ff1d.json"
+    },
+    {
+      "skill": "unknown/gemini",
+      "sha": "bc9c52aa",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/gemini/bc9c52aa.json"
+    },
+    {
+      "skill": "unknown/gepetto",
+      "sha": "6a52b885",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/gepetto/6a52b885.json"
+    },
+    {
+      "skill": "unknown/humanizer",
+      "sha": "6688e4e2",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/humanizer/6688e4e2.json"
+    },
+    {
+      "skill": "unknown/jira",
+      "sha": "80cd136d",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/jira/80cd136d.json"
+    },
+    {
+      "skill": "unknown/lesson-learned",
+      "sha": "f2ee51f3",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/lesson-learned/f2ee51f3.json"
+    },
+    {
+      "skill": "unknown/marp-slide",
+      "sha": "4244be1f",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/marp-slide/4244be1f.json"
     },
     {
       "skill": "unknown/mcp-builder",
@@ -66,6 +355,60 @@
       "report": "unknown/meme-factory/93244397.json"
     },
     {
+      "skill": "unknown/mermaid-diagrams",
+      "sha": "79bca3c7",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/mermaid-diagrams/79bca3c7.json"
+    },
+    {
+      "skill": "unknown/monday-24h",
+      "sha": "91171f61",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/monday-24h/91171f61.json"
+    },
+    {
+      "skill": "unknown/mui",
+      "sha": "d1a9a067",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/mui/d1a9a067.json"
+    },
+    {
+      "skill": "unknown/naming-analyzer",
+      "sha": "6c4ce79f",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/naming-analyzer/6c4ce79f.json"
+    },
+    {
+      "skill": "unknown/nano-banana-2",
+      "sha": "a155d547",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/nano-banana-2/a155d547.json"
+    },
+    {
+      "skill": "unknown/openapi-to-typescript",
+      "sha": "a27383fc",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/openapi-to-typescript/a27383fc.json"
+    },
+    {
       "skill": "unknown/pdf",
       "sha": "9f78b835",
       "score": 93,
@@ -73,6 +416,15 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/pdf/9f78b835.json"
+    },
+    {
+      "skill": "unknown/perplexity",
+      "sha": "e7c8c405",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/perplexity/e7c8c405.json"
     },
     {
       "skill": "unknown/plugin-forge",
@@ -84,6 +436,24 @@
       "report": "unknown/plugin-forge/8179b934.json"
     },
     {
+      "skill": "unknown/pricing-strategy",
+      "sha": "e049d919",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/pricing-strategy/e049d919.json"
+    },
+    {
+      "skill": "unknown/professional-communication",
+      "sha": "05ad4e12",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/professional-communication/05ad4e12.json"
+    },
+    {
       "skill": "unknown/qa-test-planner",
       "sha": "64adcbcf",
       "score": 88,
@@ -91,6 +461,51 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/qa-test-planner/64adcbcf.json"
+    },
+    {
+      "skill": "unknown/react-dev",
+      "sha": "ce738985",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/react-dev/ce738985.json"
+    },
+    {
+      "skill": "unknown/react-useeffect",
+      "sha": "f31e9925",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/react-useeffect/f31e9925.json"
+    },
+    {
+      "skill": "unknown/reducing-entropy",
+      "sha": "50958820",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/reducing-entropy/50958820.json"
+    },
+    {
+      "skill": "unknown/remotion-best-practices",
+      "sha": "2f9be561",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/remotion-best-practices/2f9be561.json"
+    },
+    {
+      "skill": "unknown/requirements-clarity",
+      "sha": "c554f777",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/requirements-clarity/c554f777.json"
     },
     {
       "skill": "unknown/session-handoff",
@@ -102,6 +517,51 @@
       "report": "unknown/session-handoff/8964e1b8.json"
     },
     {
+      "skill": "unknown/ship-learn-next",
+      "sha": "503b2265",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/ship-learn-next/503b2265.json"
+    },
+    {
+      "skill": "unknown/skill-advisor",
+      "sha": "7696406f",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/skill-advisor/7696406f.json"
+    },
+    {
+      "skill": "unknown/skill-guard",
+      "sha": "4f5e3867",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/skill-guard/4f5e3867.json"
+    },
+    {
+      "skill": "unknown/skill-judge",
+      "sha": "737ef362",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/skill-judge/737ef362.json"
+    },
+    {
+      "skill": "unknown/subagent-driven-development",
+      "sha": "081ad386",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/subagent-driven-development/081ad386.json"
+    },
+    {
       "skill": "unknown/systematic-debugging",
       "sha": "4999cb85",
       "score": 93,
@@ -111,14 +571,58 @@
       "report": "unknown/systematic-debugging/4999cb85.json"
     },
     {
-      "skill": "batch-quick-scan",
-      "sha": "batch",
+      "skill": "unknown/verification-before-completion",
+      "sha": "ea52d15a",
       "score": 93,
       "verdict": "GREEN",
       "date": "2026-04-04",
       "critical_findings": 0,
-      "report": "batch-quick-scan-2026-04-04.json",
-      "note": "57 prompt-only skills (no scripts), quick scan Layers 1+2+3. 47/57 missing allowed-tools. All GREEN."
+      "report": "unknown/verification-before-completion/ea52d15a.json"
+    },
+    {
+      "skill": "unknown/web-design-guidelines",
+      "sha": "f4647ca8",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/web-design-guidelines/f4647ca8.json"
+    },
+    {
+      "skill": "unknown/web-to-markdown",
+      "sha": "9c61df95",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/web-to-markdown/9c61df95.json"
+    },
+    {
+      "skill": "unknown/webapp-testing",
+      "sha": "51b7349e",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/webapp-testing/51b7349e.json"
+    },
+    {
+      "skill": "unknown/writing-clearly-and-concisely",
+      "sha": "c5f4ecc8",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/writing-clearly-and-concisely/c5f4ecc8.json"
+    },
+    {
+      "skill": "unknown/writing-plans",
+      "sha": "90056bad",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/writing-plans/90056bad.json"
     }
   ]
 }

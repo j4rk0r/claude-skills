@@ -1,0 +1,26 @@
+{
+  "skill": "unknown/subagent-driven-development",
+  "date": "2026-04-04",
+  "sha256_prefix": "081ad386",
+  "scan_type": "quick (Layers 1+2+3)",
+  "score": 93,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "has_scripts": false,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools grants unlimited access. Lower risk since skill has no bundled scripts — prompt-only. Recommend adding allowed-tools for principle of least privilege."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 100,
+    "semantic": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}
