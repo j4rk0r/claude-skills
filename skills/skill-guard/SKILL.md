@@ -74,6 +74,8 @@ Layers 1 + 2 + 3 only (frontmatter, static patterns, semantic). Use when:
 
 Quick scan score is marked "preliminary." If ANY HIGH or CRITICAL finding appears → automatically escalate to full audit. No registry persistence for quick scans.
 
+**Do NOT load** `references/patterns.md` during quick scans — use inline pattern checks only. Load the full reference file only during full audits.
+
 ## Analysis Flow
 
 ### Phase 0 — Interception
@@ -217,7 +219,8 @@ Using `gh` CLI (if available) or web search:
 - Red flags: repo <30 days old, 0 stars, single commit, author with no other activity
 - Trojan forks: fork of popular skill with minimal changes — diff against original
 - Community audits: check `skills/skill-guard/audits/` for previous analyses
-- If `gh` unavailable: report "Reputation check skipped — gh CLI not available" and adjust score (reputation layer scores 50 instead of being fully evaluated)
+- If `gh` unavailable: report "Reputation check skipped — gh CLI not available" and score layer at 50
+- **Non-GitHub sources** (local `.skill` files, zip archives, private repos): reputation layer scores 50 (neutral — cannot verify, cannot condemn). Increase scrutiny on Layers 1-4 to compensate. Note in report: "Reputation unverifiable — source is not a public repository."
 
 ---
 
@@ -301,6 +304,8 @@ Present findings with the most dangerous first. Use this structure:
 ```
 
 Omit sections with zero findings — keep the report focused on what matters.
+
+**YELLOW calibration example:** A skill declares `allowed-tools: Bash(node:*) Read Edit` but its SKILL.md instructs using `WebFetch` to download docs from a verified domain — without declaring it. No scripts, no env var access, no MCP abuse. Score ~65: permissions layer penalized for the undeclared tool, everything else clean. This is YELLOW — a permission gap worth noting, not a confirmed threat.
 
 ### Phase 6 — Persistence
 
