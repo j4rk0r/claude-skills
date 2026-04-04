@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill-Guard Audit Report v1",
+  "type": "object",
+  "required": ["skill", "date", "sha256", "files_analyzed", "score", "verdict", "critical_findings", "findings", "layer_scores", "analyzed_by"],
+  "properties": {
+    "skill": {
+      "type": "string",
+      "description": "Skill identifier: author/skill-name"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Audit date YYYY-MM-DD"
+    },
+    "sha256": {
+      "type": "string",
+      "description": "SHA-256 hash of all files in the skill directory combined"
+    },
+    "files_analyzed": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of all files analyzed"
+    },
+    "total_files": {
+      "type": "integer"
+    },
+    "total_size_kb": {
+      "type": "integer"
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["GREEN", "YELLOW", "RED"]
+    },
+    "critical_findings": {
+      "type": "integer",
+      "description": "Number of CRITICAL severity findings"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "layer", "file", "content", "explanation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]
+          },
+          "layer": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9
+          },
+          "file": {
+            "type": "string"
+          },
+          "line": {
+            "type": ["integer", "null"]
+          },
+          "content": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "layer_scores": {
+      "type": "object",
+      "properties": {
+        "frontmatter": { "type": "integer" },
+        "static_patterns": { "type": "integer" },
+        "semantic": { "type": "integer" },
+        "scripts": { "type": "integer" },
+        "data_flow": { "type": "integer" },
+        "mcp": { "type": "integer" },
+        "supply_chain": { "type": "integer" },
+        "reputation": { "type": "integer" },
+        "anti_evasion": { "type": "integer" }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-form notes about the audit"
+    },
+    "analyzed_by": {
+      "type": "string",
+      "description": "Version of skill-guard that performed the audit"
+    }
+  }
+}

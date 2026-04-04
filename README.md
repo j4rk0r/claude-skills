@@ -15,6 +15,60 @@ npx skills add j4rk0r/claude-skills --yes --global
 | Skill | What it does | Score |
 |-------|-------------|-------|
 | **[skill-advisor](skills/skill-advisor/)** | Analyzes every instruction and recommends the right skill before execution. Never miss an installed skill again. | 120/120 |
+| **[skill-guard](skill-security/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | — |
+
+## skill-guard
+
+> **You install a skill. It reads your `~/.ssh`, grabs your `$GITHUB_TOKEN`, and sends it to a remote server. You never notice.**
+
+skill-guard prevents this. It audits skills before installation using 9 analysis layers — from static patterns to LLM semantic analysis that detects prompt injection disguised as normal instructions.
+
+### How it works
+
+```
+You want to install a skill
+        |
+        v
+skill-guard checks the community audit registry
+        |
+        v
+Already audited (same SHA)?  --> Shows previous report
+Not audited?                 --> "Run security analysis?"
+        |
+        v
+9-layer analysis: permissions, patterns, scripts,
+data flow, MCP abuse, supply chain, reputation...
+        |
+        v
+Score 0-100 → GREEN / YELLOW / RED
+        |
+        v
+GREEN: auto-install | YELLOW: you decide | RED: strong warning
+```
+
+### The 9 layers
+
+1. **Frontmatter & Permissions** — Missing `allowed-tools`? Unrestricted Bash? Description hijacking?
+2. **Static Patterns** — URLs, IPs, sensitive paths (`~/.ssh`, `~/.aws`), dangerous commands, env vars
+3. **LLM Semantic Analysis** (30% weight) — Prompt injection, trojans, social engineering, time bombs
+4. **Bundled Scripts** — Reads EVERY script (never trust "don't read the source"). Dangerous imports, obfuscation, data exfiltration
+5. **Data Flow** — Maps source → destination. Sensitive data reaching external URLs = confirmed threat
+6. **MCP & Tools** — Undeclared MCP server usage, exfiltration via Slack/GitHub/Monday
+7. **Supply Chain** — Typosquatting, unpinned versions, fake repos
+8. **Reputation** — Author profile, repo age, trojan forks
+9. **Anti-Evasion** — Unicode tricks, homoglyphs, self-modification, environment fingerprinting
+
+### Community audit registry
+
+Every audit is saved to [`skill-security/audits/`](skill-security/audits/). Before analyzing, skill-guard checks if someone already audited that version. Instant results if SHA matches.
+
+### Install
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-security --yes --global
+```
+
+---
 
 ## skill-advisor
 
