@@ -14,8 +14,8 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | Skill | Description | Score |
 |-------|------------|-------|
-| **[skill-advisor](../skills/skill-advisor/)** | Analyse chaque instruction et recommande la bonne skill avant execution. Ne ratez plus jamais une skill installee. | 120/120 |
-| **[skill-guard](../skills/skill-guard/)** | Auditeur de securite — detection de menaces en 9 couches pour les skills avant installation. Registre communautaire d'audits. | 120/120 |
+| **[skill-advisor](../skills/skill-advisor/)** | Vous avez installe 50 skills — vous en utilisez 5. Connecte chaque tache a votre meilleur outil pour que rien ne prenne la poussiere. | 120/120 |
+| **[skill-guard](../skills/skill-guard/)** | Detecte les skills malveillantes avant qu'elles ne touchent vos fichiers, tokens ou cles. Analyse en 9 couches + registre d'audits verifie. | 120/120 |
 
 ## skill-guard
 

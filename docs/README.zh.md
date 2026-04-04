@@ -14,8 +14,8 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | 技能 | 功能 | 评分 |
 |------|------|------|
-| **[skill-advisor](../skills/skill-advisor/)** | 分析每条指令，在执行前推荐最佳技能。再也不会遗忘已安装的技能。 | 120/120 |
-| **[skill-guard](../skills/skill-guard/)** | 安全审计器 — 安装前对技能进行9层威胁检测。社区审计注册表。 | 120/120 |
+| **[skill-advisor](../skills/skill-advisor/)** | 装了50个技能，只用5个？自动为每个任务匹配最佳工具，让每个技能都物尽其用。 | 120/120 |
+| **[skill-guard](../skills/skill-guard/)** | 在恶意技能接触你的文件、令牌或密钥之前拦截它。9层分析 + 社区验证的审计注册表。 | 120/120 |
 
 ## skill-guard
 

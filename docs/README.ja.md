@@ -14,8 +14,8 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | スキル | 機能 | スコア |
 |--------|------|--------|
-| **[skill-advisor](../skills/skill-advisor/)** | すべての指示を分析し、実行前に最適なスキルを推奨。インストール済みスキルを見逃しません。 | 120/120 |
-| **[skill-guard](../skills/skill-guard/)** | セキュリティ監査 — インストール前にスキルの9層脅威検出。コミュニティ監査レジストリ。 | 120/120 |
+| **[skill-advisor](../skills/skill-advisor/)** | 50個インストールして5個しか使わない？全タスクを最適なツールに自動マッチ。眠ったスキルをゼロに。 | 120/120 |
+| **[skill-guard](../skills/skill-guard/)** | 悪意あるスキルがファイル・トークン・鍵に触れる前にキャッチ。9層分析 + コミュニティ検証済み監査レジストリ。 | 120/120 |
 
 ## skill-guard
 

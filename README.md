@@ -14,8 +14,8 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | Skill | What it does | Score |
 |-------|-------------|-------|
-| **[skill-advisor](skills/skill-advisor/)** | Analyzes every instruction and recommends the right skill before execution. Never miss an installed skill again. | 120/120 |
-| **[skill-guard](skills/skill-guard/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | 120/120 |
+| **[skill-advisor](skills/skill-advisor/)** | You installed 50 skills — you use 5. This matches every task to your best tool so nothing collects dust. | 120/120 |
+| **[skill-guard](skills/skill-guard/)** | Catches malicious skills before they touch your files, tokens, or keys. 9-layer analysis + community-verified registry. | 120/120 |
 
 ### Project-local skills
 
@@ -23,10 +23,10 @@ These skills are project-specific and live in `.claude/skills/`:
 
 | Skill | What it does |
 |-------|-------------|
-| **analytics-tracking** | Set up, improve, or audit analytics tracking — GA4, GTM, Mixpanel, Segment, conversion tracking, UTM parameters |
-| **copywriting** | Write, rewrite, or improve marketing copy — homepages, landing pages, pricing pages, CTAs, value propositions |
-| **performance** | Optimize web performance — page speed, load time, Core Web Vitals, performance audits |
-| **seo-audit** | Audit and diagnose SEO issues — technical SEO, meta tags, crawl errors, indexing, ranking drops |
+| **analytics-tracking** | Know what's working. Set up, fix, or audit GA4, GTM, Mixpanel, and conversion tracking. |
+| **copywriting** | Turn features into sales. Write landing pages, pricing copy, and CTAs that convert. |
+| **performance** | Faster pages, better conversions. Fix Core Web Vitals, load times, and speed bottlenecks. |
+| **seo-audit** | Find out why you're not ranking. Audit technical SEO, crawl errors, and indexing gaps. |
 
 ## skill-guard
 
