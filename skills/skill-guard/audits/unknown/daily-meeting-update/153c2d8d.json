@@ -1,0 +1,51 @@
+{
+  "skill": "unknown/daily-meeting-update",
+  "date": "2026-04-04",
+  "sha256": "153c2d8ddee3fd3b1c92143c829d9bf1e0456a70ded8258a2000807f85a09a05",
+  "files_analyzed": [
+    "SKILL.md",
+    "README.md",
+    "scripts/claude_digest.py"
+  ],
+  "score": 92,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools grants unlimited access. Skill needs Bash (gh, jira, git, python3), Read, AskUserQuestionTool. Without declaration, also gets WebFetch, MCP (beyond atlassian), Write, etc. No malicious use detected. Recommend: allowed-tools: Bash(gh:*), Bash(jira:*), Bash(git:*), Bash(python3:*), Read, AskUserQuestionTool"
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "SKILL.md",
+      "line": 51,
+      "content": "~/.claude/projects directory access",
+      "explanation": "Reads Claude session history (.jsonl files). This is sensitive data (session logs) but is the core stated purpose. Access is consent-gated — user must approve. Script only extracts titles, files, commands — not conversation content."
+    },
+    {
+      "severity": "INFO",
+      "layer": 6,
+      "file": "SKILL.md",
+      "line": 54,
+      "content": "mcp__atlassian__* tools referenced",
+      "explanation": "MCP reference is coherent with stated Jira integration purpose. Used as detection check, not for data exfiltration."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}

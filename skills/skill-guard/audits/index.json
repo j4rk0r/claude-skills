@@ -19,6 +19,15 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "obra/brainstorming/bba47904.json"
+    },
+    {
+      "skill": "unknown/daily-meeting-update",
+      "sha": "153c2d8d",
+      "score": 92,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "unknown/daily-meeting-update/153c2d8d.json"
     }
   ]
 }
