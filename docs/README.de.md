@@ -16,6 +16,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 |-------|-------------|-----------|
 | **[skill-advisor](../skills/skill-advisor/)** | 50 Skills installiert — 5 davon genutzt. Verbindet jede Aufgabe mit dem besten Werkzeug, damit nichts verstaubt. | 120/120 |
 | **[skill-guard](../skills/skill-guard/)** | Erkennt schaedliche Skills, bevor sie Ihre Dateien, Tokens oder Schluessel beruehren. 9-Schichten-Analyse + verifiziertes Audit-Register. | 120/120 |
+| **[skill-learner](../skills/skill-learner/)** | Erfasst Fehler und speichert Korrekturen dauerhaft, damit derselbe Fehler nie wieder passiert. Funktioniert fuer Skills UND allgemeines Claude-Verhalten. Erstellt optional Verbesserungsvorschlaege fuer Skill-Autoren. | 90/100 |
 
 ## skill-guard
 
@@ -114,6 +115,29 @@ Kein Treffer?  --> Faehrt still fort (oder schlaegt einen zum Installieren vor)
 
 ```bash
 npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
+```
+
+---
+
+## skill-learner
+
+> **Claude entschuldigt sich, verspricht Besserung — und macht in der naechsten Sitzung genau denselben Fehler.**
+
+skill-learner durchbricht diesen Kreislauf. Wenn ein Skill oder Claude selbst einen Fehler macht, erfasst es was schiefging, warum, und was stattdessen zu tun ist — als persistente Korrekturdatei die sitzungsuebergreifend erhalten bleibt.
+
+### Hauptmerkmale
+
+- **Erkennt den fehlerhaften Skill automatisch** aus dem Gespraechskontext
+- **Dedupliziert** — prueft INDEX.md vor dem Erstellen, fusioniert bei gleichem Problem
+- **7 NEVER-Regeln** — verhindert vage Korrekturen, Duplikate und Sicherheits-Bypass
+- **Kaltlesetest** — stellt sicher, dass jede Korrektur fuer einen anderen Agenten verstaendlich ist
+- **Verbesserungsvorschlaege** — erstellt Vorschlaege mit Diffs fuer den Skill-Autor
+- **Zweisprachig** — schreibt Korrekturen in der Sprache des Benutzers
+
+### Installieren
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner --yes --global
 ```
 
 ---

@@ -16,6 +16,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 |-------|-----------|------|
 | **[skill-advisor](../skills/skill-advisor/)** | Voce instalou 50 skills — usa 5. Conecta cada tarefa a sua melhor ferramenta para que nenhuma fique esquecida. | 120/120 |
 | **[skill-guard](../skills/skill-guard/)** | Detecta skills maliciosas antes que toquem seus arquivos, tokens ou chaves. Analise em 9 camadas + registro de auditorias verificado. | 120/120 |
+| **[skill-learner](../skills/skill-learner/)** | Captura erros e persiste correcoes para que o mesmo erro nunca se repita. Funciona para skills E comportamento geral do Claude. Opcionalmente gera propostas de melhoria para autores. | 90/100 |
 
 ## skill-guard
 
@@ -110,6 +111,29 @@ Sem match? --> Continua silenciosamente (ou sugere uma para instalar)
 
 ```bash
 npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
+```
+
+---
+
+## skill-learner
+
+> **Claude pede desculpa, promete melhorar — e comete exatamente o mesmo erro na proxima sessao.**
+
+skill-learner quebra esse ciclo. Quando uma skill ou o Claude erra, captura o que deu errado, por que, e o que fazer diferente — como um arquivo de correcao persistente que sobrevive entre sessoes.
+
+### Caracteristicas principais
+
+- **Detecta automaticamente a skill com falha** a partir do contexto da conversa
+- **Deduplica** — verifica INDEX.md antes de criar, mescla se o mesmo problema ja existe
+- **7 regras NEVER** — previne correcoes vagas, duplicatas e bypass de seguranca
+- **Teste de leitura a frio** — verifica que cada correcao e clara para um agente diferente
+- **Propostas de melhoria** — gera propostas com diffs para o autor da skill
+- **Bilingue** — escreve correcoes no idioma do usuario
+
+### Instalar
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner --yes --global
 ```
 
 ---

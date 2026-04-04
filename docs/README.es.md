@@ -16,6 +16,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 |-------|----------|------------|
 | **[skill-advisor](../skills/skill-advisor/)** | Instalaste 50 skills y usas 5. Esto conecta cada tarea con tu mejor herramienta para que ninguna acumule polvo. | 120/120 |
 | **[skill-guard](../skills/skill-guard/)** | Detecta skills maliciosas antes de que toquen tus archivos, tokens o claves. Analisis en 9 capas + registro de auditorias verificado. | 120/120 |
+| **[skill-learner](../skills/skill-learner/)** | Captura errores y persiste correcciones para que el mismo fallo no se repita. Funciona con skills Y comportamiento general de Claude. Opcionalmente genera propuestas de mejora para autores. | 90/100 |
 
 ## skill-guard
 
@@ -114,6 +115,50 @@ Sin match?    --> Continua en silencio (o sugiere una para instalar)
 
 ```bash
 npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
+```
+
+---
+
+## skill-learner
+
+> **Claude se disculpa, promete hacerlo mejor — y comete el mismo error en la siguiente sesion.**
+
+skill-learner rompe ese ciclo. Cuando una skill o Claude falla, captura que salio mal, por que, y que hacer en su lugar — como un archivo de correccion persistente que sobrevive entre sesiones.
+
+### Como funciona
+
+```
+Algo salio mal
+        |
+        v
+skill-learner detecta que skill (o comportamiento general) fallo
+        |
+        v
+Hace preguntas enfocadas hasta entender el error
+        |
+        v
+Guarda una correccion estructurada en ~/.claude/skill-corrections/
+        |
+        v
+La proxima vez que esa skill se ejecute → la correccion esta disponible
+        |
+        v
+Opcionalmente: genera una propuesta de mejora para el autor de la skill
+```
+
+### Caracteristicas clave
+
+- **Auto-detecta la skill que fallo** del contexto de la conversacion
+- **Deduplica** — consulta INDEX.md antes de crear, fusiona si el mismo problema ya existe
+- **7 reglas NEVER** — previene correcciones vagas, duplicadas, scope creep y bypass de seguridad
+- **Test de lectura en frio** — verifica que cada correccion es clara para un agente diferente en otra sesion
+- **Propuestas de mejora** — genera propuestas con diffs, guardadas en local para que el usuario las suba
+- **Bilingue** — escribe correcciones en el idioma del usuario para preservar matices
+
+### Instalar
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner --yes --global
 ```
 
 ---

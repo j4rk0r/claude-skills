@@ -14,19 +14,9 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | Skill | What it does | Score |
 |-------|-------------|-------|
-| **[skill-advisor](skills/skill-advisor/)** | You installed 50 skills — you use 5. This matches every task to your best tool so nothing collects dust. | 120/120 |
-| **[skill-guard](skills/skill-guard/)** | Catches malicious skills before they touch your files, tokens, or keys. 9-layer analysis + community-verified registry. | 120/120 |
-
-### Project-local skills
-
-These skills are project-specific and live in `.claude/skills/`:
-
-| Skill | What it does |
-|-------|-------------|
-| **analytics-tracking** | Know what's working. Set up, fix, or audit GA4, GTM, Mixpanel, and conversion tracking. |
-| **copywriting** | Turn features into sales. Write landing pages, pricing copy, and CTAs that convert. |
-| **performance** | Faster pages, better conversions. Fix Core Web Vitals, load times, and speed bottlenecks. |
-| **seo-audit** | Find out why you're not ranking. Audit technical SEO, crawl errors, and indexing gaps. |
+| **[skill-advisor](skills/skill-advisor/)** | Analyzes every instruction and recommends the right skill before execution. Never miss an installed skill again. | 120/120 |
+| **[skill-guard](skills/skill-guard/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | 120/120 |
+| **[skill-learner](skills/skill-learner/)** | Captures mistakes and persists corrections so the same error never happens twice. Works for skills AND general Claude behavior. Optionally generates improvement proposals for skill authors. | 90/100 |
 
 ## skill-guard
 
@@ -89,9 +79,7 @@ Each rule exists because of a real attack pattern observed in the wild:
 
 ### Community audit registry
 
-Every audit is saved to [`skills/skill-guard/audits/`](skills/skill-guard/audits/), organized by verified author (anthropic, obra, softaworks, etc.). Before analyzing, skill-guard checks if someone already audited that version. Instant results if SHA matches.
-
-**Trust model:** Only the system generates and publishes audit results. Community members request audits via PR to `audits/requests/` — the maintainer runs skill-guard and publishes the result. This prevents tampered audits from entering the registry.
+Every audit is saved to [`skills/skill-guard/audits/`](skills/skill-guard/audits/). Before analyzing, skill-guard checks if someone already audited that version. Instant results if SHA matches.
 
 ### Practices what it preaches
 
@@ -171,6 +159,50 @@ Ecosystem detected:
 
 ```bash
 npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
+```
+
+---
+
+## skill-learner
+
+> **Claude apologizes, promises to do better — then makes the exact same mistake next session.**
+
+skill-learner breaks that cycle. When a skill or Claude itself gets something wrong, it captures what went wrong, why, and what to do instead — as a persistent correction file that survives across sessions.
+
+### How it works
+
+```
+Something went wrong
+        |
+        v
+skill-learner detects which skill (or general behavior) failed
+        |
+        v
+Asks focused questions until it understands the mistake
+        |
+        v
+Saves a structured correction to ~/.claude/skill-corrections/
+        |
+        v
+Next time that skill runs → correction is available
+        |
+        v
+Optionally: generates an improvement proposal for the skill author
+```
+
+### Key features
+
+- **Auto-detects the failing skill** from conversation context — doesn't ask if obvious
+- **Deduplicates** — checks INDEX.md before creating, merges if same issue exists
+- **7 NEVER rules** — prevents vague corrections, duplicates, scope creep, and security bypass
+- **Cold-reader test** — verifies each correction is clear enough for a different agent in a different session
+- **Improvement proposals** — generates author-ready proposals with diffs, saved locally for the user to submit
+- **Bilingual** — writes corrections in the user's language to preserve nuance
+
+### Install
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner --yes --global
 ```
 
 ---

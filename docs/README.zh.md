@@ -16,6 +16,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 |------|------|------|
 | **[skill-advisor](../skills/skill-advisor/)** | 装了50个技能，只用5个？自动为每个任务匹配最佳工具，让每个技能都物尽其用。 | 120/120 |
 | **[skill-guard](../skills/skill-guard/)** | 在恶意技能接触你的文件、令牌或密钥之前拦截它。9层分析 + 社区验证的审计注册表。 | 120/120 |
+| **[skill-learner](../skills/skill-learner/)** | 捕获错误并持久化修正，让同样的错误不再重复。适用于技能和Claude的一般行为。可选择为技能作者生成改进建议。 | 90/100 |
 
 ## skill-guard
 
@@ -110,6 +111,29 @@ skill-advisor 扫描你已安装的技能
 
 ```bash
 npx skills add j4rk0r/claude-skills@skill-advisor --yes --global
+```
+
+---
+
+## skill-learner
+
+> **Claude道歉，承诺改进——然后在下一个会话中犯完全相同的错误。**
+
+skill-learner打破这个循环。当技能或Claude本身出错时，它会捕获出了什么问题、为什么以及应该怎么做——作为跨会话持久化的修正文件。
+
+### 主要特性
+
+- **自动检测失败的技能** — 从对话上下文中识别
+- **去重** — 创建前检查INDEX.md，如果同一问题已存在则合并
+- **7条NEVER规则** — 防止模糊修正、重复和安全绕过
+- **冷读测试** — 验证每条修正对不同会话中的不同代理是否清晰
+- **改进建议** — 生成带有diff的建议，保存在本地供用户提交
+- **双语** — 用用户的语言编写修正以保留细微差别
+
+### 安装
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner --yes --global
 ```
 
 ---
