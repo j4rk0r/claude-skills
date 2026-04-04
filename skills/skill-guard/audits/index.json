@@ -10,6 +10,15 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "anthropic/skill-creator/fea1548.json"
+    },
+    {
+      "skill": "obra/superpowers@brainstorming",
+      "sha": "bba47904",
+      "score": 91,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "obra/brainstorming/bba47904.json"
     }
   ]
 }

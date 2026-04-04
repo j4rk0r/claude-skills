@@ -1,0 +1,64 @@
+{
+  "skill": "obra/superpowers@brainstorming",
+  "date": "2026-04-04",
+  "sha256": "bba47904a7f6bbee3bf8a107ebbe84e65d392be683bbb898ded736b29e415f90",
+  "files_analyzed": [
+    "SKILL.md",
+    "visual-companion.md",
+    "spec-document-reviewer-prompt.md",
+    "scripts/server.cjs",
+    "scripts/helper.js",
+    "scripts/start-server.sh",
+    "scripts/stop-server.sh",
+    "scripts/frame-template.html"
+  ],
+  "score": 91,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools grants unlimited access (Bash, WebFetch, MCP, etc.). Skill legitimately needs Bash, Read, Write, Edit for local server and workflow. No malicious use detected in any file — risk is theoretical. Recommend adding: allowed-tools: Bash(node:*), Bash(scripts/*), Read, Write, Edit"
+    },
+    {
+      "severity": "MEDIUM",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 3,
+      "content": "description: \"You MUST use this before any creative work\"",
+      "explanation": "Overly broad trigger activates on nearly any development task, expanding attack surface. Not malicious — enforces design-first workflow — but unnecessarily wide."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "visual-companion.md",
+      "line": 86,
+      "content": "--host 0.0.0.0",
+      "explanation": "Option to bind to all interfaces, documented for remote/container environments. Default is 127.0.0.1 (safe). No risk in normal usage."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "scripts/frame-template.html",
+      "line": 199,
+      "content": "https://github.com/obra/superpowers",
+      "explanation": "Link to author's repository in HTML template header. Informational, not executable."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 55,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 100,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}
