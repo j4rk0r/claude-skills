@@ -14,7 +14,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | Skill | Que hace | Puntuacion |
 |-------|----------|------------|
-| **[skill-advisor](../skills/skill-advisor/)** | Analiza cada instruccion y recomienda la skill correcta antes de ejecutar. Nunca mas olvides una skill instalada. | 120/120 |
+| **[skill-advisor](../skills/skill-advisor/)** | Construye planes de ejecucion que combinan tus skills instaladas con los gaps que te faltan — y ofrece instalarlos. Nunca empieces una tarea sin las herramientas adecuadas. | 120/120 |
 | **[skill-guard](../skills/skill-guard/)** | Auditor de seguridad — deteccion de amenazas en 9 capas para skills antes de instalarlas. Registro comunitario de auditorias. | 120/120 |
 | **[skill-learner](../skills/skill-learner/)** | Captura errores y persiste correcciones para que el mismo fallo no se repita. Funciona con skills Y comportamiento general de Claude. Opcionalmente genera propuestas de mejora para autores. | 120/120 |
 

@@ -14,7 +14,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | Skill | What it does | Score |
 |-------|-------------|-------|
-| **[skill-advisor](skills/skill-advisor/)** | Analyzes every instruction and recommends the right skill before execution. Never miss an installed skill again. | 120/120 |
+| **[skill-advisor](skills/skill-advisor/)** | Builds execution plans that combine your installed skills with gaps you're missing — then offers to install them. Never start a task under-equipped. | 120/120 |
 | **[skill-guard](skills/skill-guard/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | 120/120 |
 | **[skill-learner](skills/skill-learner/)** | Captures mistakes and persists corrections so the same error never happens twice. Works for skills AND general Claude behavior. Optionally generates improvement proposals for skill authors. | 120/120 |
 
@@ -99,7 +99,7 @@ npx skills add j4rk0r/claude-skills@skill-guard --yes --global
 
 > **You install 50 skills. You use 5. The other 45 collect dust.**
 
-skill-advisor fixes this. It sits between you and Claude, analyzing every instruction to find the best skill match from YOUR installed collection — before any work begins.
+skill-advisor fixes this. It sits between you and Claude, analyzing every instruction to build a complete execution plan — matching installed skills AND identifying gaps you're missing — before any work begins.
 
 ### How it works
 
@@ -110,8 +110,9 @@ You type an instruction
 skill-advisor scans your installed skills
         |
         v
-Matches found? --> Recommends 1-5, ranked by impact
-No match?      --> Proceeds silently (or suggests one to install)
+Matches found? --> Builds plan with 3-12 steps, ranked by impact
+Gaps found?    --> Marks them with ❌, offers to install
+No match?      --> Proceeds silently
 ```
 
 ### Two modes
@@ -144,7 +145,7 @@ Recommended skills:
 - **Thinks laterally** — "make it look better" matches design skills, animation skills, AND accessibility audit skills. Not just literal keyword matching.
 - **Knows when to shut up** — Simple tasks (rename a variable, read a file) get no recommendations. It asks itself: "would the user thank me or be annoyed?"
 - **Recommends pipelines** — Detects multi-step scenarios and suggests the full combo: brainstorming → writing-plans → subagent-driven-development.
-- **Fallback to community** — If nothing local matches, suggests installable skills via `find-skills` or `npx skills find`.
+- **Gap analysis is mandatory** — Every plan shows installed skills (✅) AND missing skills (❌) side by side. Offers to install gaps one by one.
 
 ### First run
 

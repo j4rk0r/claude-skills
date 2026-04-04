@@ -14,7 +14,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 
 | 技能 | 功能 | 评分 |
 |------|------|------|
-| **[skill-advisor](../skills/skill-advisor/)** | 装了50个技能，只用5个？自动为每个任务匹配最佳工具，让每个技能都物尽其用。 | 120/120 |
+| **[skill-advisor](../skills/skill-advisor/)** | 构建执行计划，将已安装技能与缺失的技能差距结合——然后提供安装。永远不要在装备不足时开始任务。 | 120/120 |
 | **[skill-guard](../skills/skill-guard/)** | 在恶意技能接触你的文件、令牌或密钥之前拦截它。9层分析 + 社区验证的审计注册表。 | 120/120 |
 | **[skill-learner](../skills/skill-learner/)** | 捕获错误并持久化修正，让同样的错误不再重复。适用于技能和Claude的一般行为。可选择为技能作者生成改进建议。 | 120/120 |
 
