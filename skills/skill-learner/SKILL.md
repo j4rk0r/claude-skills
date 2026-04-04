@@ -1,216 +1,172 @@
 ---
 name: skill-learner
 description: >
-  Captures and persists lessons when a skill or Claude behavior produces wrong results,
-  so the same mistake never happens twice. Use this skill whenever the user indicates
-  something went wrong — phrases like "that's wrong", "fix this", "not what I wanted",
-  "the skill messed up", "learn from this", "don't do that again", "remember this mistake",
-  "esto está mal", "aprende de esto", "no hagas eso otra vez", or any correction of
-  Claude's output or a skill's behavior. Also triggers when the user explicitly asks to
-  "teach" Claude something, review past corrections, or propose an improvement to a skill author.
-  This skill covers both installed skills AND general Claude behavior corrections.
+  Persistent correction system that captures mistakes from skills or Claude behavior
+  and ensures they never repeat across sessions. Use whenever the user indicates something
+  went wrong — "that's wrong", "fix this", "not what I wanted", "learn from this",
+  "don't do that again", "esto está mal", "aprende de esto", "no hagas eso otra vez",
+  or any correction, complaint, or teaching moment about Claude's output or a skill's
+  behavior. Also use when the user asks to review, list, delete, or manage past corrections,
+  or wants to create an improvement proposal for a skill author. Covers installed skills,
+  general Claude behavior, and cross-session learning persistence.
 allowed-tools: Read Edit Write Glob
 ---
 
 # Skill Learner
 
-You are a learning engine that turns user corrections into persistent, reusable knowledge.
-When something goes wrong — whether from a skill or from your own behavior — your job is
-to deeply understand the mistake, save a correction that future sessions can use, and
-optionally prepare an improvement proposal the user can share with the skill author.
+Turn user corrections into persistent knowledge that survives across sessions.
 
 ## NEVER
 
-- NEVER save a correction that just says "do it differently" without specifying WHAT to do
-  instead — vague corrections add noise without signal and are worse than no correction at all
-- NEVER create duplicate corrections — always check INDEX.md first and merge with an existing
-  correction if the same skill+issue combination was already captured
-- NEVER save one-time preferences as universal rules (e.g., "I wanted blue not red" is a
-  preference unless the user explicitly says "always use blue"). Ask if unsure about scope
-- NEVER exceed 50 active corrections — beyond that, consumption degrades and agents waste
-  tokens scanning irrelevant rules. Archive low-severity corrections older than 90 days
-- NEVER write a correction in a different language than the user described it — nuance and
-  intent are lost in translation
-- NEVER skip the "When to apply" field — a correction without scope gets over-applied to
-  situations where it doesn't belong, causing new problems
-- NEVER save corrections about security-sensitive topics that could inadvertently bypass
-  safety measures (e.g., "don't validate user input" is not a valid correction)
+- NEVER save a vague correction ("do it differently") without specifying the exact
+  alternative — vague corrections create false confidence and are worse than no correction
+- NEVER create duplicates — check INDEX.md first; merge if same skill+issue exists
+- NEVER save one-time preferences as universal rules ("I wanted blue" ≠ "always use blue")
+  — ask about scope when intent is ambiguous
+- NEVER exceed 50 active corrections — consumption degrades; archive minor corrections
+  older than 90 days to `archive/`
+- NEVER write corrections in a language different from the user's — nuance dies in translation
+- NEVER skip "When to apply" — a scopeless correction gets over-applied to contexts where
+  it causes new problems
+- NEVER save corrections that bypass safety ("don't validate input", "skip auth checks")
+- NEVER assume old corrections are still valid — skill updates silently invalidate them;
+  verify before applying corrections older than 90 days
+- NEVER save without passing the cold-reader test: "Can a different agent in a different
+  session act on this without any conversation context?" If no, rewrite before saving
 
-## Correction Quality Heuristics
+## The Correction Paradox
 
-A good correction is one that a DIFFERENT agent in a DIFFERENT session can apply without
-any conversation context. Test each correction by asking: "If I read this cold, do I know
-exactly what to do and when?"
+More corrections ≠ better behavior. Over-correcting creates rigidity — an agent drowning
+in 50 corrections becomes cautious and slow, second-guessing every decision. The goal is
+not to capture every complaint, but to capture the corrections that will prevent the most
+damage across the most future sessions.
 
-Severity is not about how angry the user is — it's about blast radius:
-- **critical** = affects output correctness (wrong data, broken files, security issues)
-- **moderate** = affects output quality (missing context, poor formatting, wrong tone)
-- **minor** = affects output polish (wording preferences, style choices)
+Before saving, ask yourself:
+- **Frequency**: Will this situation come up again? (One-off = don't save)
+- **Blast radius**: If uncorrected, how bad is the impact? (Minor polish = maybe don't save)
+- **Generalizability**: Does this apply beyond this specific conversation? (Too narrow = don't save)
 
-When a user corrects the SAME skill 3+ times, that's a signal the SKILL.md itself needs
-patching, not just another correction file. Proactively suggest creating a proposal.
+If all three are low, tell the user you've noted it but saving a correction would add
+noise. They can override you.
+
+## Quick Classification
+
+Classify in the first 5 seconds — this determines the workflow path:
+
+| Signal | Type | Path |
+|--------|------|------|
+| Clear explanation ("X did Y, should do Z") | Quick fix | → Step 2 (dedup) → Step 3 (save) |
+| Vague complaint ("that's wrong") | Investigation | → Step 1 (detect) → full workflow |
+| Same skill corrected 3+ times in INDEX.md | Skill defect | → Steps 1-3 → proactively offer proposal |
+| "Show/list/delete corrections" | Management | → Management Commands section |
 
 ## Storage
 
-Corrections live in `~/.claude/skill-corrections/`. Structure:
-
 ```
 ~/.claude/skill-corrections/
-├── INDEX.md                          # Master index of all corrections
-├── ACTIVE_CORRECTIONS.md             # Compact preload for consumption
-├── skills/
-│   ├── <skill-name>/
-│   │   ├── correction-001.md
-│   │   └── ...
-│   └── ...
-├── general/                          # For non-skill Claude behavior
-│   ├── correction-001.md
-│   └── ...
-└── proposals/                        # Improvement proposals for authors
-    └── <skill-name>-proposal-NNN.md
+├── INDEX.md                 # One-line entries, master list
+├── ACTIVE_CORRECTIONS.md    # Max 50 lines, consumed by other skills
+├── skills/<name>/           # Per-skill corrections
+├── general/                 # Non-skill Claude behavior
+├── proposals/               # Author improvement proposals
+└── archive/                 # Expired or invalidated
 ```
 
 ## Workflow
 
-### Step 1: Detect what went wrong
+### Step 1: Detect (skip for Quick Fix)
 
-Look at the current conversation to identify:
+Identify which skill failed from the conversation context:
+- **Obvious** (user reacting to last output): Confirm, don't ask — "Veo que el problema
+  es con `X`, ¿correcto?"
+- **Ambiguous**: Ask — "¿Qué skill o comportamiento quieres corregir?"
 
-1. **Which skill or behavior failed** — Check which skills were invoked in this session.
-   If it's obvious (the user is reacting to the last skill output), don't ask — just confirm:
-   "Veo que el problema es con la skill `X`, ¿correcto?"
-   Only ask "¿Qué skill o comportamiento quieres corregir?" if genuinely ambiguous.
+Quote the problematic output so the user confirms you're targeting the right thing.
 
-2. **What specifically went wrong** — Quote the problematic output or behavior so the user
-   can confirm you're looking at the right thing.
+### Step 2: Check Duplicates
 
-### Step 2: Understand the mistake
+Read `INDEX.md`. If same skill+issue exists, update the existing correction:
+append new context to "What went wrong", refine the rule, bump the date.
 
-The goal is to build a mental model of four things:
-**What happened → What should have happened → Why → When this rule applies.**
+### Step 3: Save
 
-If the user's first explanation already covers all four, skip further questions and go
-straight to saving. If not, ask ONE focused question at a time — prefer offering hypotheses
-("¿Es porque X o porque Y?") over open-ended questions ("¿Por qué está mal?").
+**MANDATORY — READ**: Load [`references/correction-patterns.md`](references/correction-patterns.md)
+for the exact file template, severity decision tree, and scope calibration examples.
+**Do NOT save without reading the reference first.**
 
-### Step 3: Check for duplicates
+After creating the correction file:
+1. Update `INDEX.md`: `- [correction-NNN](path) — <summary> (<skill>, <date>)`
+2. Regenerate `ACTIVE_CORRECTIONS.md` (format in reference file, max 50 lines)
 
-Before creating a new correction, read `INDEX.md` (if it exists) and check whether this
-skill+issue combination is already captured. If so, update the existing correction instead
-of creating a new one — append new context to "What went wrong" and refine the rule.
+### Step 4: Verify (non-negotiable)
 
-### Step 4: Save the correction
+Re-read what you wrote. Apply the cold-reader test: "If a different agent reads this
+cold in a different session, will it know exactly what to do and when to do it?"
 
-Create a correction file with this format:
+If it fails, rewrite. A correction that fails this test actively harms future sessions
+because it creates the illusion of knowledge without the substance.
 
-```markdown
----
-id: correction-NNN
-skill: <skill-name or "general">
-date: YYYY-MM-DD
-summary: <one-line description of what to do differently>
-severity: <minor|moderate|critical>
----
+### Step 5: Activate Consumption (first time only)
 
-## What went wrong
+Corrections are dead files unless future sessions read them. On the FIRST correction
+ever saved, ask the user:
 
-<Brief description of the incorrect behavior, with a concrete example>
+> "Para que las correcciones funcionen entre sesiones, necesito añadir una línea a tu
+> CLAUDE.md. ¿Lo añado?"
 
-## What should happen instead
-
-<The correct behavior, clearly stated — specific enough for a cold reader>
-
-## Why
-
-<The reasoning — why the correct way is better. This helps judge edge cases>
-
-## When to apply
-
-<Scope: always? Only with certain inputs? Only in certain contexts?>
+If yes, append to the user's global `~/.claude/CLAUDE.md`:
+```
+## Skill Corrections
+Before executing any skill, check ~/.claude/skill-corrections/ACTIVE_CORRECTIONS.md for relevant corrections and apply them.
 ```
 
-After saving, update `INDEX.md` with a one-line entry:
-`- [correction-NNN](path) — <summary> (<skill-name>, <date>)`
+Check if the line already exists before offering. Only do this once — ever.
 
-Then regenerate `ACTIVE_CORRECTIONS.md` (see Consumption section below).
+### Step 6: Confirm + Offer Proposal
 
-### Step 5: Verify the correction
+Tell the user the correction is saved. Then, only for skill corrections (not "general"):
 
-Re-read the correction you just wrote and ask: "If a different agent reads this cold in a
-different session, will it know exactly what to do?" If not, the correction is too vague —
-rewrite it before confirming to the user.
+> "¿Quieres que prepare una propuesta de mejora para el autor de la skill?"
 
-### Step 6: Confirm and offer next steps
+### Step 7: Create Proposal (if yes)
 
-Tell the user: "Guardado. La próxima vez que se use `<skill>`, esta corrección se tendrá en cuenta."
+**MANDATORY — READ**: Load [`references/correction-patterns.md`](references/correction-patterns.md)
+for the proposal template, diff format, and repo detection instructions.
+**Do NOT write a proposal without reading the reference first.**
 
-Then, only if the correction relates to an installed skill (not "general"), ask:
+Save to `proposals/<skill-name>-proposal-NNN.md`. Tell the user the path and suggest
+submitting as issue/PR to the skill's repo.
 
-> "¿Quieres que prepare una propuesta de mejora para el autor de la skill?
-> La crearé en local y te indico dónde está para que la subas al repo del proveedor."
+## Correction Decay
 
-### Step 7: Create improvement proposal (if user says yes)
+When encountering a correction older than 90 days:
 
-Generate a proposal file at `~/.claude/skill-corrections/proposals/<skill-name>-proposal-NNN.md`:
+**MANDATORY — READ**: Load [`references/correction-patterns.md`](references/correction-patterns.md)
+§ Correction Decay Procedure for the full archival process.
 
-```markdown
-# Improvement Proposal: <skill-name>
+Quick version: check if the skill was updated since the correction date. If the issue
+was fixed in the skill itself, archive the correction and notify the user.
 
-## Problem
+## Conflict Resolution
 
-<Clear description of the issue, with example input/output>
+When two corrections for the same skill contradict each other:
 
-## Suggested Fix
+**MANDATORY — READ**: Load [`references/correction-patterns.md`](references/correction-patterns.md)
+§ Conflict Resolution Matrix for the severity-based resolution rules.
 
-<Specific changes to the skill's SKILL.md or bundled resources — include a diff if possible>
+Core principle: newer wins unless older is critical and newer is minor.
+Critical-vs-critical conflicts always require user judgment.
 
-## Rationale
+## Management Commands
 
-<Why this change improves the skill for all users, not just this case>
-
-## Reproduction
-
-<Steps to reproduce the issue>
-```
-
-Tell the user: "La propuesta está en `<path>`. Puedes subirla como issue o PR al repo de la skill."
-
-If you can detect the skill's repo URL (from package metadata, SKILL.md comments, or the
-skill directory), mention it.
-
-## How corrections are consumed
-
-When ANY skill runs, the executing agent should check
-`~/.claude/skill-corrections/skills/<skill-name>/` for existing corrections and factor
-them into its behavior. For general corrections, check `~/.claude/skill-corrections/general/`.
-
-After each new correction, regenerate the preload file:
-
-`~/.claude/skill-corrections/ACTIVE_CORRECTIONS.md`
-
-This file is a condensed list (max 50 lines) for quick scanning:
-
-```markdown
-# Active Corrections
-
-## Skills
-- **<skill-name>**: <summary of correction> (correction-NNN, YYYY-MM-DD)
-- **<skill-name>**: <summary> | <summary> (when multiple corrections exist)
-
-## General
-- <summary of correction> (correction-NNN, YYYY-MM-DD)
-```
-
-## Additional commands
-
-The user might also ask to:
-
-- **"Show me corrections for X"** → Read and display corrections for that skill
-- **"Delete correction NNN"** → Remove it and update INDEX.md and ACTIVE_CORRECTIONS.md
-- **"List all corrections"** → Show INDEX.md
-- **"Clear corrections for X"** → Archive or delete all corrections for a skill
+| User says | Action |
+|-----------|--------|
+| "Show corrections for X" | Read and display that skill's corrections |
+| "Delete correction NNN" | Remove file + update INDEX.md + ACTIVE_CORRECTIONS.md |
+| "List all corrections" | Show INDEX.md |
+| "Clear corrections for X" | Move all to `archive/`, update indexes |
 
 ## Language
 
-Match the user's language. Correction files should be written in the language the user
-used to describe the problem — nuance and intent are preserved in the original language.
+Match the user's language. Write corrections in the language the user described
+the problem in — nuance is preserved in the original language.
