@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "description": "Community-driven security audit registry for Claude Code skills. Each audit is a full 9-layer threat analysis performed by skill-guard.",
+  "audits": [
+    {
+      "skill": "anthropic/skill-creator",
+      "sha": "fea15484",
+      "score": 82,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "anthropic/skill-creator/fea1548.json"
+    }
+  ]
+}

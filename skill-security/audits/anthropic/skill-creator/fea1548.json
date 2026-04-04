@@ -1,0 +1,93 @@
+{
+  "skill": "anthropic/skill-creator",
+  "date": "2026-04-04",
+  "sha256": "fea15484f14d8f712c63dbb84b03fc5b88ff0c65bcf3cd1c28ebe5b728f94ff6",
+  "files_analyzed": [
+    "SKILL.md",
+    "scripts/run_eval.py",
+    "scripts/improve_description.py",
+    "scripts/run_loop.py",
+    "scripts/aggregate_benchmark.py",
+    "scripts/generate_report.py",
+    "scripts/package_skill.py",
+    "scripts/quick_validate.py",
+    "scripts/utils.py",
+    "scripts/__init__.py",
+    "eval-viewer/generate_review.py",
+    "eval-viewer/viewer.html",
+    "assets/eval_review.html",
+    "agents/grader.md",
+    "agents/comparator.md",
+    "agents/analyzer.md",
+    "references/schemas.md",
+    "LICENSE.txt"
+  ],
+  "total_files": 18,
+  "total_size_kb": 225,
+  "score": 82,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools field in frontmatter",
+      "explanation": "Skill has unlimited access to all tools. Coherent with purpose (needs full flexibility for skill creation/testing) but technically unrestricted."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "eval-viewer/generate_review.py",
+      "line": 449,
+      "content": "http://localhost:{port}",
+      "explanation": "Local HTTP server for eval viewer. No external connections."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "scripts/generate_report.py",
+      "line": 39,
+      "content": "https://fonts.googleapis.com, https://fonts.gstatic.com",
+      "explanation": "Google Fonts CDN for HTML report styling. Standard practice."
+    },
+    {
+      "severity": "INFO",
+      "layer": 2,
+      "file": "eval-viewer/generate_review.py",
+      "line": 167,
+      "content": "base64.b64encode(raw).decode('ascii')",
+      "explanation": "Base64 encoding for embedding images/files as data URIs in HTML. Standard pattern, not obfuscation."
+    },
+    {
+      "severity": "INFO",
+      "layer": 4,
+      "file": "scripts/run_eval.py",
+      "line": 83,
+      "content": "env = {k: v for k, v in os.environ.items() if k != 'CLAUDECODE'}",
+      "explanation": "Filters out CLAUDECODE env var to allow nested claude -p subprocess. Does NOT access tokens or secrets."
+    },
+    {
+      "severity": "LOW",
+      "layer": 3,
+      "file": "SKILL.md",
+      "line": null,
+      "content": "DO NOT read the source until you try running the script first",
+      "explanation": "Anti-review pattern detected, but verified as context management (scripts are 16KB+). Scripts are clean after full review. Flag downgraded from MEDIUM to LOW."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 85,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 95,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 100,
+    "anti_evasion": 100
+  },
+  "notes": "Official Anthropic skill. All scripts execute claude -p CLI, serve localhost HTML, or process local data. No external network calls, no credential access, no MCP usage. Base64 usage is for HTML data URIs only. Environment variable access limited to removing CLAUDECODE for subprocess nesting.",
+  "analyzed_by": "skill-guard-v1"
+}
