@@ -1,0 +1,65 @@
+{
+  "skill": "anthropic/mcp-builder",
+  "date": "2026-04-04",
+  "sha256": "0f4592dcb53cf2b5d6b7febee6b4152018b565551a1c29e3c612f57b218ab295",
+  "files_analyzed": [
+    "SKILL.md",
+    "LICENSE.txt",
+    "scripts/evaluation.py",
+    "scripts/connections.py",
+    "scripts/requirements.txt",
+    "reference/mcp_best_practices.md",
+    "reference/python_mcp_server.md",
+    "reference/node_mcp_server.md",
+    "reference/evaluation.md"
+  ],
+  "score": 85,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "HIGH",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 1,
+      "content": "No allowed-tools declared in frontmatter",
+      "explanation": "Missing allowed-tools. Skill needs Bash, Read, Write, Edit, WebFetch (for SDK docs). Scripts use Anthropic API and connect to MCP servers. Without restriction, unlimited access."
+    },
+    {
+      "severity": "MEDIUM",
+      "layer": 2,
+      "file": "scripts/evaluation.py",
+      "line": 229,
+      "content": "from anthropic import Anthropic; client = Anthropic()",
+      "explanation": "Uses Anthropic API client which implicitly reads ANTHROPIC_API_KEY from environment. Legitimate for MCP server evaluation purpose. No credential exfiltration \u2014 sends evaluation prompts to Anthropic API."
+    },
+    {
+      "severity": "MEDIUM",
+      "layer": 5,
+      "file": "scripts/connections.py",
+      "line": 88,
+      "content": "MCPConnectionSSE(url, headers), MCPConnectionHTTP(url, headers)",
+      "explanation": "Connects to arbitrary URLs for MCP server testing. Core purpose of the skill. URLs are user-provided via CLI args, not hardcoded."
+    },
+    {
+      "severity": "LOW",
+      "layer": 2,
+      "file": "SKILL.md",
+      "line": 62,
+      "content": "WebFetch to load SDK docs from GitHub URLs",
+      "explanation": "Instructs fetching from github.com and modelcontextprotocol.io. Legitimate documentation sources. URLs are well-known, verified repos."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 70,
+    "static_patterns": 85,
+    "semantic": 90,
+    "scripts": 85,
+    "data_flow": 80,
+    "mcp": 100,
+    "supply_chain": 95,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1"
+}

@@ -1,8 +1,56 @@
 {
   "version": "1.0",
-  "description": "Community-driven security audit registry for Claude Code skills. Each audit is a full 9-layer threat analysis performed by skill-guard.",
+  "description": "Community-driven security audit registry for Claude Code skills.",
   "total_audits": 69,
+  "authors": [
+    "ablerz",
+    "anthropic",
+    "blader",
+    "j4rk0r",
+    "joshuadavidthomas",
+    "leonardocouy",
+    "obra",
+    "softaworks",
+    "squirrelscan",
+    "unknown"
+  ],
   "audits": [
+    {
+      "skill": "ablerz/drupal-module",
+      "sha": "c269fbf3",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "ablerz/drupal-module/c269fbf3.json"
+    },
+    {
+      "skill": "anthropic/frontend-design",
+      "sha": "b81e2ff8",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "anthropic/frontend-design/b81e2ff8.json"
+    },
+    {
+      "skill": "anthropic/mcp-builder",
+      "sha": "0f4592dc",
+      "score": 85,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "anthropic/mcp-builder/0f4592dc.json"
+    },
+    {
+      "skill": "anthropic/pdf",
+      "sha": "9f78b835",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "anthropic/pdf/9f78b835.json"
+    },
     {
       "skill": "anthropic/skill-creator",
       "sha": "fea1548",
@@ -13,6 +61,78 @@
       "report": "anthropic/skill-creator/fea1548.json"
     },
     {
+      "skill": "blader/humanizer",
+      "sha": "6688e4e2",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "blader/humanizer/6688e4e2.json"
+    },
+    {
+      "skill": "j4rk0r/skill-guard",
+      "sha": "4f5e3867",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "j4rk0r/skill-guard/4f5e3867.json"
+    },
+    {
+      "skill": "j4rk0r/skill-judge",
+      "sha": "737ef362",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "j4rk0r/skill-judge/737ef362.json"
+    },
+    {
+      "skill": "joshuadavidthomas/crafting-effective-readmes",
+      "sha": "638b271f",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "joshuadavidthomas/crafting-effective-readmes/638b271f.json"
+    },
+    {
+      "skill": "joshuadavidthomas/reducing-entropy",
+      "sha": "50958820",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "joshuadavidthomas/reducing-entropy/50958820.json"
+    },
+    {
+      "skill": "joshuadavidthomas/writing-clearly-and-concisely",
+      "sha": "c5f4ecc8",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "joshuadavidthomas/writing-clearly-and-concisely/c5f4ecc8.json"
+    },
+    {
+      "skill": "leonardocouy/datadog-cli",
+      "sha": "d65cdb00",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "leonardocouy/datadog-cli/d65cdb00.json"
+    },
+    {
+      "skill": "obra/subagent-driven-development",
+      "sha": "081ad386",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "obra/subagent-driven-development/081ad386.json"
+    },
+    {
       "skill": "obra/superpowers@brainstorming",
       "sha": "bba47904",
       "score": 91,
@@ -20,6 +140,60 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "obra/brainstorming/bba47904.json"
+    },
+    {
+      "skill": "obra/systematic-debugging",
+      "sha": "4999cb85",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "obra/systematic-debugging/4999cb85.json"
+    },
+    {
+      "skill": "obra/writing-plans",
+      "sha": "90056bad",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "obra/writing-plans/90056bad.json"
+    },
+    {
+      "skill": "softaworks/gepetto",
+      "sha": "6a52b885",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "softaworks/gepetto/6a52b885.json"
+    },
+    {
+      "skill": "softaworks/skill-advisor",
+      "sha": "7696406f",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "softaworks/skill-advisor/7696406f.json"
+    },
+    {
+      "skill": "softaworks/web-to-markdown",
+      "sha": "9c61df95",
+      "score": 93,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "softaworks/web-to-markdown/9c61df95.json"
+    },
+    {
+      "skill": "squirrelscan/audit-website",
+      "sha": "f438c268",
+      "score": 97,
+      "verdict": "GREEN",
+      "date": "2026-04-04",
+      "critical_findings": 0,
+      "report": "squirrelscan/audit-website/f438c268.json"
     },
     {
       "skill": "unknown/agent-md-refactor",
@@ -56,15 +230,6 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/animate/70b6be1e.json"
-    },
-    {
-      "skill": "unknown/audit-website",
-      "sha": "f438c268",
-      "score": 97,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/audit-website/f438c268.json"
     },
     {
       "skill": "unknown/backend-to-frontend-handoff-docs",
@@ -121,15 +286,6 @@
       "report": "unknown/commit-work/888588ea.json"
     },
     {
-      "skill": "unknown/crafting-effective-readmes",
-      "sha": "638b271f",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/crafting-effective-readmes/638b271f.json"
-    },
-    {
       "skill": "unknown/daily-meeting-update",
       "sha": "153c2d8d",
       "score": 92,
@@ -146,15 +302,6 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/database-schema-designer/e485710c.json"
-    },
-    {
-      "skill": "unknown/datadog-cli",
-      "sha": "d65cdb00",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/datadog-cli/d65cdb00.json"
     },
     {
       "skill": "unknown/dependency-updater",
@@ -220,15 +367,6 @@
       "report": "unknown/draw-io/fb23a8ba.json"
     },
     {
-      "skill": "unknown/drupal-module",
-      "sha": "c269fbf3",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/drupal-module/c269fbf3.json"
-    },
-    {
       "skill": "unknown/excalidraw",
       "sha": "561c01a2",
       "score": 93,
@@ -254,15 +392,6 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/find-skills/1e85f6f9.json"
-    },
-    {
-      "skill": "unknown/frontend-design",
-      "sha": "b81e2ff8",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/frontend-design/b81e2ff8.json"
     },
     {
       "skill": "unknown/frontend-to-backend-requirements",
@@ -292,24 +421,6 @@
       "report": "unknown/gemini/bc9c52aa.json"
     },
     {
-      "skill": "unknown/gepetto",
-      "sha": "6a52b885",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/gepetto/6a52b885.json"
-    },
-    {
-      "skill": "unknown/humanizer",
-      "sha": "6688e4e2",
-      "score": 97,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/humanizer/6688e4e2.json"
-    },
-    {
       "skill": "unknown/jira",
       "sha": "80cd136d",
       "score": 93,
@@ -335,15 +446,6 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/marp-slide/4244be1f.json"
-    },
-    {
-      "skill": "unknown/mcp-builder",
-      "sha": "0f4592dc",
-      "score": 85,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/mcp-builder/0f4592dc.json"
     },
     {
       "skill": "unknown/meme-factory",
@@ -409,15 +511,6 @@
       "report": "unknown/openapi-to-typescript/a27383fc.json"
     },
     {
-      "skill": "unknown/pdf",
-      "sha": "9f78b835",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/pdf/9f78b835.json"
-    },
-    {
       "skill": "unknown/perplexity",
       "sha": "e7c8c405",
       "score": 93,
@@ -481,15 +574,6 @@
       "report": "unknown/react-useeffect/f31e9925.json"
     },
     {
-      "skill": "unknown/reducing-entropy",
-      "sha": "50958820",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/reducing-entropy/50958820.json"
-    },
-    {
       "skill": "unknown/remotion-best-practices",
       "sha": "2f9be561",
       "score": 93,
@@ -526,51 +610,6 @@
       "report": "unknown/ship-learn-next/503b2265.json"
     },
     {
-      "skill": "unknown/skill-advisor",
-      "sha": "7696406f",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/skill-advisor/7696406f.json"
-    },
-    {
-      "skill": "unknown/skill-guard",
-      "sha": "4f5e3867",
-      "score": 97,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/skill-guard/4f5e3867.json"
-    },
-    {
-      "skill": "unknown/skill-judge",
-      "sha": "737ef362",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/skill-judge/737ef362.json"
-    },
-    {
-      "skill": "unknown/subagent-driven-development",
-      "sha": "081ad386",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/subagent-driven-development/081ad386.json"
-    },
-    {
-      "skill": "unknown/systematic-debugging",
-      "sha": "4999cb85",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/systematic-debugging/4999cb85.json"
-    },
-    {
       "skill": "unknown/verification-before-completion",
       "sha": "ea52d15a",
       "score": 93,
@@ -589,15 +628,6 @@
       "report": "unknown/web-design-guidelines/f4647ca8.json"
     },
     {
-      "skill": "unknown/web-to-markdown",
-      "sha": "9c61df95",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/web-to-markdown/9c61df95.json"
-    },
-    {
       "skill": "unknown/webapp-testing",
       "sha": "51b7349e",
       "score": 93,
@@ -605,24 +635,6 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/webapp-testing/51b7349e.json"
-    },
-    {
-      "skill": "unknown/writing-clearly-and-concisely",
-      "sha": "c5f4ecc8",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/writing-clearly-and-concisely/c5f4ecc8.json"
-    },
-    {
-      "skill": "unknown/writing-plans",
-      "sha": "90056bad",
-      "score": 93,
-      "verdict": "GREEN",
-      "date": "2026-04-04",
-      "critical_findings": 0,
-      "report": "unknown/writing-plans/90056bad.json"
     }
   ]
 }
