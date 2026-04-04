@@ -1,0 +1,25 @@
+{
+  "skill": "j4rk0r/claude-skills@skill-guard",
+  "date": "2026-04-04",
+  "sha256": "fced22c0658654864f1e0c3406da8e69696ac899569da02e8dbcf3e6bdeea348",
+  "files_analyzed": ["SKILL.md", "README.md", "references/patterns.md", "schemas/audit-v1.json"],
+  "score": 100,
+  "verdict": "GREEN",
+  "scan_type": "full",
+  "critical_findings": 0,
+  "findings": [],
+  "layer_scores": {
+    "frontmatter": 100,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 100,
+    "anti_evasion": 100
+  },
+  "analyzed_by": "skill-guard-v1",
+  "auditor": "j4rk0r",
+  "notes": "Re-audit after restricting Bash(gh:*) and Bash(git:*) to specific subcommands. Previous finding resolved. Perfect score."
+}

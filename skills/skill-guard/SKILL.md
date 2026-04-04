@@ -2,7 +2,7 @@
 name: skill-guard
 description: "Security auditor for Claude Code skills. Analyzes skills BEFORE installation using a 9-layer threat detection engine (permissions, static patterns, LLM semantic analysis, bundled scripts, data flow, MCP abuse, supply chain, reputation, anti-evasion) with scoring 0-100 and community audit registry. MUST be used whenever the user is about to install a skill — via npx skills add, /find-skills recommendation, /skill-advisor suggestion, or manual request. Also use when user says 'is this skill safe', 'audit this skill', 'check this skill', 'security scan', 'review before installing', or any mention of skill safety/trust/security. Intercept ALL skill installations proactively."
 user-invocable: true
-allowed-tools: Read Grep Glob Bash(shasum:*) Bash(find:*) Bash(gh:*) Bash(git:*) Bash(wc:*) Bash(ls:*) Bash(file:*) Bash(grep:*) Bash(mkdir:*) Bash(cp:*)
+allowed-tools: Read Grep Glob Bash(shasum:*) Bash(find:*) Bash(gh api:*) Bash(gh repo:*) Bash(gh pr:*) Bash(git add:*) Bash(git commit:*) Bash(git push:*) Bash(git clone:*) Bash(git config:*) Bash(git remote:*) Bash(wc:*) Bash(ls:*) Bash(file:*) Bash(grep:*) Bash(mkdir:*) Bash(cp:*)
 ---
 
 # Skill-Guard
