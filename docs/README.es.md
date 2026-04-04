@@ -16,7 +16,7 @@ npx skills add j4rk0r/claude-skills --yes --global
 |-------|----------|------------|
 | **[skill-advisor](../skills/skill-advisor/)** | Instalaste 50 skills y usas 5. Esto conecta cada tarea con tu mejor herramienta para que ninguna acumule polvo. | 120/120 |
 | **[skill-guard](../skills/skill-guard/)** | Detecta skills maliciosas antes de que toquen tus archivos, tokens o claves. Analisis en 9 capas + registro de auditorias verificado. | 120/120 |
-| **[skill-learner](../skills/skill-learner/)** | Captura errores y persiste correcciones para que el mismo fallo no se repita. Funciona con skills Y comportamiento general de Claude. Opcionalmente genera propuestas de mejora para autores. | 90/100 |
+| **[skill-learner](../skills/skill-learner/)** | Captura errores y persiste correcciones para que el mismo fallo no se repita. Funciona con skills Y comportamiento general de Claude. Opcionalmente genera propuestas de mejora para autores. | 120/120 |
 
 ## skill-guard
 
