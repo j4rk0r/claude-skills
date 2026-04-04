@@ -1,5 +1,7 @@
 # j4rk0r/claude-skills
 
+**[English](README.md)** | **[Español](docs/README.es.md)** | **[Français](docs/README.fr.md)** | **[Deutsch](docs/README.de.md)** | **[Português](docs/README.pt.md)** | **[中文](docs/README.zh.md)** | **[日本語](docs/README.ja.md)**
+
 Expert-grade skills for Claude Code. Every skill scored **A+ (120/120)** before shipping.
 
 ## Install
