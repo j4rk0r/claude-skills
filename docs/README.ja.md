@@ -4,19 +4,33 @@
 
 Claude Code 向けエキスパートグレードのスキル。全スキル出荷前に **A+ (120/120)** を獲得。
 
-## インストール
+## 全てインストール
 
 ```bash
 npx skills add j4rk0r/claude-skills --yes --global
 ```
 
+または個別にインストール：
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner -y -g
+```
+
 ## スキル一覧
 
-| スキル | 機能 | インストール |
-|--------|------|-------------|
-| **[skill-guard](../skills/skill-guard/)** | 悪意あるスキルがファイル・トークン・鍵に触れる前にキャッチ。9層分析 + コミュニティ検証済み監査レジストリ。 | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` |
-| **[skill-advisor](../skills/skill-advisor/)** | インストール済みスキルと不足しているギャップを組み合わせた実行計画を構築し、インストールを提案。装備不足でタスクを始めない。 | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` |
-| **[skill-learner](../skills/skill-learner/)** | エラーを捕捉し修正を永続化して同じミスを繰り返さない。スキルとClaudeの一般的な動作の両方に対応。オプションでスキル作者への改善提案を生成。 | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` |
+| スキル | 機能 |
+|--------|------|
+| **[skill-guard](../skills/skill-guard/)** | 悪意あるスキルがファイル・トークン・鍵に触れる前にキャッチ。9層分析 + コミュニティ検証済み監査レジストリ。 |
+| **[skill-advisor](../skills/skill-advisor/)** | インストール済みスキルと不足しているギャップを組み合わせた実行計画を構築し、インストールを提案。装備不足でタスクを始めない。 |
+| **[skill-learner](../skills/skill-learner/)** | エラーを捕捉し修正を永続化して同じミスを繰り返さない。スキルとClaudeの一般的な動作の両方に対応。オプションでスキル作者への改善提案を生成。 |
 
 ## skill-guard
 

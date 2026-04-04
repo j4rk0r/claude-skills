@@ -4,19 +4,33 @@
 
 Skills de niveau expert pour Claude Code. Chaque skill notee **A+ (120/120)** avant publication.
 
-## Installer
+## Installer tout
 
 ```bash
 npx skills add j4rk0r/claude-skills --yes --global
 ```
 
+Ou installer individuellement :
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner -y -g
+```
+
 ## Skills
 
-| Skill | Description | Installer |
-|-------|------------|-----------|
-| **[skill-guard](../skills/skill-guard/)** | Detecte les skills malveillantes avant qu'elles ne touchent vos fichiers, tokens ou cles. Analyse en 9 couches + registre d'audits verifie. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` |
-| **[skill-advisor](../skills/skill-advisor/)** | Construit des plans d'execution combinant vos skills installees et les gaps manquants — puis propose de les installer. Ne commencez jamais sous-equipe. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` |
-| **[skill-learner](../skills/skill-learner/)** | Capture les erreurs et persiste les corrections pour que la meme faute ne se reproduise plus. Fonctionne pour les skills ET le comportement general de Claude. Genere optionnellement des propositions d'amelioration pour les auteurs. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` |
+| Skill | Description |
+|-------|------------|
+| **[skill-guard](../skills/skill-guard/)** | Detecte les skills malveillantes avant qu'elles ne touchent vos fichiers, tokens ou cles. Analyse en 9 couches + registre d'audits verifie. |
+| **[skill-advisor](../skills/skill-advisor/)** | Construit des plans d'execution combinant vos skills installees et les gaps manquants — puis propose de les installer. Ne commencez jamais sous-equipe. |
+| **[skill-learner](../skills/skill-learner/)** | Capture les erreurs et persiste les corrections pour que la meme faute ne se reproduise plus. Fonctionne pour les skills ET le comportement general de Claude. Genere optionnellement des propositions d'amelioration pour les auteurs. |
 
 ## skill-guard
 

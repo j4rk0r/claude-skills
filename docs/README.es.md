@@ -4,19 +4,33 @@
 
 Skills de nivel experto para Claude Code. Cada skill puntuada **A+ (120/120)** antes de publicarse.
 
-## Instalar
+## Instalar todas
 
 ```bash
 npx skills add j4rk0r/claude-skills --yes --global
 ```
 
+O instalar individualmente:
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner -y -g
+```
+
 ## Skills
 
-| Skill | Que hace | Instalar |
-|-------|----------|----------|
-| **[skill-guard](../skills/skill-guard/)** | Auditor de seguridad — deteccion de amenazas en 9 capas para skills antes de instalarlas. Registro comunitario de auditorias. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` |
-| **[skill-advisor](../skills/skill-advisor/)** | Construye planes de ejecucion que combinan tus skills instaladas con los gaps que te faltan — y ofrece instalarlos. Nunca empieces una tarea sin las herramientas adecuadas. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` |
-| **[skill-learner](../skills/skill-learner/)** | Captura errores y persiste correcciones para que el mismo fallo no se repita. Funciona con skills Y comportamiento general de Claude. Opcionalmente genera propuestas de mejora para autores. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` |
+| Skill | Que hace |
+|-------|----------|
+| **[skill-guard](../skills/skill-guard/)** | Auditor de seguridad — deteccion de amenazas en 9 capas para skills antes de instalarlas. Registro comunitario de auditorias. |
+| **[skill-advisor](../skills/skill-advisor/)** | Construye planes de ejecucion que combinan tus skills instaladas con los gaps que te faltan — y ofrece instalarlos. Nunca empieces una tarea sin las herramientas adecuadas. |
+| **[skill-learner](../skills/skill-learner/)** | Captura errores y persiste correcciones para que el mismo fallo no se repita. Funciona con skills Y comportamiento general de Claude. Opcionalmente genera propuestas de mejora para autores. |
 
 ## skill-guard
 

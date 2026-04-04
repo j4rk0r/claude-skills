@@ -4,19 +4,33 @@
 
 Expert-grade skills for Claude Code. Every skill scored **A+ (120/120)** before shipping.
 
-## Install
+## Install all
 
 ```bash
 npx skills add j4rk0r/claude-skills --yes --global
 ```
 
+Or install individually:
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner -y -g
+```
+
 ## Skills
 
-| Skill | What it does | Install |
-|-------|-------------|---------|
-| **[skill-guard](skills/skill-guard/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` |
-| **[skill-advisor](skills/skill-advisor/)** | Builds execution plans that combine your installed skills with gaps you're missing — then offers to install them. Never start a task under-equipped. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` |
-| **[skill-learner](skills/skill-learner/)** | Captures mistakes and persists corrections so the same error never happens twice. Works for skills AND general Claude behavior. Optionally generates improvement proposals for skill authors. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` |
+| Skill | What it does |
+|-------|-------------|
+| **[skill-guard](skills/skill-guard/)** | Security auditor — 9-layer threat detection for skills before installation. Community audit registry. |
+| **[skill-advisor](skills/skill-advisor/)** | Builds execution plans that combine your installed skills with gaps you're missing — then offers to install them. Never start a task under-equipped. |
+| **[skill-learner](skills/skill-learner/)** | Captures mistakes and persists corrections so the same error never happens twice. Works for skills AND general Claude behavior. Optionally generates improvement proposals for skill authors. |
 
 ## skill-guard
 

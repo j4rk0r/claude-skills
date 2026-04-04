@@ -4,19 +4,33 @@
 
 Skills auf Expertenniveau fuer Claude Code. Jeder Skill mit **A+ (120/120)** bewertet vor der Veroeffentlichung.
 
-## Installieren
+## Alles installieren
 
 ```bash
 npx skills add j4rk0r/claude-skills --yes --global
 ```
 
+Oder einzeln installieren:
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner -y -g
+```
+
 ## Skills
 
-| Skill | Beschreibung | Installieren |
-|-------|-------------|--------------|
-| **[skill-guard](../skills/skill-guard/)** | Erkennt schaedliche Skills, bevor sie Ihre Dateien, Tokens oder Schluessel beruehren. 9-Schichten-Analyse + verifiziertes Audit-Register. | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` |
-| **[skill-advisor](../skills/skill-advisor/)** | Erstellt Ausfuehrungsplaene die installierte Skills mit fehlenden Luecken kombinieren — und bietet an, sie zu installieren. Starten Sie nie unterausgeruestet. | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` |
-| **[skill-learner](../skills/skill-learner/)** | Erfasst Fehler und speichert Korrekturen dauerhaft, damit derselbe Fehler nie wieder passiert. Funktioniert fuer Skills UND allgemeines Claude-Verhalten. Erstellt optional Verbesserungsvorschlaege fuer Skill-Autoren. | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` |
+| Skill | Beschreibung |
+|-------|-------------|
+| **[skill-guard](../skills/skill-guard/)** | Erkennt schaedliche Skills, bevor sie Ihre Dateien, Tokens oder Schluessel beruehren. 9-Schichten-Analyse + verifiziertes Audit-Register. |
+| **[skill-advisor](../skills/skill-advisor/)** | Erstellt Ausfuehrungsplaene die installierte Skills mit fehlenden Luecken kombinieren — und bietet an, sie zu installieren. Starten Sie nie unterausgeruestet. |
+| **[skill-learner](../skills/skill-learner/)** | Erfasst Fehler und speichert Korrekturen dauerhaft, damit derselbe Fehler nie wieder passiert. Funktioniert fuer Skills UND allgemeines Claude-Verhalten. Erstellt optional Verbesserungsvorschlaege fuer Skill-Autoren. |
 
 ## skill-guard
 

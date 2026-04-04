@@ -4,19 +4,33 @@
 
 专家级 Claude Code 技能。每个技能发布前均获得 **A+ (120/120)** 评分。
 
-## 安装
+## 全部安装
 
 ```bash
 npx skills add j4rk0r/claude-skills --yes --global
 ```
 
+或单独安装：
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-guard -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-advisor -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@skill-learner -y -g
+```
+
 ## 技能列表
 
-| 技能 | 功能 | 安装 |
-|------|------|------|
-| **[skill-guard](../skills/skill-guard/)** | 在恶意技能接触你的文件、令牌或密钥之前拦截它。9层分析 + 社区验证的审计注册表。 | `npx skills add j4rk0r/claude-skills@skill-guard -y -g` |
-| **[skill-advisor](../skills/skill-advisor/)** | 构建执行计划，将已安装技能与缺失的技能差距结合——然后提供安装。永远不要在装备不足时开始任务。 | `npx skills add j4rk0r/claude-skills@skill-advisor -y -g` |
-| **[skill-learner](../skills/skill-learner/)** | 捕获错误并持久化修正，让同样的错误不再重复。适用于技能和Claude的一般行为。可选择为技能作者生成改进建议。 | `npx skills add j4rk0r/claude-skills@skill-learner -y -g` |
+| 技能 | 功能 |
+|------|------|
+| **[skill-guard](../skills/skill-guard/)** | 在恶意技能接触你的文件、令牌或密钥之前拦截它。9层分析 + 社区验证的审计注册表。 |
+| **[skill-advisor](../skills/skill-advisor/)** | 构建执行计划，将已安装技能与缺失的技能差距结合——然后提供安装。永远不要在装备不足时开始任务。 |
+| **[skill-learner](../skills/skill-learner/)** | 捕获错误并持久化修正，让同样的错误不再重复。适用于技能和Claude的一般行为。可选择为技能作者生成改进建议。 |
 
 ## skill-guard
 
