@@ -2,7 +2,7 @@
 
 > You install 50 skills. You use 5. skill-advisor makes sure you use all of them.
 
-Analyzes every instruction and recommends the right skill before execution. Reads your installed skills dynamically — no hardcoded lists.
+Analyzes every instruction and recommends the right skill before execution. Reads your installed skills dynamically — no hardcoded lists. Detects capability gaps and suggests skills you don't have yet.
 
 ## Install
 
@@ -16,7 +16,8 @@ npx skills add j4rk0r/claude-skills --skill skill-advisor --yes --global
 - **Pre-action analysis** — Recommends skills BEFORE you start working.
 - **Post-action suggestions** — Suggests next steps after completing work.
 - **Lateral matching** — "make it look better" finds design, animation, AND accessibility skills.
-- **Pipeline detection** — Recommends full combos, not just single skills.
+- **Gap analysis** — Detects disciplines your task needs but you don't have (SEO, copywriting, marketing...) and suggests `npx skills find`.
+- **Pipeline detection** — Recommends full combos with ✅/❌ indicators showing installed vs missing steps.
 - **Anti-annoyance** — Won't interrupt simple tasks. Knows when to be silent.
 - **Community fallback** — If no local skill matches, suggests installable ones.
 - **First-run scan** — Reports your full ecosystem on first invocation.
