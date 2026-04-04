@@ -338,9 +338,30 @@ Save audit to `j4rk0r/claude-skills` → `skills/skill-guard/audits/{author}/{sk
   "critical_findings": 0,
   "findings": [{ "severity": "HIGH", "layer": 2, "file": "SKILL.md", "line": 47, "content": "...", "explanation": "..." }],
   "layer_scores": { "frontmatter": 70, "static_patterns": 80, "semantic": 65, "scripts": 90, "data_flow": 75, "mcp": 100, "supply_chain": 95, "reputation": 60, "anti_evasion": 100 },
-  "analyzed_by": "skill-guard-v1"
+  "analyzed_by": "skill-guard-v1",
+  "auditor": "[git-user]",
+  "verification_hash": "[sha256 of all fields above concatenated]"
 }
 ```
+
+**Audit integrity fields:**
+
+- `auditor`: Git username of who ran the audit (`git config user.name` or `gh api user -q .login`)
+- `verification_hash`: SHA-256 of the JSON with `verification_hash` field removed. This allows anyone to verify the audit was not tampered with after generation.
+
+**How to generate `verification_hash`:**
+```bash
+# Remove the verification_hash field, then hash the rest
+cat audit.json | python3 -c "import json,sys,hashlib; d=json.load(sys.stdin); d.pop('verification_hash',None); print(hashlib.sha256(json.dumps(d,sort_keys=True).encode()).hexdigest())"
+```
+
+**PR review verification (for community PRs):**
+1. Recalculate `verification_hash` from the submitted JSON — must match the field value
+2. Verify `sha256` matches the actual skill files (download and hash them)
+3. If hash mismatch → the audit was edited manually → **reject PR**
+4. If score seems inflated relative to findings → re-run skill-guard on the same skill to cross-check
+
+This does NOT prevent a sophisticated attacker from regenerating a valid hash after editing. It catches casual manipulation. For full trust, the maintainer should re-audit suspicious PRs.
 
 Update `audits/index.json`, commit: `audit: {skill-name} — {verdict} ({score}/100)`, push.
 
