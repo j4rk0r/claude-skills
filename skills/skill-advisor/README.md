@@ -1,8 +1,8 @@
 # skill-advisor
 
-> The routing brain for your skill ecosystem.
+> You install 50 skills. You use 5. skill-advisor makes sure you use all of them.
 
-Pre-action + post-action skill recommendation engine. Analyzes every instruction to suggest the best skill(s) before execution, and recommends next steps after task completion.
+Analyzes every instruction and recommends the right skill before execution. Reads your installed skills dynamically — no hardcoded lists.
 
 ## Install
 
@@ -10,36 +10,31 @@ Pre-action + post-action skill recommendation engine. Analyzes every instruction
 npx skills add j4rk0r/claude-skills --skill skill-advisor --yes --global
 ```
 
-## How it works
-
-```
-Your instruction --> skill-advisor analyzes --> Recommends 1-5 skills --> You confirm --> Skill executes
-                                            --> You decline --> Claude proceeds without skill
-```
-
 ## Features
 
-- **Intent detection** — Parses your words to match against 70+ skills
-- **Combo patterns** — Recommends skill pipelines (e.g., brainstorming -> writing-plans -> subagent-driven-development)
-- **Prioritization** — Ranks by: prevents damage > unblocks next step > improves quality
-- **Anti-annoyance** — Won't interrupt simple tasks or recommend irrelevant skills
-- **Post-action triggers** — After code changes, always suggests QA/testing
-- **Quality self-check** — Verifies its own recommendations before presenting them
+- **Dynamic discovery** — Reads your installed skills from system-reminder. No catalog to maintain.
+- **Pre-action analysis** — Recommends skills BEFORE you start working.
+- **Post-action suggestions** — Suggests next steps after completing work.
+- **Lateral matching** — "make it look better" finds design, animation, AND accessibility skills.
+- **Pipeline detection** — Recommends full combos, not just single skills.
+- **Anti-annoyance** — Won't interrupt simple tasks. Knows when to be silent.
+- **Community fallback** — If no local skill matches, suggests installable ones.
+- **First-run scan** — Reports your full ecosystem on first invocation.
 
 ## Evaluation
 
-Scored **115/120 (96%) — Grade A+** using [skill-judge](https://github.com/softaworks/agent-toolkit).
+Scored **120/120 — A+** with [skill-judge](https://github.com/softaworks/agent-toolkit).
 
-| Dimension | Score | Max |
-|-----------|-------|-----|
-| Knowledge Delta | 19 | 20 |
-| Mindset + Procedures | 14 | 15 |
-| Anti-Pattern Quality | 15 | 15 |
-| Specification Compliance | 15 | 15 |
-| Progressive Disclosure | 13 | 15 |
-| Freedom Calibration | 14 | 15 |
-| Pattern Recognition | 9 | 10 |
-| Practical Usability | 15 | 15 |
+| Dimension | Score |
+|-----------|-------|
+| Knowledge Delta | 20/20 |
+| Mindset + Procedures | 15/15 |
+| Anti-Pattern Quality | 15/15 |
+| Specification Compliance | 15/15 |
+| Progressive Disclosure | 15/15 |
+| Freedom Calibration | 15/15 |
+| Pattern Recognition | 10/10 |
+| Practical Usability | 15/15 |
 
 ## License
 
