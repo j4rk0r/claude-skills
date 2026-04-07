@@ -1,6 +1,6 @@
 # lint-drupal-module
 
-**[English](README.md)** | **[Español](README.es.md)**
+**[English](README.md)** | **[Español](README.es.md)** | **[Français](README.fr.md)** | **[Deutsch](README.de.md)** | **[Português](README.pt.md)** | **[中文](README.zh.md)** | **[日本語](README.ja.md)**
 
 > **Tu review manual encuentra 29 issues. Ejecutas PHPStan y PHPCS a mano. Le pides a un reviewer que mire estándares y seguridad. 45 minutos después por fin tienes una vista consolidada — y se te pasaron 140 violaciones en los JS del módulo porque nadie le pasó PHPCS al JavaScript.**
 
