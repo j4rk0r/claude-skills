@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Community-driven security audit registry for Claude Code skills.",
-  "total_audits": 71,
+  "total_audits": 73,
   "authors": [
     "ablerz",
     "anthropic",
@@ -653,6 +653,24 @@
       "date": "2026-04-04",
       "critical_findings": 0,
       "report": "unknown/webapp-testing/51b7349e.json"
+    },
+    {
+      "skill": "j4rk0r/codex-diff-develop",
+      "sha": "a989ea4f",
+      "score": 96,
+      "verdict": "GREEN",
+      "date": "2026-04-07",
+      "critical_findings": 0,
+      "report": "j4rk0r/codex-diff-develop/a989ea4f.json"
+    },
+    {
+      "skill": "j4rk0r/codex-pr-review",
+      "sha": "c5707289",
+      "score": 96,
+      "verdict": "GREEN",
+      "date": "2026-04-07",
+      "critical_findings": 0,
+      "report": "j4rk0r/codex-pr-review/c5707289.json"
     }
   ]
 }

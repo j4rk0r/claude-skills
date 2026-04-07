@@ -1,0 +1,49 @@
+{
+  "skill": "j4rk0r/codex-diff-develop",
+  "date": "2026-04-07",
+  "sha256": "a989ea4f8764a20fe12f529432db2aa0ba90d75fd72ebee917db3b77c0a3dc06",
+  "sha256_prefix": "a989ea4f",
+  "files_analyzed": [
+    "SKILL.md",
+    "references/metodologia-codex-completa.md",
+    "references/plantillas-hallazgos.md"
+  ],
+  "total_files": 3,
+  "total_size_kb": 26,
+  "scan_type": "quick (Layers 1-3)",
+  "score": 96,
+  "verdict": "GREEN",
+  "critical_findings": 0,
+  "findings": [
+    {
+      "severity": "INFO",
+      "layer": 1,
+      "file": "SKILL.md",
+      "line": 4,
+      "content": "allowed-tools: Bash(git:*) Bash(printenv CLAUDE_CODE_ENTRYPOINT) Bash(printenv __CFBundleIdentifier) Bash(printenv VSCODE_PID) Bash(mkdir:*) Bash(ls:*) Bash(wc:*) Bash(cd:*) Read Write Edit Grep Glob",
+      "explanation": "Frontmatter declares explicit, narrowly scoped permissions. Previous version used wildcard Bash(printenv:*) and Bash(env:*) — hardened to allowlist only the three IDE-detection environment variables actually consumed (CLAUDE_CODE_ENTRYPOINT, __CFBundleIdentifier, VSCODE_PID). Bash(git:*) is required for diff operations against origin/develop. No exfiltration vector."
+    },
+    {
+      "severity": "INFO",
+      "layer": 5,
+      "file": "SKILL.md",
+      "line": null,
+      "content": "Data flow: git diff + repo files -> mental analysis -> markdown report in <ide>/Revisiones diff/",
+      "explanation": "All flows are local. Reads git diff vs origin/develop, reads source files in the diff, writes a structured markdown report under .antigravity/.cursor/.vscode/docs. No network destinations, no MCP calls, no credential access."
+    }
+  ],
+  "layer_scores": {
+    "frontmatter": 95,
+    "static_patterns": 100,
+    "semantic": 100,
+    "scripts": 100,
+    "data_flow": 100,
+    "mcp": 100,
+    "supply_chain": 100,
+    "reputation": 50,
+    "anti_evasion": 100
+  },
+  "notes": "Drupal 11 diff-vs-develop code review skill following the Codex methodology (18 production-tested rules). Pure local-analysis tool: no bundled scripts, no network calls, no MCP references, no credential file access. Frontmatter hardened on 2026-04-07 to replace wildcard env access with an explicit three-variable allowlist for IDE detection. References (metodologia-codex-completa.md, plantillas-hallazgos.md) contain only Drupal best-practice guidance and code templates — no executable instructions. Reputation layer scored 50 (neutral) because the skill is first-party in this same repository; cannot independently verify.",
+  "analyzed_by": "skill-guard-v1",
+  "auditor": "j4rk0r"
+}
