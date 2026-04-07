@@ -1,7 +1,7 @@
 ---
 name: codex-pr-review
 description: Revisa pull requests en proyectos Drupal 11 (u otro) siguiendo la metodología Codex (lógica de negocio, edge cases de hooks/queries, seguridad, performance, completitud). Genera un informe .md en la carpeta del IDE detectado (.antigravity/, .cursor/, .vscode/ o docs/) con hallazgos por severidad y soluciones accionables. Usar cuando el usuario pida "revisión Codex", "revisión de PR", "revisar PR", "revisar PR #N", "revisión tipo Codex" o indique un número de PR con ramas (ej. develop ← feature/alejandro). Triggers: revisión PR, revisar PR, codex PR, revisión Codex, lint PR.
-allowed-tools: Bash(git:*) Bash(printenv:*) Bash(env:*) Bash(mkdir:*) Bash(ls:*) Bash(wc:*) Bash(cd:*) Read Write Edit Grep Glob
+allowed-tools: Bash(git:*) Bash(printenv CLAUDE_CODE_ENTRYPOINT) Bash(printenv __CFBundleIdentifier) Bash(printenv VSCODE_PID) Bash(mkdir:*) Bash(ls:*) Bash(wc:*) Bash(cd:*) Read Write Edit Grep Glob
 ---
 
 # Revisión Codex — Pull Request

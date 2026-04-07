@@ -1,5 +1,7 @@
 # codex-diff-develop
 
+**[English](README.md)** | **[Español](README.es.md)** | **[Français](README.fr.md)** | **[Deutsch](README.de.md)** | **[Português](README.pt.md)** | **[中文](README.zh.md)** | **[日本語](README.ja.md)**
+
 > **Your code review tool says "looks good" — and three weeks later production breaks because of a hook that only runs on update, not on insert.**
 
 codex-diff-develop is a Drupal 11 code review skill that audits the diff of your current branch against `develop` using the **Codex methodology**: 18 production-tested rules with the *why* behind each one. It catches the bugs your linter misses — the ones that only show up at 3am after deploy.

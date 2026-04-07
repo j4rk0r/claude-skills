@@ -1,7 +1,7 @@
 ---
 name: codex-diff-develop
 description: Revisa el diff de la rama actual frente a develop en proyectos Drupal 11 siguiendo la metodología Codex (lógica de negocio, edge cases de hooks/queries, seguridad, performance, completitud). Genera un informe .md en la carpeta del IDE detectado (.antigravity/, .cursor/, .vscode/ o docs/) con hallazgos por severidad y soluciones accionables. Usar cuando el usuario pida "Revisión diff develop", "revisión diff develop", "diff develop", "revisar diff", "codex diff" o expresiones similares con intención de auditar cambios contra develop. Triggers: diff develop, codex diff, revisión diff, lint diff develop, auditar diff.
-allowed-tools: Bash(git:*) Bash(printenv:*) Bash(env:*) Bash(mkdir:*) Bash(ls:*) Bash(wc:*) Bash(cd:*) Read Write Edit Grep Glob
+allowed-tools: Bash(git:*) Bash(printenv CLAUDE_CODE_ENTRYPOINT) Bash(printenv __CFBundleIdentifier) Bash(printenv VSCODE_PID) Bash(mkdir:*) Bash(ls:*) Bash(wc:*) Bash(cd:*) Read Write Edit Grep Glob
 ---
 
 # Revisión Codex — Diff rama actual vs develop

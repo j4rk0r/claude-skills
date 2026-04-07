@@ -1,5 +1,7 @@
 # codex-pr-review
 
+**[English](README.md)** | **[Español](README.es.md)** | **[Français](README.fr.md)** | **[Deutsch](README.de.md)** | **[Português](README.pt.md)** | **[中文](README.zh.md)** | **[日本語](README.ja.md)**
+
 > **Your reviewer says "LGTM" — and three weeks later production breaks because the hook only fires on update, not on insert.**
 
 codex-pr-review is a Drupal 11 pull request review skill that fetches the PR from GitHub and audits it using the **Codex methodology**: 18 production-tested rules with the *why* behind each one. It catches the bugs your linter misses — the ones that only show up at 3am after deploy.
