@@ -24,6 +24,14 @@ npx skills add j4rk0r/claude-skills@skill-advisor -y -g
 npx skills add j4rk0r/claude-skills@skill-learner -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@codex-diff-develop -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
+```
+
 ## スキル一覧
 
 | スキル | 機能 |
@@ -31,6 +39,8 @@ npx skills add j4rk0r/claude-skills@skill-learner -y -g
 | **[skill-guard](../skills/skill-guard/)** | 悪意あるスキルがファイル・トークン・鍵に触れる前にキャッチ。9層分析 + コミュニティ検証済み監査レジストリ。 |
 | **[skill-advisor](../skills/skill-advisor/)** | インストール済みスキルと不足しているギャップを組み合わせた実行計画を構築し、インストールを提案。装備不足でタスクを始めない。 |
 | **[skill-learner](../skills/skill-learner/)** | エラーを捕捉し修正を永続化して同じミスを繰り返さない。スキルとClaudeの一般的な動作の両方に対応。オプションでスキル作者への改善提案を生成。 |
+| **[codex-diff-develop](../skills/codex-diff-develop/)** | Codex メソドロジーで現在のブランチと `develop` の差分を監査する Drupal 11 コードレビュースキル。本番で実証された 18 のルールと、それぞれの *なぜ* を含む。構造化された `.md` レポートを生成。 |
+| **[codex-pr-review](../skills/codex-pr-review/)** | Codex メソドロジーによる Drupal 11 プルリクエストレビュー。`codex-diff-develop` と同じ 18 のルールを使用するが、`git fetch origin pull/<N>/head` で PR を取得して任意の GitHub PR を監査できる。 |
 
 ## skill-guard
 
@@ -186,6 +196,124 @@ skill-learner がどのスキル（または一般的な動作）が失敗した
 
 ```bash
 npx skills add j4rk0r/claude-skills@skill-learner --yes --global
+```
+
+---
+
+## codex-diff-develop
+
+> **lint ツールが「問題なし」と言う — そして 3 週間後、update のみで動き insert で動かない hook が原因で本番が落ちる。**
+
+codex-diff-develop は、**Codex メソドロジー** を使って現在のブランチと `develop` の差分を監査する Drupal 11 コードレビュースキルです。本番で実証された 18 のルールと、それぞれの *なぜ* を含みます。lint ツールが見逃すバグ — デプロイ後の午前 3 時にしか現れないバグ — をキャッチします。
+
+### 仕組み
+
+```
+あなた: "revision diff develop"
+        |
+        v
+コンテキストを検出: ブランチ、drupal/ サブディレクトリ、diff 内のファイルタイプ
+        |
+        v
+references を MANDATORY 読み込み (18 Codex ルール + 14 発見テンプレート)
+        |
+        v
+Codex 5 質問フレームワークを適用
+        |
+        v
+ファイルタイプごとに関連 Codex ルールを決定木で選択
+        |
+        v
+diff のみをレビュー、スコープ外の提案なし
+        |
+        v
+IDE を自動検出 → .vscode/.cursor/.antigravity にレポートを書き込み
+        |
+        v
+配信前に 12 項目チェックリストで自己検証
+```
+
+### 18 の Codex ルール — それぞれに傷跡
+
+各ルールには **なぜ**（それを教えた本番事故）が含まれています:
+
+1. **`hook_entity_insert` vs `_update` の完全性** — `_update` のみのロジックは新規エンティティをスキップ
+2. **空テーブルの集約 (MAX/MIN/COUNT) は NULL を返す、0 ではない**
+6. **`connect_timeout` のない外部 API** — 遅いプロバイダーがキューワーカーをブロック
+7. **正当化されない `accessCheck(FALSE)`** — 静かな権限バイパス
+9. **リトライ/ダブルクリック操作の冪等性** — 重複注文、重複メール
+11. **キルスイッチなし** — 再デプロイする時間のない午前 3 時のインシデント
+14. **`getCacheableMetadata()` のないカスタムブロック/フォーマッター** — BigPipe を静かに壊す
+
+完全なリストと *なぜ* は [`references/metodologia-codex-completa.md`](../skills/codex-diff-develop/references/metodologia-codex-completa.md) にあります。
+
+### NEVER リスト — 15 の Drupal 固有アンチパターン
+
+- **NUNCA** スタイルの発見を「Alta」とマーク — 重要度を希釈する
+- **NUNCA** 重大なセキュリティ以外で diff 範囲外のリファクタリングを提案
+- **NUNCA** `loadMultiple([])` を承認 — すべてのエンティティを返す（古典的なメモリリーク）
+- **NUNCA** 失敗を処理する `finished` コールバックなしの Batch API を承認
+
+### Codex 5 質問フレームワーク
+
+1. **どんな種類の変更か？**
+2. **本番での最悪のシナリオは？**
+3. **変更が diff の外で前提としているものは？**
+4. **冪等か？**
+5. **無効化できるか？**
+
+### 出力
+
+構造化された `.md` レポート: エグゼクティブサマリー、カテゴリ別の発見（セキュリティ、Codex ロジック、標準/DI、パフォーマンス、A11y/i18n、テスト/CI）、リスクテーブル、アクション可能リスト、「ポジティブな点」セクション、最終チェックリスト。各発見は **問題（重要度）** → **リスク** → **解決策** に従います。
+
+### IDE 自動検出
+
+最初に `CLAUDE_CODE_ENTRYPOINT` を読み取ります。環境変数が決定的でない場合のみフォルダ存在検出にフォールバック。
+
+### 評価
+
+- **`/skill-judge`**: 120/120 (グレード A+)
+- **`/skill-guard`**: 100/100 (緑) — 最小限の `allowed-tools` を宣言、ネットワークなし、MCP なし
+
+### インストール
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-diff-develop --yes --global
+```
+
+---
+
+## codex-pr-review
+
+> **レビュアーが「LGTM」と言う — そして 3 週間後、update のみで動く hook が原因で本番が落ちる。**
+
+codex-pr-review は、**リモートプルリクエスト** 用の `codex-diff-develop` の姉妹スキルです。同じ Codex メソドロジー、同じ 18 のルール、同じテンプレート — しかし `git fetch origin pull/<N>/head` で PR を取得して、任意の GitHub PR を番号で監査できます。
+
+### codex-diff-develop との違い
+
+| 観点 | codex-diff-develop | codex-pr-review |
+|---|---|---|
+| diff のソース | `git diff origin/develop...HEAD` | `git fetch origin pull/<N>/head` + `git diff base...pr-<N>` |
+| 出力フォルダ | `Revisiones diff/` | `Revisiones PRs/` |
+| ファイル名 | `lint-review-diff-develop-<branch>.md` | `lint-review-pr<N>.md` |
+| トリガー | "diff develop", "codex diff" | "revision PR", "revisar PR #N", "codex PR" |
+| 追加 NEVER | — | "**NUNCA** ドキュメント内で他の PR を参照しない" |
+| 追加エッジケース | — | GitLab フォールバック、PR 既マージ済み、PR 番号なし |
+
+### どちらをいつ使うか
+
+- **`codex-diff-develop`**: ブランチでローカル作業中で、プッシュ前に自分の変更をレビューしたい
+- **`codex-pr-review`**: ローカルチェックアウトせずに他人の PR（またはプッシュ後の自分の PR）をレビューしたい
+
+### 評価
+
+- **`/skill-judge`**: 120/120 (グレード A+)
+- **`/skill-guard`**: 100/100 (緑)
+
+### インストール
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-pr-review --yes --global
 ```
 
 ---

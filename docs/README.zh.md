@@ -24,6 +24,14 @@ npx skills add j4rk0r/claude-skills@skill-advisor -y -g
 npx skills add j4rk0r/claude-skills@skill-learner -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@codex-diff-develop -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
+```
+
 ## 技能列表
 
 | 技能 | 功能 |
@@ -31,6 +39,8 @@ npx skills add j4rk0r/claude-skills@skill-learner -y -g
 | **[skill-guard](../skills/skill-guard/)** | 在恶意技能接触你的文件、令牌或密钥之前拦截它。9层分析 + 社区验证的审计注册表。 |
 | **[skill-advisor](../skills/skill-advisor/)** | 构建执行计划，将已安装技能与缺失的技能差距结合——然后提供安装。永远不要在装备不足时开始任务。 |
 | **[skill-learner](../skills/skill-learner/)** | 捕获错误并持久化修正，让同样的错误不再重复。适用于技能和Claude的一般行为。可选择为技能作者生成改进建议。 |
+| **[codex-diff-develop](../skills/codex-diff-develop/)** | Drupal 11 代码审查 — 使用 Codex 方法论审查当前分支与 `develop` 的差异。18条经过生产验证的规则，每条都附带 *为什么*。生成结构化 `.md` 报告。 |
+| **[codex-pr-review](../skills/codex-pr-review/)** | Drupal 11 Pull Request 审查 — 使用与 `codex-diff-develop` 相同的 18 条 Codex 规则，但通过 `git fetch origin pull/<N>/head` 拉取 PR，可审查任何 GitHub PR。 |
 
 ## skill-guard
 
@@ -186,6 +196,124 @@ skill-learner 检测哪个技能（或一般行为）失败了
 
 ```bash
 npx skills add j4rk0r/claude-skills@skill-learner --yes --global
+```
+
+---
+
+## codex-diff-develop
+
+> **你的 linter 说"看起来不错" — 三周后生产环境因为一个只在 update 时运行而非 insert 时运行的 hook 而崩溃。**
+
+codex-diff-develop 是一个 Drupal 11 代码审查技能，使用 **Codex 方法论** 审查当前分支与 `develop` 的差异：18 条经过生产验证的规则，每条都附带 *为什么*。捕获 linter 漏掉的 bug — 那些只在凌晨3点部署后才出现的 bug。
+
+### 工作原理
+
+```
+你: "revision diff develop"
+        |
+        v
+检测上下文：分支、drupal/ 子目录、diff 中的文件类型
+        |
+        v
+强制加载 references（18 条 Codex 规则 + 14 个发现模板）
+        |
+        v
+应用 Codex 5 问题框架
+        |
+        v
+决策树根据文件类型选择相关的 Codex 规则
+        |
+        v
+只审查 diff，不提供超出范围的建议
+        |
+        v
+自动检测 IDE → 将报告写入 .vscode/.cursor/.antigravity
+        |
+        v
+交付前根据 12 项检查清单进行自我验证
+```
+
+### 18 条 Codex 规则 — 每条都有伤疤
+
+每条规则都包含 **为什么**（教会它的生产事故）：
+
+1. **`hook_entity_insert` vs `_update` 完整性** — 仅在 `_update` 中的逻辑会跳过新创建的实体
+2. **空表上的聚合（MAX/MIN/COUNT）返回 NULL，而不是 0**
+6. **没有 `connect_timeout` 的外部 API** — 慢速提供商阻塞队列工作进程
+7. **未经证明的 `accessCheck(FALSE)`** — 静默的权限绕过
+9. **重试/双击操作的幂等性** — 重复订单、重复邮件、重复扣款
+11. **没有终止开关** — 凌晨3点没时间重新部署的事件
+14. **没有 `getCacheableMetadata()` 的自定义块/格式化器** — 静默破坏 BigPipe
+
+完整列表带 *为什么* 见 [`references/metodologia-codex-completa.md`](../skills/codex-diff-develop/references/metodologia-codex-completa.md)。
+
+### NEVER 列表 — 15 条 Drupal 特定反模式
+
+- **NUNCA** 将样式发现标记为"Alta" — 稀释严重性
+- **NUNCA** 建议 diff 范围外的重构，除非是关键安全问题
+- **NUNCA** 批准 `loadMultiple([])` — 返回所有实体（经典内存泄漏）
+- **NUNCA** 批准没有 `finished` 回调处理失败的 Batch API
+
+### Codex 5 问题框架
+
+1. **这是什么类型的更改？**
+2. **生产环境的最坏情况是什么？**
+3. **更改假设了 diff 之外的什么？**
+4. **是幂等的吗？**
+5. **能关闭吗？**
+
+### 输出
+
+结构化 `.md` 报告：执行摘要、按类别的发现（安全、Codex 逻辑、标准/DI、性能、A11y/i18n、测试/CI）、风险表、可执行列表、"积极的方面"部分、最终检查清单。每个发现遵循 **问题（严重性）** → **风险** → **解决方案**。
+
+### IDE 自动检测
+
+首先读取 `CLAUDE_CODE_ENTRYPOINT`。仅当环境变量不明确时才回退到文件夹检测。
+
+### 评估
+
+- **`/skill-judge`**: 120/120（A+ 级）
+- **`/skill-guard`**: 100/100（绿色）— 声明最少的 `allowed-tools`，零网络，零 MCP
+
+### 安装
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-diff-develop --yes --global
+```
+
+---
+
+## codex-pr-review
+
+> **你的审查者说"LGTM" — 三周后生产环境因为一个只在 update 时运行的 hook 而崩溃。**
+
+codex-pr-review 是 `codex-diff-develop` 用于 **远程 pull request** 的姊妹技能。相同的 Codex 方法论、相同的 18 条规则、相同的模板 — 但通过 `git fetch origin pull/<N>/head` 拉取 PR，让你可以按编号审查任何 GitHub PR。
+
+### 与 codex-diff-develop 的差异
+
+| 方面 | codex-diff-develop | codex-pr-review |
+|---|---|---|
+| diff 来源 | `git diff origin/develop...HEAD` | `git fetch origin pull/<N>/head` + `git diff base...pr-<N>` |
+| 输出文件夹 | `Revisiones diff/` | `Revisiones PRs/` |
+| 文件名 | `lint-review-diff-develop-<branch>.md` | `lint-review-pr<N>.md` |
+| 触发器 | "diff develop", "codex diff" | "revision PR", "revisar PR #N", "codex PR" |
+| 额外 NEVER | — | "**NUNCA** 在文档中引用其他 PR" |
+| 额外边缘情况 | — | GitLab 回退、PR 已合并、缺少 PR 编号 |
+
+### 何时使用哪个
+
+- **`codex-diff-develop`**：你在分支上本地工作，想在推送前审查自己的更改
+- **`codex-pr-review`**：你想在不本地检出的情况下审查别人的 PR（或推送后的你自己的 PR）
+
+### 评估
+
+- **`/skill-judge`**: 120/120（A+ 级）
+- **`/skill-guard`**: 100/100（绿色）
+
+### 安装
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-pr-review --yes --global
 ```
 
 ---

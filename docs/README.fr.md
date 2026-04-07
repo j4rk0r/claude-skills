@@ -24,6 +24,14 @@ npx skills add j4rk0r/claude-skills@skill-advisor -y -g
 npx skills add j4rk0r/claude-skills@skill-learner -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@codex-diff-develop -y -g
+```
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
+```
+
 ## Skills
 
 | Skill | Description |
@@ -31,6 +39,8 @@ npx skills add j4rk0r/claude-skills@skill-learner -y -g
 | **[skill-guard](../skills/skill-guard/)** | Detecte les skills malveillantes avant qu'elles ne touchent vos fichiers, tokens ou cles. Analyse en 9 couches + registre d'audits verifie. |
 | **[skill-advisor](../skills/skill-advisor/)** | Construit des plans d'execution combinant vos skills installees et les gaps manquants — puis propose de les installer. Ne commencez jamais sous-equipe. |
 | **[skill-learner](../skills/skill-learner/)** | Capture les erreurs et persiste les corrections pour que la meme faute ne se reproduise plus. Fonctionne pour les skills ET le comportement general de Claude. Genere optionnellement des propositions d'amelioration pour les auteurs. |
+| **[codex-diff-develop](../skills/codex-diff-develop/)** | Revue de code Drupal 11 de la branche actuelle contre `develop` selon la methodologie Codex — 18 regles eprouvees en production avec le *pourquoi* derriere chacune. Genere un rapport `.md` structure. |
+| **[codex-pr-review](../skills/codex-pr-review/)** | Revue de pull requests Drupal 11 avec la methodologie Codex — memes 18 regles que `codex-diff-develop` mais recupere le PR via `git fetch origin pull/<N>/head` pour auditer n'importe quel PR GitHub. |
 
 ## skill-guard
 
@@ -173,6 +183,124 @@ Optionnellement: genere une proposition d'amelioration pour l'auteur
 
 ```bash
 npx skills add j4rk0r/claude-skills@skill-learner --yes --global
+```
+
+---
+
+## codex-diff-develop
+
+> **Ton linter dit "ca a l'air bon" — et trois semaines plus tard la prod casse a cause d'un hook qui ne tourne que sur update, pas sur insert.**
+
+codex-diff-develop est une skill de revue de code Drupal 11 qui audite le diff de ta branche actuelle contre `develop` selon la **methodologie Codex** : 18 regles eprouvees en production avec le *pourquoi* derriere chacune. Trouve les bugs que ton linter rate — ceux qui n'apparaissent qu'a 3h du matin apres un deploy.
+
+### Comment ca marche
+
+```
+Toi : "revision diff develop"
+        |
+        v
+Detecte le contexte : branche, sous-dossier drupal/, types de fichiers
+        |
+        v
+Charge MANDATORY les references (18 regles Codex + 14 modeles)
+        |
+        v
+Applique le framework Codex de 5 questions
+        |
+        v
+Decision tree choisit les regles Codex selon le type de fichier
+        |
+        v
+Revue UNIQUEMENT du diff, pas de suggestions hors perimetre
+        |
+        v
+Auto-detecte l'IDE → ecrit le rapport dans .vscode/.cursor/.antigravity
+        |
+        v
+Auto-verification contre une checklist de 12 points avant livraison
+```
+
+### Les 18 regles Codex — chacune avec sa cicatrice
+
+Chaque regle inclut le **pourquoi** (l'incident de production qui l'a enseignee) :
+
+1. **Completude `hook_entity_insert` vs `_update`** — la logique seulement dans `_update` rate les entites toutes neuves
+2. **Agregations (MAX/MIN/COUNT) sur tables vides retournent NULL, pas 0**
+6. **APIs externes sans `connect_timeout`** — un fournisseur lent bloque les workers de queue et epuise PHP-FPM
+7. **`accessCheck(FALSE)` injustifie** — bypass silencieux des permissions
+9. **Idempotence sur retry/double-clic** — commandes en double, emails en double
+11. **Pas de kill-switch** — incidents 3h du matin sans le temps de redeployer
+14. **Blocs/formatters custom sans `getCacheableMetadata()`** — casse BigPipe silencieusement
+
+Liste complete avec le *pourquoi* dans [`references/metodologia-codex-completa.md`](../skills/codex-diff-develop/references/metodologia-codex-completa.md).
+
+### NEVER list — 15 anti-patterns Drupal
+
+- **NUNCA** marquer un point de style comme "Alta" — dilue la severite
+- **NUNCA** suggerer des refactos hors du diff sauf securite critique
+- **NUNCA** approuver `loadMultiple([])` — retourne TOUTES les entites (fuite memoire classique)
+- **NUNCA** approuver Batch API sans callback `finished` gerant l'echec
+
+### Framework Codex de 5 questions
+
+1. **Quel type de changement c'est ?**
+2. **Quel est le pire scenario en prod ?**
+3. **Que suppose le changement hors du diff ?**
+4. **Est-ce idempotent ?**
+5. **Peut-on le desactiver ?**
+
+### Output
+
+Rapport `.md` structure : resume executif, hallazgos par categorie (Securite, Codex, Standards/DI, Performance, A11y/i18n, Tests/CI), tableau de risques, liste accionnable, section "Le positif", checklist final. Chaque hallazgo suit **Probleme (Severite)** → **Risque** → **Solution**.
+
+### Auto-detection IDE
+
+Lit `CLAUDE_CODE_ENTRYPOINT` d'abord. Fallback sur l'existence de dossiers seulement si l'env var n'est pas concluante.
+
+### Evaluation
+
+- **`/skill-judge`** : 120/120 (Grade A+)
+- **`/skill-guard`** : 100/100 (VERT) — declare des `allowed-tools` minimaux, zero reseau, zero MCP
+
+### Installer
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-diff-develop --yes --global
+```
+
+---
+
+## codex-pr-review
+
+> **Ton reviewer dit "LGTM" — et trois semaines plus tard la prod casse a cause d'un hook qui ne tourne que sur update.**
+
+codex-pr-review est la skill jumelle de `codex-diff-develop` pour les **pull requests distantes**. Meme methodologie Codex, memes 18 regles, memes modeles — mais recupere le PR via `git fetch origin pull/<N>/head` pour auditer n'importe quel PR GitHub par numero.
+
+### Differences avec codex-diff-develop
+
+| Aspect | codex-diff-develop | codex-pr-review |
+|---|---|---|
+| Source du diff | `git diff origin/develop...HEAD` | `git fetch origin pull/<N>/head` + `git diff base...pr-<N>` |
+| Dossier de sortie | `Revisiones diff/` | `Revisiones PRs/` |
+| Nom de fichier | `lint-review-diff-develop-<branche>.md` | `lint-review-pr<N>.md` |
+| Triggers | "diff develop", "codex diff" | "revision PR", "revisar PR #N", "codex PR" |
+| NEVER extra | — | "**NUNCA** referencer d'autres PRs dans le document" |
+| Edge cases extra | — | Fallback GitLab, PR deja merge, numero de PR manquant |
+
+### Quand utiliser laquelle
+
+- **`codex-diff-develop`** : tu travailles localement sur une branche et tu veux revoir tes propres changements avant de pousser
+- **`codex-pr-review`** : tu veux revoir le PR de quelqu'un d'autre (ou le tien apres l'avoir pousse) sans checkout local
+
+### Evaluation
+
+- **`/skill-judge`** : 120/120 (Grade A+)
+- **`/skill-guard`** : 100/100 (VERT)
+
+### Installer
+
+```bash
+npx skills add j4rk0r/claude-skills@codex-pr-review --yes --global
 ```
 
 ---
