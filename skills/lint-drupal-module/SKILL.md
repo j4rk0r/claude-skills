@@ -130,9 +130,11 @@ includes:
 # PHPStan — usa el bloque paths: del .neon
 ddev exec "cd /var/www/html/drupal && vendor/bin/phpstan analyse -c phpstan.lint-review.neon --no-progress --error-format=raw"
 
-# PHPCS — apunta al directorio del módulo. --ignore excluye JS vendor (html2canvas, etc.)
-# PHPCS NO respeta el excludePaths del .neon de PHPStan; hay que pasar --ignore explícito.
-ddev exec "cd /var/www/html/drupal && vendor/bin/phpcs --standard=Drupal,DrupalPractice --report=full --ignore='*/vendor/*,*/js/vendor/*' web/modules/custom/<nombre>"
+# PHPCS — apunta al directorio del módulo. Restringido a archivos PHP con --extensions.
+# ⚠️ NUNCA incluir `js` en --extensions: el standard Drupal aplica reglas PHP al JS
+# y phpcbf puede convertir null/true/false → NULL/TRUE/FALSE, rompiendo el JS en runtime.
+# Los archivos JS se analizan con ESLint/prettier, no con PHPCS (ver edge-cases.md).
+ddev exec "cd /var/www/html/drupal && vendor/bin/phpcs --standard=Drupal,DrupalPractice --report=full --extensions=php,module,inc,install,profile,theme --ignore='*/vendor/*,*/js/*' web/modules/custom/<nombre>"
 ```
 
 ### Modo diff
@@ -145,14 +147,16 @@ ddev exec "cd /var/www/html/drupal && vendor/bin/phpstan analyse -c phpstan.lint
   web/modules/custom/<nombre>/src/Foo.php \
   web/modules/custom/<nombre>/src/Bar.php"
 
-# PHPCS — admite también yml y twig
-ddev exec "cd /var/www/html/drupal && vendor/bin/phpcs --standard=Drupal,DrupalPractice --report=full --ignore='*/vendor/*,*/js/vendor/*' \
+# PHPCS — filtra archivos PHP y YAML (no JS) antes de pasarlos como positional args.
+# Pasa SOLO archivos cuya extensión esté en --extensions; si pasas un .js posicional,
+# phpcbf lo procesa igualmente aunque no esté en --extensions, rompiendo el JS.
+ddev exec "cd /var/www/html/drupal && vendor/bin/phpcs --standard=Drupal,DrupalPractice --report=full --extensions=php,module,inc,install,profile,theme --ignore='*/vendor/*' \
   web/modules/custom/<nombre>/src/Foo.php \
   web/modules/custom/<nombre>/src/Bar.php \
   web/modules/custom/<nombre>/<modulo>.routing.yml"
 ```
 
-> **Nota sobre `phpcbf`**: PHPCS a menudo reporta "PHPCBF CAN FIX N OF THESE SNIFF VIOLATIONS AUTOMATICALLY". Si el número es alto (>50% de los ERRORS), merece la pena ofrecerle al usuario `phpcbf` como acción rápida tras el informe (ver "Después del informe"). Es especialmente frecuente en archivos JS del módulo, donde las violaciones suelen ser formato auto-corregible.
+> **Nota sobre `phpcbf`**: PHPCS a menudo reporta "PHPCBF CAN FIX N OF THESE SNIFF VIOLATIONS AUTOMATICALLY". Si el número es alto (>50% de los ERRORS de PHP, **no cuentes los de JS**), merece la pena ofrecerle al usuario `phpcbf` como acción rápida tras el informe (ver "Después del informe"). Los JS NUNCA deben ir a phpcbf — ver el edge case "phpcbf rompe JavaScript" en `references/edge-cases.md`.
 
 ### Agentes (en el mismo mensaje que los dos comandos anteriores)
 
@@ -193,7 +197,7 @@ Sigue la plantilla literal de [`references/plantilla-informe.md`](references/pla
 3. **Pregunta** al usuario qué hacer (no asumas). Las opciones dependen de lo que encontraste:
    - **"arregla todo"** → delegar a `drupal-backend` con la lista P0 estructurada (archivo:línea + acción)
    - **"solo crítico"** → solo HIGH/CRITICAL de seguridad
-   - **"auto-fix PHPCS"** → ofrece esta opción SOLO si PHPCS reportó que phpcbf puede arreglar una cantidad significativa (>50% de los ERRORS de PHPCS). Ejecuta: `ddev exec "cd /var/www/html/drupal && vendor/bin/phpcbf --standard=Drupal,DrupalPractice --ignore='*/vendor/*,*/js/vendor/*' web/modules/custom/<nombre>"`. Avisa al usuario de que `phpcbf` **modifica archivos in-place** (a diferencia del resto de la skill que es solo-lectura).
+   - **"auto-fix PHPCS"** → ofrece esta opción SOLO si PHPCS reportó que phpcbf puede arreglar una cantidad significativa (>50% de los ERRORS de **PHP**, excluyendo los de JS). Ejecuta: `ddev exec "cd /var/www/html/drupal && vendor/bin/phpcbf --standard=Drupal,DrupalPractice --extensions=php,module,inc,install,profile,theme --ignore='*/vendor/*,*/js/*' web/modules/custom/<nombre>"`. **OBLIGATORIO** el flag `--extensions` para excluir `.js` — sin él, phpcbf convierte `null`/`true`/`false` → `NULL`/`TRUE`/`FALSE` en JavaScript y rompe el código en runtime (ver edge-cases.md). Avisa al usuario de que phpcbf **modifica archivos in-place** y pídele que revise el diff antes de commitear.
    - **"déjalo así"** → cerrar
 4. **Recordar:** tras fixes en `routing.yml` o `services.yml` → `drush cr` obligatorio + tests del módulo + re-ejecutar la skill para verificar.
 
@@ -209,6 +213,7 @@ Estas son las trampas que he visto romper la skill en sesiones reales. Cada una 
 - **NUNCA elimines aliases FQCN en `services.yml` sin verificar la Forma A vs Forma B.** *Por qué:* la Forma A (alias real con `'@servicio'`) es necesaria para el autowiring del Hook OOP. Eliminarla rompe `drush cr`. Ver edge-cases.
 - **NUNCA asumas que los tests funcionales pasan solo porque PHPUnit no falla.** *Por qué:* si PHPStan reporta métodos inexistentes (`getClient()`, `post()` sobre interfaces) en el directorio `tests/`, el test depende del driver actual y romperá silenciosamente en CI cuando cambie. Reportarlo como bloqueante.
 - **NUNCA escribas el informe en inglés.** Código, comandos y nombres de clase en inglés; explicaciones en español. *Por qué:* el equipo trabaja en español y los informes mezclados son ruido.
+- **NUNCA ejecutes `phpcbf` sobre archivos JavaScript** (ni pasándolos como argumento ni dejando que el standard Drupal los incluya). *Por qué:* el standard Drupal de PHPCS aplica la regla `Drupal.Semantics.ConstantName` a cualquier archivo que pilla, incluyendo `.js`. Phpcbf convierte `null`/`true`/`false` → `NULL`/`TRUE`/`FALSE` en JavaScript, lo que rompe el código en runtime con `ReferenceError`. Usa siempre `--extensions=php,module,inc,install,profile,theme` y `--ignore='*/js/*'` al llamar a phpcbf (y a phpcs por consistencia). Los JS se analizan/arreglan con ESLint, no con PHPCS. Ver el edge case completo en `references/edge-cases.md`.
 
 ## Checklist de auto-verificación (antes de entregar)
 
