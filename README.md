@@ -32,6 +32,10 @@ npx skills add j4rk0r/claude-skills@codex-diff-develop -y -g
 npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
+```
+
 ## Skills
 
 | Skill | What it does |
@@ -41,6 +45,7 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 | **[skill-learner](skills/skill-learner/)** | Captures mistakes and persists corrections so the same error never happens twice. Works for skills AND general Claude behavior. Optionally generates improvement proposals for skill authors. |
 | **[codex-diff-develop](skills/codex-diff-develop/)** | Drupal 11 code review of the current branch vs `develop` using the Codex methodology — 18 production-tested rules with the *why* behind each one. Generates a structured `.md` report. |
 | **[codex-pr-review](skills/codex-pr-review/)** | Drupal 11 pull request review using the Codex methodology — same 18 rules as `codex-diff-develop` but fetches the PR via `git fetch origin pull/<N>/head` so you can audit any GitHub PR. |
+| **[lint-drupal-module](skills/lint-drupal-module/)** | Parallelized Drupal 11 lint review combining 4 sources — PHPStan level 5, PHPCS Drupal/DrupalPractice, `drupal-qa` agent (standards) and `drupal-security` agent (OWASP). Full or diff mode. Consolidates everything into a single actionable report with P0/P1/P2 actions. |
 
 ## skill-guard
 
@@ -394,6 +399,93 @@ The two skills are functional twins. The differences:
 
 ```bash
 npx skills add j4rk0r/claude-skills@codex-pr-review --yes --global
+```
+
+---
+
+## lint-drupal-module
+
+> **Your manual code review finds 29 issues. You run PHPStan and PHPCS by hand. You ask a reviewer for security and standards. 45 minutes later you finally have a consolidated view — and you missed 140 JS violations because nobody ran PHPCS against the module's JavaScript.**
+
+lint-drupal-module runs **four sources in parallel** — PHPStan level 5 (with `phpstan-drupal`), PHPCS Drupal/DrupalPractice, a `drupal-qa` agent for standards, and a `drupal-security` agent for OWASP vectors — and consolidates the findings into a single actionable report. What used to be 12 manual steps and 30 minutes is now one invocation that finishes in the time the slowest source takes (2-5 min full, 30s-1min diff).
+
+### How it works
+
+```
+You: "lint review del módulo chat_soporte_tecnico_ia"
+        |
+        v
+Identifies the module (by name, path, or Glob)
+        |
+        v
+Picks the mode: full (default) | diff (vs develop)
+        |
+        v
+Detects DDEV / local composer, installs PHPStan if missing (asks first)
+        |
+        v
+Loads references/prompts-agentes.md (mandatory before invoking agents)
+        |
+        v
+Launches 4 sources in parallel, same message:
+  • Agent drupal-qa       (standards)
+  • Agent drupal-security (OWASP)
+  • PHPStan level 5
+  • PHPCS Drupal/DrupalPractice
+        |
+        v
+Consolidates all four outputs into one markdown report
+        |
+        v
+Auto-detects IDE → <ide>/Lint reviews/lint-review-<module>-<mode>-<branch>.md
+        |
+        v
+Summarizes top blockers and asks:
+  "arregla todo" / "solo crítico" / "auto-fix PHPCS" / "déjalo así"
+```
+
+### Two modes
+
+| Mode | When to use | Speed |
+|---|---|---|
+| **Full** (default) | Before release, new modules, periodic audits | ~2-5 min |
+| **Diff** | Mid-development, pre-push, only new changes vs `develop` | ~30s-1min |
+
+### What it catches that manual reviews miss
+
+Validated against a real Drupal 11 module (32 files). A manual agent-only review flagged 29 issues. Running the skill's full parallelized pipeline surfaced **65 issues** — including 166 PHPCS violations on the module's JavaScript (most auto-fixable with `phpcbf`) that the manual reviewer never checked because JS was outside its scope.
+
+That's the point: a lint review is only as good as its weakest layer. Combining static analysis, style enforcement and expert agents in parallel catches things no single source sees.
+
+### Report structure (fixed)
+
+1. **Executive summary** — findings per source, top 5 blockers, categorical verdict
+2. **PHPStan level 5** — errors grouped by file
+3. **PHPCS Drupal/DrupalPractice** — violations grouped by file
+4. **Standards (drupal-qa)** — findings by severity with fix suggestions
+5. **Security (drupal-security)** — vulnerabilities classified 🔴 CRITICAL / 🟠 HIGH / 🟡 MEDIUM / 🟢 LOW / ℹ️ INFO
+6. **Prioritized actions** — P0 blockers, P1 recommended, P2 improvements
+7. **Best practices coverage** — checklist of strict_types, OOP hooks, DI, CSRF, cache metadata, etc.
+8. **Verification commands** — exact commands to re-run locally
+
+### Core NEVER rules
+
+1. **NEVER modifies files during the skill.** Reports only. Fixes are a separate phase with explicit user confirmation.
+2. **NEVER runs the 4 sources in separate messages.** Parallelization is the core value; serial is 4× slower.
+3. **NEVER lists `Unsafe usage of new static()` in Controllers as a blocker** — known false positive of phpstan-drupal.
+4. **NEVER removes FQCN aliases in `services.yml` without checking Hook OOP type-hint usage** — known way to break `drush cr`.
+5. **NEVER runs `phpcbf` over JavaScript files** — the Drupal standard converts `null`/`true`/`false` to `NULL`/`TRUE`/`FALSE` in JS, breaking the code at runtime. Always use `--extensions=php,module,inc,install,profile,theme` and `--ignore='*/js/*'`.
+
+### Relation with sister skills
+
+- **`codex-diff-develop`** → reviews business logic on the diff (complements this skill)
+- **`codex-pr-review`** → architectural PR review (one level above)
+- **Ideal pre-merge workflow:** `lint-drupal-module` → mechanical fixes → `codex-diff-develop` → logic fixes → `codex-pr-review` → merge
+
+### Install
+
+```bash
+npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
 ```
 
 ---
