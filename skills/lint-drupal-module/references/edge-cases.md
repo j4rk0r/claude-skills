@@ -108,6 +108,51 @@ ddev exec "cd /var/www/html/drupal && vendor/bin/phpcs --config-set installed_pa
 **Causa:** No estás filtrando el path al módulo.
 **Solución:** Apunta al directorio del módulo, no a la raíz: `... web/modules/custom/<nombre>` (no solo `.`).
 
+### ⚠️ phpcbf rompe archivos JavaScript convirtiendo `null`/`true`/`false` a mayúsculas
+**Síntoma:** Tras `phpcbf --standard=Drupal` sobre un módulo, los archivos `.js` quedan corruptos:
+```diff
+- this.isOpen = false;
+- this.sessionItemId = null;
+- this.sendBtn.disabled = true;
++ this.isOpen = FALSE;           ← ReferenceError en runtime
++ this.sessionItemId = NULL;     ← ReferenceError en runtime
++ this.sendBtn.disabled = TRUE;  ← ReferenceError en runtime
+```
+El chat / frontend rompe al cargar con `ReferenceError: NULL is not defined`.
+
+**Causa raíz:** El standard `Drupal` de PHPCS (distribuido con `drupal/coder`) incluye la regla `Drupal.Semantics.ConstantName` pensada para constantes PHP. PHPCS la aplica a **cualquier archivo que procese**, incluyendo `.js`, porque el módulo `Coder` registra sniffs para JS con el mismo standard. Phpcbf corrige la supuesta "violación" convirtiendo los literales JS a mayúsculas, rompiendo el código.
+
+Esto es un problema conocido (hay issues abiertos en drupal.org desde hace años) y no se va a arreglar pronto en el standard oficial.
+
+**Solución obligatoria al usar phpcbf/phpcs sobre módulos Drupal que contengan JS:**
+
+1. Restringe las extensiones con `--extensions=php,module,inc,install,profile,theme` (nunca incluyas `js`).
+2. Excluye rutas de JS con `--ignore='*/js/*'` (por si alguien lo pasa como argumento posicional).
+3. Nunca pases archivos `.js` como argumentos posicionales a phpcbf/phpcs.
+
+```bash
+# ✅ Correcto — phpcbf solo toca archivos PHP
+ddev exec "cd /var/www/html/drupal && vendor/bin/phpcbf \
+  --standard=Drupal,DrupalPractice \
+  --extensions=php,module,inc,install,profile,theme \
+  --ignore='*/vendor/*,*/js/*' \
+  web/modules/custom/<nombre>"
+
+# ❌ Peligroso — el .js del módulo será "corregido" con NULL/TRUE/FALSE
+ddev exec "cd /var/www/html/drupal && vendor/bin/phpcbf \
+  --standard=Drupal,DrupalPractice \
+  web/modules/custom/<nombre>"
+```
+
+**Recovery si ya se ejecutó sin los flags:**
+1. `git status` para ver qué archivos se modificaron.
+2. Si los cambios NO están commiteados → `git checkout -- <archivo.js>` revierte limpiamente.
+3. Si los cambios ya están commiteados → `git revert <sha>` o reverso manual buscando `NULL`/`TRUE`/`FALSE` en mayúsculas en archivos `.js`.
+
+**Para lint de JavaScript, usa herramientas específicas** (ESLint + prettier con un preset Drupal/Airbnb/standard). PHPCS no es la herramienta correcta para JS por mucho que el standard Drupal lo permita.
+
+**Lección aprendida:** validado en un módulo real (`chat_soporte_tecnico_ia`). Phpcbf reportó "165 ERRORS FIXED" que incluían 80+ conversiones JS a mayúsculas. Se detectó revisando el `git diff` antes de commitear; de no haberlo revisado, el chat habría roto en producción.
+
 ---
 
 ## PHPUnit / tests funcionales
