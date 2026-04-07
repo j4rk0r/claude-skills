@@ -32,6 +32,10 @@ npx skills add j4rk0r/claude-skills@codex-diff-develop -y -g
 npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
+```
+
 ## スキル一覧
 
 | スキル | 機能 |
@@ -41,6 +45,7 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 | **[skill-learner](../skills/skill-learner/)** | エラーを捕捉し修正を永続化して同じミスを繰り返さない。スキルとClaudeの一般的な動作の両方に対応。オプションでスキル作者への改善提案を生成。 |
 | **[codex-diff-develop](../skills/codex-diff-develop/)** | Codex メソドロジーで現在のブランチと `develop` の差分を監査する Drupal 11 コードレビュースキル。本番で実証された 18 のルールと、それぞれの *なぜ* を含む。構造化された `.md` レポートを生成。 |
 | **[codex-pr-review](../skills/codex-pr-review/)** | Codex メソドロジーによる Drupal 11 プルリクエストレビュー。`codex-diff-develop` と同じ 18 のルールを使用するが、`git fetch origin pull/<N>/head` で PR を取得して任意の GitHub PR を監査できる。 |
+| **[lint-drupal-module](../skills/lint-drupal-module/)** | Drupal 11 モジュールの並列化された lint review。4つのソース — PHPStan level 5、PHPCS Drupal/DrupalPractice、`drupal-qa` エージェント(標準)、`drupal-security` エージェント(OWASP)を組み合わせる。完全モードまたはdiffモード。すべてを P0/P1/P2 アクション付きの単一の実行可能なレポートに統合。 |
 
 ## skill-guard
 
@@ -314,6 +319,93 @@ codex-pr-review は、**リモートプルリクエスト** 用の `codex-diff-d
 
 ```bash
 npx skills add j4rk0r/claude-skills@codex-pr-review --yes --global
+```
+
+---
+
+## lint-drupal-module
+
+> **手動のコードレビューで29件の問題が見つかります。PHPStanとPHPCSを手動で実行します。レビュアーに標準とセキュリティを見てもらいます。45分後にようやく統合された全体像が得られます — そしてモジュールのJSファイルの140件の違反を見逃しています。誰もJavaScriptに対してPHPCSを実行しなかったからです。**
+
+lint-drupal-module は **4つのソースを並列に実行** します — PHPStan level 5(`phpstan-drupal` と共に)、PHPCS Drupal/DrupalPractice、標準チェック用の `drupal-qa` エージェント、OWASP ベクトルチェック用の `drupal-security` エージェント — そして発見事項を1つのアクション可能なレポートに統合します。以前は12の手動ステップと30分かかっていたものが、今では1回の呼び出しで、最も遅いソースにかかる時間(完全モードで2-5分、diffモードで30秒-1分)で完了します。
+
+### 仕組み
+
+```
+あなた:「lint review del módulo chat_soporte_tecnico_ia」
+        |
+        v
+モジュールを識別(名前、パス、または Glob で)
+        |
+        v
+モードを選択:完全(デフォルト)| diff(vs develop)
+        |
+        v
+DDEV / ローカル composer を検出、PHPStan が無ければインストール(最初に確認)
+        |
+        v
+references/prompts-agentes.md をロード(エージェント呼び出し前に必須)
+        |
+        v
+同じメッセージで4つのソースを並列起動:
+  • Agent drupal-qa         (標準)
+  • Agent drupal-security   (OWASP)
+  • PHPStan level 5
+  • PHPCS Drupal/DrupalPractice
+        |
+        v
+4つの出力を1つの markdown レポートに統合
+        |
+        v
+IDEを自動検出 → <ide>/Lint reviews/lint-review-<モジュール>-<モード>-<ブランチ>.md
+        |
+        v
+上位のブロッカーを要約し、尋ねる:
+  「arregla todo」/「solo critico」/「auto-fix PHPCS」/「dejalo asi」
+```
+
+### 2つのモード
+
+| モード | いつ使うか | 速度 |
+|---|---|---|
+| **完全**(デフォルト) | リリース前、新しいモジュール、定期的な監査 | ~2-5分 |
+| **Diff** | 開発中の中間レビュー、プッシュ前の検証、`develop` に対する新しい変更のみ | ~30秒-1分 |
+
+### 手動レビューが見逃すものを検出する
+
+実際のDrupal 11モジュール(32ファイル)に対して検証されました。エージェントのみの手動レビューでは29件の問題が報告されました。完全な並列化パイプラインを実行すると **65件の問題** が浮上しました — その中にはモジュールのJavaScriptに対する166件のPHPCS違反(ほとんどが`phpcbf`で自動修正可能)が含まれており、手動レビュアーはJSがスコープ外だったため一度もチェックしていませんでした。
+
+これがポイントです:lint reviewはその最も弱いレイヤーと同じ価値しかありません。静的解析、スタイル強制、専門エージェントを並列に組み合わせることで、どの単一のソースも見ないものを捕捉できます。
+
+### レポート構造(固定)
+
+1. **エグゼクティブサマリー** — ソース別の発見事項、上位5つのブロッカー、カテゴリ別の判定
+2. **PHPStan level 5** — ファイル別にグループ化されたエラー
+3. **PHPCS Drupal/DrupalPractice** — ファイル別にグループ化された違反
+4. **標準(drupal-qa)** — 修正提案付きの重大度別発見事項
+5. **セキュリティ(drupal-security)** — 脆弱性の分類 🔴 クリティカル / 🟠 高 / 🟡 中 / 🟢 低 / ℹ️ 情報
+6. **優先順位付けされたアクション** — P0 ブロッカー、P1 推奨、P2 改善
+7. **ベストプラクティスのカバレッジ** — strict_types、OOP hooks、DI、CSRF、cache metadata などのチェックリスト
+8. **検証コマンド** — ローカルで再実行するための正確なコマンド
+
+### 主な NEVER ルール
+
+1. **skill中にファイルを絶対に変更しない。** レポートのみ。修正は、明示的なユーザー確認を伴う別のフェーズです。
+2. **4つのソースを別々のメッセージで絶対に実行しない。** 並列化がコアバリューであり、順次実行は4倍の時間がかかります。
+3. **Controllersの `Unsafe usage of new static()` を絶対にブロッカーとしてリストしない** — phpstan-drupal の既知の誤検知です。
+4. **Hook OOPがtype-hint経由で使用しているかどうかを確認せずに、`services.yml` のFQCNエイリアスを絶対に削除しない** — `drush cr` を壊す既知の方法です。
+5. **JavaScriptファイルに対して `phpcbf` を絶対に実行しない** — Drupal 標準は JS で `null`/`true`/`false` を `NULL`/`TRUE`/`FALSE` に変換し、ランタイムでコードを壊します。常に `--extensions=php,module,inc,install,profile,theme` と `--ignore='*/js/*'` を使用してください。
+
+### 姉妹skillとの関係
+
+- **`codex-diff-develop`** → diff 上のビジネスロジックをレビュー(このskillを補完)
+- **`codex-pr-review`** → 完全なPRのアーキテクチャレビュー(このskillの1レベル上)
+- **理想的なマージ前ワークフロー:** `lint-drupal-module` → メカニカルな修正 → `codex-diff-develop` → ロジックの修正 → `codex-pr-review` → マージ
+
+### インストール
+
+```bash
+npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
 ```
 
 ---

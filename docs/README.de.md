@@ -32,6 +32,10 @@ npx skills add j4rk0r/claude-skills@codex-diff-develop -y -g
 npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
+```
+
 ## Skills
 
 | Skill | Beschreibung |
@@ -41,6 +45,7 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 | **[skill-learner](../skills/skill-learner/)** | Erfasst Fehler und speichert Korrekturen dauerhaft, damit derselbe Fehler nie wieder passiert. Funktioniert fuer Skills UND allgemeines Claude-Verhalten. Erstellt optional Verbesserungsvorschlaege fuer Skill-Autoren. |
 | **[codex-diff-develop](../skills/codex-diff-develop/)** | Drupal 11 Code-Review der aktuellen Branch gegen `develop` mit der Codex-Methodik — 18 in der Produktion erprobte Regeln mit dem *warum* hinter jeder. Erstellt einen strukturierten `.md` Report. |
 | **[codex-pr-review](../skills/codex-pr-review/)** | Drupal 11 Pull Request Review mit der Codex-Methodik — gleiche 18 Regeln wie `codex-diff-develop` aber holt den PR via `git fetch origin pull/<N>/head` um beliebige GitHub PRs zu auditieren. |
+| **[lint-drupal-module](../skills/lint-drupal-module/)** | Parallelisiertes Drupal 11 Lint-Review mit 4 Quellen — PHPStan level 5, PHPCS Drupal/DrupalPractice, `drupal-qa` Agent (Standards) und `drupal-security` Agent (OWASP). Vollstaendiger oder Diff-Modus. Konsolidiert alles in einem umsetzbaren Bericht mit P0/P1/P2 Aktionen. |
 
 ## skill-guard
 
@@ -318,6 +323,93 @@ codex-pr-review ist die Schwester-Skill von `codex-diff-develop` fuer **remote P
 
 ```bash
 npx skills add j4rk0r/claude-skills@codex-pr-review --yes --global
+```
+
+---
+
+## lint-drupal-module
+
+> **Ihr manueller Code-Review findet 29 Issues. Sie fuehren PHPStan und PHPCS manuell aus. Sie fragen einen Reviewer nach Standards und Sicherheit. 45 Minuten spaeter haben Sie endlich eine konsolidierte Sicht — und Sie haben 140 JS-Verstoesse uebersehen, weil niemand PHPCS gegen das JavaScript des Moduls ausgefuehrt hat.**
+
+lint-drupal-module fuehrt **vier Quellen parallel** aus — PHPStan level 5 (mit `phpstan-drupal`), PHPCS Drupal/DrupalPractice, einen `drupal-qa` Agent fuer Standards und einen `drupal-security` Agent fuer OWASP-Vektoren — und konsolidiert die Befunde in einem einzigen umsetzbaren Bericht. Was vorher 12 manuelle Schritte und 30 Minuten waren, ist jetzt ein einziger Aufruf, der in der Zeit der langsamsten Quelle fertig wird (2-5 Min vollstaendig, 30s-1min Diff).
+
+### Wie es funktioniert
+
+```
+Sie: "lint review des Moduls chat_soporte_tecnico_ia"
+        |
+        v
+Identifiziert das Modul (per Name, Pfad oder Glob)
+        |
+        v
+Waehlt den Modus: vollstaendig (Standard) | diff (vs develop)
+        |
+        v
+Erkennt DDEV / lokalen composer, installiert PHPStan falls fehlend (fragt zuerst)
+        |
+        v
+Laedt references/prompts-agentes.md (Pflicht vor Agent-Aufruf)
+        |
+        v
+Startet 4 Quellen parallel in derselben Nachricht:
+  • Agent drupal-qa         (Standards)
+  • Agent drupal-security   (OWASP)
+  • PHPStan level 5
+  • PHPCS Drupal/DrupalPractice
+        |
+        v
+Konsolidiert alle 4 Ausgaben in einem Markdown-Bericht
+        |
+        v
+Erkennt die IDE → <ide>/Lint reviews/lint-review-<modul>-<modus>-<branch>.md
+        |
+        v
+Fasst Top-Blocker zusammen und fragt:
+  "arregla todo" / "solo critico" / "auto-fix PHPCS" / "dejalo asi"
+```
+
+### Zwei Modi
+
+| Modus | Wann verwenden | Geschwindigkeit |
+|---|---|---|
+| **Vollstaendig** (Standard) | Vor Release, neue Module, periodische Audits | ~2-5 Min |
+| **Diff** | Reviews waehrend Entwicklung, Pre-Push-Validierung, nur neue Aenderungen vs `develop` | ~30s-1min |
+
+### Was es erkennt, das manuelle Reviews verpassen
+
+Validiert gegen ein echtes Drupal 11 Modul (32 Dateien). Ein manuelles Review nur mit Agenten markierte 29 Issues. Das Ausfuehren der vollstaendigen parallelisierten Pipeline brachte **65 Issues** ans Licht — darunter 166 PHPCS-Verstoesse im JavaScript des Moduls (die meisten auto-korrigierbar mit `phpcbf`), die der manuelle Reviewer nie ueberprueft hatte, weil JS ausserhalb seines Scopes war.
+
+Darum geht es: Ein Lint-Review ist nur so gut wie seine schwaechste Schicht. Die Kombination aus statischer Analyse, Stil-Durchsetzung und Experten-Agenten parallel erfasst Dinge, die keine einzelne Quelle sieht.
+
+### Berichtsstruktur (fest)
+
+1. **Executive Summary** — Befunde pro Quelle, Top 5 Blocker, kategorisches Urteil
+2. **PHPStan level 5** — Fehler nach Datei gruppiert
+3. **PHPCS Drupal/DrupalPractice** — Verstoesse nach Datei gruppiert
+4. **Standards (drupal-qa)** — Befunde nach Schweregrad mit Loesungsvorschlaegen
+5. **Sicherheit (drupal-security)** — Verwundbarkeiten klassifiziert 🔴 KRITISCH / 🟠 HOCH / 🟡 MITTEL / 🟢 NIEDRIG / ℹ️ INFO
+6. **Priorisierte Aktionen** — P0 Blocker, P1 empfohlen, P2 Verbesserungen
+7. **Best-Practices-Abdeckung** — Checkliste strict_types, OOP-Hooks, DI, CSRF, Cache-Metadaten, etc.
+8. **Verifikationsbefehle** — exakte Befehle zur lokalen erneuten Ausfuehrung
+
+### Wichtigste NEVER-Regeln
+
+1. **NIEMALS aendert es Dateien waehrend der Skill.** Nur Berichte. Fixes sind eine separate Phase mit expliziter Benutzerbestaetigung.
+2. **NIEMALS fuehrt es die 4 Quellen in getrennten Nachrichten aus.** Parallelisierung ist der Kernwert; seriell ist 4× langsamer.
+3. **NIEMALS listet `Unsafe usage of new static()` in Controllern als Blocker** — bekanntes False Positive von phpstan-drupal.
+4. **NIEMALS entfernt FQCN-Aliase in `services.yml` ohne die Type-Hint-Verwendung des Hook OOP zu pruefen** — bekannter Weg, `drush cr` zu brechen.
+5. **NIEMALS fuehrt `phpcbf` ueber JavaScript-Dateien aus** — der Drupal-Standard konvertiert `null`/`true`/`false` zu `NULL`/`TRUE`/`FALSE` in JS und bricht den Code zur Laufzeit. Verwenden Sie immer `--extensions=php,module,inc,install,profile,theme` und `--ignore='*/js/*'`.
+
+### Beziehung zu Geschwister-Skills
+
+- **`codex-diff-develop`** → reviewt Business-Logik im Diff (ergaenzt diese Skill)
+- **`codex-pr-review`** → architektonisches Review eines kompletten PRs (eine Ebene darueber)
+- **Idealer Pre-Merge-Workflow:** `lint-drupal-module` → mechanische Fixes → `codex-diff-develop` → Logik-Fixes → `codex-pr-review` → Merge
+
+### Installieren
+
+```bash
+npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
 ```
 
 ---

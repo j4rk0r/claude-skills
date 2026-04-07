@@ -32,6 +32,10 @@ npx skills add j4rk0r/claude-skills@codex-diff-develop -y -g
 npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
+```
+
 ## Skills
 
 | Skill | Que hace |
@@ -41,6 +45,7 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 | **[skill-learner](../skills/skill-learner/)** | Captura errores y persiste correcciones para que el mismo fallo no se repita. Funciona con skills Y comportamiento general de Claude. Opcionalmente genera propuestas de mejora para autores. |
 | **[codex-diff-develop](../skills/codex-diff-develop/)** | Revision de codigo Drupal 11 de la rama actual contra `develop` siguiendo la metodologia Codex — 18 reglas probadas en produccion con el *por que* detras de cada una. Genera un informe `.md` estructurado. |
 | **[codex-pr-review](../skills/codex-pr-review/)** | Revision de pull requests Drupal 11 con la metodologia Codex — mismas 18 reglas que `codex-diff-develop` pero descarga el PR via `git fetch origin pull/<N>/head` para auditar cualquier PR de GitHub. |
+| **[lint-drupal-module](../skills/lint-drupal-module/)** | Lint review paralelizado de modulos Drupal 11 combinando 4 fuentes — PHPStan level 5, PHPCS Drupal/DrupalPractice, agente `drupal-qa` (estandares) y agente `drupal-security` (OWASP). Modos completo o diff. Consolida todo en un unico informe accionable con acciones P0/P1/P2. |
 
 ## skill-guard
 
@@ -367,6 +372,93 @@ Las dos skills son gemelas funcionales. Las diferencias:
 
 ```bash
 npx skills add j4rk0r/claude-skills@codex-pr-review --yes --global
+```
+
+---
+
+## lint-drupal-module
+
+> **Tu review manual encuentra 29 issues. Ejecutas PHPStan y PHPCS a mano. Le pides a un reviewer que mire estandares y seguridad. 45 minutos despues por fin tienes una vista consolidada — y se te pasaron 140 violaciones en los JS del modulo porque nadie le paso PHPCS al JavaScript.**
+
+lint-drupal-module ejecuta **cuatro fuentes en paralelo** — PHPStan level 5 (con `phpstan-drupal`), PHPCS Drupal/DrupalPractice, un agente `drupal-qa` para estandares y un agente `drupal-security` para vectores OWASP — y consolida los hallazgos en un unico informe accionable. Lo que antes eran 12 pasos manuales y 30 minutos ahora es una sola invocacion que termina en lo que tarda la fuente mas lenta (2-5 min completo, 30s-1min diff).
+
+### Como funciona
+
+```
+Tu: "lint review del modulo chat_soporte_tecnico_ia"
+        |
+        v
+Identifica el modulo (por nombre, ruta o Glob)
+        |
+        v
+Elige modo: completo (default) | diff (vs develop)
+        |
+        v
+Detecta DDEV / composer local, instala PHPStan si falta (preguntando)
+        |
+        v
+Carga references/prompts-agentes.md (obligatorio antes de invocar agentes)
+        |
+        v
+Lanza las 4 fuentes en paralelo, en el mismo mensaje:
+  • Agent drupal-qa        (estandares)
+  • Agent drupal-security  (OWASP)
+  • PHPStan level 5
+  • PHPCS Drupal/DrupalPractice
+        |
+        v
+Consolida las 4 salidas en un informe markdown
+        |
+        v
+Auto-detecta IDE → <ide>/Lint reviews/lint-review-<modulo>-<modo>-<rama>.md
+        |
+        v
+Resume top bloqueantes y pregunta:
+  "arregla todo" / "solo critico" / "auto-fix PHPCS" / "dejalo asi"
+```
+
+### Dos modos
+
+| Modo | Cuando usarlo | Velocidad |
+|---|---|---|
+| **Completo** (default) | Antes de release, modulos nuevos, auditorias periodicas | ~2-5 min |
+| **Diff** | Reviews intermedios, validacion pre-push, solo cambios nuevos vs `develop` | ~30s-1min |
+
+### Que detecta que una review manual no ve
+
+Validado contra un modulo Drupal 11 real (32 archivos). Una review manual solo con agentes reporto 29 issues. Ejecutar el pipeline paralelizado completo encontro **65 issues** — incluyendo 166 violaciones PHPCS en los JavaScript del modulo (la mayoria auto-corregibles con `phpcbf`) que la review manual nunca comprobo porque el JS estaba fuera de su alcance.
+
+Esa es la idea: una lint review vale lo que vale su capa mas debil. Combinar analisis estatico, estandares de estilo y agentes expertos en paralelo detecta cosas que ninguna fuente por separado ve.
+
+### Estructura del informe (fija)
+
+1. **Resumen ejecutivo** — hallazgos por fuente, top 5 bloqueantes, veredicto categorico
+2. **PHPStan level 5** — errores agrupados por archivo
+3. **PHPCS Drupal/DrupalPractice** — violaciones agrupadas por archivo
+4. **Estandares (drupal-qa)** — hallazgos por severidad con fixes sugeridos
+5. **Seguridad (drupal-security)** — vulnerabilidades clasificadas 🔴 CRITICO / 🟠 ALTO / 🟡 MEDIO / 🟢 BAJO / ℹ️ INFO
+6. **Acciones priorizadas** — P0 bloqueantes, P1 recomendados, P2 mejoras
+7. **Cobertura de buenas practicas** — checklist de strict_types, hooks OOP, DI, CSRF, cache metadata, etc.
+8. **Comandos de verificacion** — comandos exactos para re-ejecutar en local
+
+### NEVER rules principales
+
+1. **NUNCA modifica archivos durante la skill.** Solo reporta. Los fixes son una fase posterior con confirmacion explicita del usuario.
+2. **NUNCA ejecuta las 4 fuentes en mensajes separados.** La paralelizacion es el valor central; en serie tarda 4× mas.
+3. **NUNCA lista `Unsafe usage of new static()` en Controllers como bloqueante** — falso positivo conocido de phpstan-drupal.
+4. **NUNCA elimina aliases FQCN en `services.yml` sin verificar el uso por type-hint del Hook OOP** — forma conocida de romper `drush cr`.
+5. **NUNCA ejecuta `phpcbf` sobre JavaScript** — el standard Drupal convierte `null`/`true`/`false` a `NULL`/`TRUE`/`FALSE` en JS, rompiendo el codigo en runtime. Usa siempre `--extensions=php,module,inc,install,profile,theme` y `--ignore='*/js/*'`.
+
+### Relacion con skills hermanas
+
+- **`codex-diff-develop`** → revisa logica de negocio sobre el diff (complementa esta skill)
+- **`codex-pr-review`** → review arquitectonica de PR completo (un nivel por encima)
+- **Workflow ideal pre-merge:** `lint-drupal-module` → fixes mecanicos → `codex-diff-develop` → fixes de logica → `codex-pr-review` → merge
+
+### Instalar
+
+```bash
+npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
 ```
 
 ---
