@@ -36,6 +36,10 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@milestone -y -g
+```
+
 ## Skills
 
 | Skill | Beschreibung |
@@ -46,6 +50,7 @@ npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 | **[codex-diff-develop](../skills/codex-diff-develop/)** | Drupal 11 Code-Review der aktuellen Branch gegen `develop` mit der Codex-Methodik — 18 in der Produktion erprobte Regeln mit dem *warum* hinter jeder. Erstellt einen strukturierten `.md` Report. |
 | **[codex-pr-review](../skills/codex-pr-review/)** | Drupal 11 Pull Request Review mit der Codex-Methodik — gleiche 18 Regeln wie `codex-diff-develop` aber holt den PR via `git fetch origin pull/<N>/head` um beliebige GitHub PRs zu auditieren. |
 | **[lint-drupal-module](../skills/lint-drupal-module/)** | Parallelisiertes Drupal 11 Lint-Review mit 4 Quellen — PHPStan level 5, PHPCS Drupal/DrupalPractice, `drupal-qa` Agent (Standards) und `drupal-security` Agent (OWASP). Vollstaendiger oder Diff-Modus. Konsolidiert alles in einem umsetzbaren Bericht mit P0/P1/P2 Aktionen. |
+| **[milestone](skills/milestone/)** | Persistenter Entwicklungs-Tracker, der uber Gesprache hinweg uberlebt. Jeder Meilenstein ist eine eigenstandige Kapsel: Ziel, Teilaufgaben mit Status, Entscheidungen, Code-Referenzen und ein Kontextprotokoll. Integriert sich mit Plan mode und allen Planungs-Skills. |
 
 ## skill-guard
 
@@ -410,6 +415,38 @@ Darum geht es: Ein Lint-Review ist nur so gut wie seine schwaechste Schicht. Die
 
 ```bash
 npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
+```
+
+---
+
+## milestone
+
+> **Sie haben ein Feature in 3 Gespraechen fertiggestellt. Das 4. beginnt bei Null, weil der Kontext nicht ueberlebt.**
+
+milestone speichert alles, was noetig ist, um die Entwicklungsarbeit in jedem zukuenftigen Gespraech fortzusetzen — Ziel, Teilaufgaben mit Status, architektonische Entscheidungen, Code-Referenzen und ein umgekehrt chronologisches Protokoll dessen, was getan wurde und warum. Laden Sie einen Meilenstein per Name und beginnen Sie sofort zu arbeiten.
+
+### Wie es funktioniert
+
+- `/milestone` — listet alle Meilensteine mit Status und Fortschritt
+- `/milestone <name>` — laedt den vollstaendigen Kontext (Fuzzy Match)
+- `/milestone init <name>` — erstellt einen neuen Meilenstein mit Teilaufgaben basierend auf dem Codebase
+- `/milestone add/done/update` — verwaltet Teilaufgaben, Entscheidungen und Kontext
+
+### Zentrale Designentscheidungen
+
+- **Append-only Kontextprotokoll** — niemals Verlauf loeschen, nur Korrekturen hinzufuegen
+- **Planer-Erkennung** — erkennt automatisch installierte Planungs-Skills
+- **Globaler Skill, lokale Daten** — erstellt `.milestones/` pro Projekt
+- **8 NEVER-Regeln** — keine trivialen Meilensteine, keine Duplikate, max 10 aktive
+
+### Bewertung
+
+- **`/skill-guard`**: 92/100 (GREEN)
+
+### Installieren
+
+```bash
+npx skills add j4rk0r/claude-skills@milestone --yes --global
 ```
 
 ---

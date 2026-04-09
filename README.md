@@ -36,6 +36,10 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@milestone -y -g
+```
+
 ## Skills
 
 | Skill | What it does |
@@ -46,6 +50,7 @@ npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 | **[codex-diff-develop](skills/codex-diff-develop/)** | Drupal 11 code review of the current branch vs `develop` using the Codex methodology — 18 production-tested rules with the *why* behind each one. Generates a structured `.md` report. |
 | **[codex-pr-review](skills/codex-pr-review/)** | Drupal 11 pull request review using the Codex methodology — same 18 rules as `codex-diff-develop` but fetches the PR via `git fetch origin pull/<N>/head` so you can audit any GitHub PR. |
 | **[lint-drupal-module](skills/lint-drupal-module/)** | Parallelized Drupal 11 lint review combining 4 sources — PHPStan level 5, PHPCS Drupal/DrupalPractice, `drupal-qa` agent (standards) and `drupal-security` agent (OWASP). Full or diff mode. Consolidates everything into a single actionable report with P0/P1/P2 actions. |
+| **[milestone](skills/milestone/)** | Persistent development tracker that survives across conversations. Each milestone is a self-contained capsule: objective, subtasks with status, decisions, code references, and a running context log. Integrates with Plan mode and all planning skills. |
 
 ## skill-guard
 
@@ -486,6 +491,66 @@ That's the point: a lint review is only as good as its weakest layer. Combining 
 
 ```bash
 npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
+```
+
+---
+
+## milestone
+
+> **You finished a feature across 3 conversations. The 4th conversation starts from zero because context doesn't survive.**
+
+milestone stores everything needed to resume development work in any future conversation — objective, subtasks with status, architectural decisions, code references, and a reverse-chronological log of what was done and why. Load a milestone by name and start working immediately.
+
+### How it works
+
+```
+You: "/milestone dashboard"
+        |
+        v
+Fuzzy-matches milestone file in .milestones/
+        |
+        v
+Displays full context: objective, subtasks, decisions, log, references
+        |
+        v
+Discovers available planners (Plan mode, /writing-plans, /gepetto...)
+        |
+        v
+"Use all planners and unify?" or pick one
+        |
+        v
+After work: updates subtasks, context log, references
+        |
+        v
+Next conversation: /milestone dashboard → full picture, ready to continue
+```
+
+### Commands
+
+| Command | What it does |
+|---------|-------------|
+| `/milestone` | List all milestones with status, progress, and quick-load commands |
+| `/milestone <name>` | Load full context (fuzzy match — "dash" finds "dashboard-propietario") |
+| `/milestone init <name>` | Create new milestone with objective + codebase-aware subtask proposals |
+| `/milestone add <name> <content>` | Add subtask, decision, note, or file reference |
+| `/milestone done <name> <subtask>` | Mark subtask complete, log context, recalculate status |
+| `/milestone update <name>` | Bulk session update — mark tasks, log decisions, add references |
+
+### Key design decisions
+
+- **Append-only context log** — never delete history, only add corrections. Future sessions need the narrative.
+- **Planning tool discovery** — automatically detects all installed planners and offers to run them all, then unifies into a single subtask list.
+- **Global skill, local data** — installed once globally, creates `.milestones/` per project. Each project's milestones are independent.
+- **8 NEVER rules** — no milestones for <1h tasks, no duplicates, no stale milestones, no vague subtasks, max 10 active.
+
+### Evaluation
+
+- **`/skill-guard`**: 92/100 (GREEN) — no scripts, no network, no MCP. Only local file I/O.
+
+### Install
+
+```bash
+npx skills add j4rk0r/claude-skills@milestone --yes --global
 ```
 
 ---

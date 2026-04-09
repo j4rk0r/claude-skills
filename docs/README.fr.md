@@ -36,6 +36,10 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@milestone -y -g
+```
+
 ## Skills
 
 | Skill | Description |
@@ -46,6 +50,7 @@ npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 | **[codex-diff-develop](../skills/codex-diff-develop/)** | Revue de code Drupal 11 de la branche actuelle contre `develop` selon la methodologie Codex — 18 regles eprouvees en production avec le *pourquoi* derriere chacune. Genere un rapport `.md` structure. |
 | **[codex-pr-review](../skills/codex-pr-review/)** | Revue de pull requests Drupal 11 avec la methodologie Codex — memes 18 regles que `codex-diff-develop` mais recupere le PR via `git fetch origin pull/<N>/head` pour auditer n'importe quel PR GitHub. |
 | **[lint-drupal-module](../skills/lint-drupal-module/)** | Lint review parallelisee de modules Drupal 11 combinant 4 sources — PHPStan level 5, PHPCS Drupal/DrupalPractice, agent `drupal-qa` (standards) et agent `drupal-security` (OWASP). Modes complet ou diff. Consolide tout dans un seul rapport actionnable avec actions P0/P1/P2. |
+| **[milestone](skills/milestone/)** | Tracker de developpement persistant qui survit entre conversations. Chaque jalon est une capsule autonome : objectif, sous-taches avec statut, decisions, references de code et journal de contexte. S'integre avec Plan mode et tous les skills de planification. |
 
 ## skill-guard
 
@@ -393,6 +398,38 @@ C'est le principe : une lint review ne vaut que ce que vaut sa couche la plus fa
 
 ```bash
 npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
+```
+
+---
+
+## milestone
+
+> **Vous avez termine une feature en 3 conversations. La 4e repart de zero parce que le contexte ne survit pas.**
+
+milestone stocke tout le necessaire pour reprendre le travail de developpement dans n'importe quelle conversation future — objectif, sous-taches avec statut, decisions architecturales, references de code et un journal chronologique inverse de ce qui a ete fait et pourquoi. Chargez un jalon par nom et commencez a travailler immediatement.
+
+### Comment ca marche
+
+- `/milestone` — liste tous les jalons avec statut et progres
+- `/milestone <nom>` — charge le contexte complet (fuzzy match)
+- `/milestone init <nom>` — cree un nouveau jalon avec sous-taches basees sur le codebase
+- `/milestone add/done/update` — gere les sous-taches, decisions et contexte
+
+### Decisions de conception cles
+
+- **Journal de contexte append-only** — ne jamais effacer l'historique, seulement ajouter des corrections
+- **Decouverte des planificateurs** — detecte automatiquement les skills de planification installees
+- **Skill global, donnees locales** — cree `.milestones/` par projet
+- **8 regles NEVER** — pas de milestones triviaux, pas de doublons, max 10 actifs
+
+### Evaluation
+
+- **`/skill-guard`**: 92/100 (GREEN)
+
+### Installer
+
+```bash
+npx skills add j4rk0r/claude-skills@milestone --yes --global
 ```
 
 ---

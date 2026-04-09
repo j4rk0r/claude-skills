@@ -36,6 +36,10 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@milestone -y -g
+```
+
 ## Skills
 
 | Skill | Que hace |
@@ -46,6 +50,7 @@ npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 | **[codex-diff-develop](../skills/codex-diff-develop/)** | Revision de codigo Drupal 11 de la rama actual contra `develop` siguiendo la metodologia Codex — 18 reglas probadas en produccion con el *por que* detras de cada una. Genera un informe `.md` estructurado. |
 | **[codex-pr-review](../skills/codex-pr-review/)** | Revision de pull requests Drupal 11 con la metodologia Codex — mismas 18 reglas que `codex-diff-develop` pero descarga el PR via `git fetch origin pull/<N>/head` para auditar cualquier PR de GitHub. |
 | **[lint-drupal-module](../skills/lint-drupal-module/)** | Lint review paralelizado de modulos Drupal 11 combinando 4 fuentes — PHPStan level 5, PHPCS Drupal/DrupalPractice, agente `drupal-qa` (estandares) y agente `drupal-security` (OWASP). Modos completo o diff. Consolida todo en un unico informe accionable con acciones P0/P1/P2. |
+| **[milestone](skills/milestone/)** | Tracker de desarrollo persistente que sobrevive entre conversaciones. Cada hito es una capsula autocontenida: objetivo, subtareas con estado, decisiones, referencias a codigo y un log de contexto. Se integra con Plan mode y todas las skills de planificacion. |
 
 ## skill-guard
 
@@ -459,6 +464,38 @@ Esa es la idea: una lint review vale lo que vale su capa mas debil. Combinar ana
 
 ```bash
 npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
+```
+
+---
+
+## milestone
+
+> **Terminaste una feature en 3 conversaciones. La 4a empieza de cero porque el contexto no sobrevive.**
+
+milestone almacena todo lo necesario para retomar el trabajo de desarrollo en cualquier conversacion futura — objetivo, subtareas con estado, decisiones arquitectonicas, referencias a codigo y un log cronologico inverso de que se hizo y por que. Carga un hito por nombre y empieza a trabajar inmediatamente.
+
+### Como funciona
+
+- `/milestone` — lista todos los hitos con estado y progreso
+- `/milestone <nombre>` — carga contexto completo (fuzzy match)
+- `/milestone init <nombre>` — crea nuevo hito con subtareas basadas en el codebase
+- `/milestone add/done/update` — gestiona subtareas, decisiones y contexto
+
+### Decisiones de diseno clave
+
+- **Log de contexto append-only** — nunca borrar historial, solo anadir correcciones
+- **Descubrimiento de planificadores** — detecta automaticamente las skills de planificacion instaladas
+- **Skill global, datos locales** — crea `.milestones/` por proyecto
+- **8 reglas NEVER** — sin milestones triviales, sin duplicados, max 10 activos
+
+### Evaluacion
+
+- **`/skill-guard`**: 92/100 (GREEN)
+
+### Instalar
+
+```bash
+npx skills add j4rk0r/claude-skills@milestone --yes --global
 ```
 
 ---

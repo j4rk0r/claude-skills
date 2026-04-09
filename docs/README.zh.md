@@ -36,6 +36,10 @@ npx skills add j4rk0r/claude-skills@codex-pr-review -y -g
 npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@milestone -y -g
+```
+
 ## 技能列表
 
 | 技能 | 功能 |
@@ -46,6 +50,7 @@ npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 | **[codex-diff-develop](../skills/codex-diff-develop/)** | Drupal 11 代码审查 — 使用 Codex 方法论审查当前分支与 `develop` 的差异。18条经过生产验证的规则，每条都附带 *为什么*。生成结构化 `.md` 报告。 |
 | **[codex-pr-review](../skills/codex-pr-review/)** | Drupal 11 Pull Request 审查 — 使用与 `codex-diff-develop` 相同的 18 条 Codex 规则，但通过 `git fetch origin pull/<N>/head` 拉取 PR，可审查任何 GitHub PR。 |
 | **[lint-drupal-module](../skills/lint-drupal-module/)** | Drupal 11 模块的并行化 lint review,结合 4 个来源 — PHPStan level 5、PHPCS Drupal/DrupalPractice、`drupal-qa` 代理(标准)和 `drupal-security` 代理(OWASP)。完整或 diff 模式。将所有内容整合到一份带 P0/P1/P2 行动的可操作报告中。 |
+| **[milestone](skills/milestone/)** | 跨对话持久化的开发追踪器。每个里程碑都是一个自包含的胶囊：目标、带状态的子任务、决策、代码引用和上下文日志。与 Plan mode 和所有规划技能集成。 |
 
 ## skill-guard
 
@@ -406,6 +411,38 @@ lint-drupal-module **并行运行四个来源** — PHPStan level 5(配合 `phps
 
 ```bash
 npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
+```
+
+---
+
+## milestone
+
+> **你在 3 个对话中完成了一个 feature。第 4 个对话从零开始，因为上下文没有保留下来。**
+
+milestone 存储了在任何未来对话中恢复开发工作所需的一切 — 目标、带状态的子任务、架构决策、代码引用和一个倒序时间日志，记录做了什么以及为什么。按名称加载一个里程碑，立即开始工作。
+
+### 工作原理
+
+- `/milestone` — 列出所有里程碑的状态和进度
+- `/milestone <名称>` — 加载完整上下文（模糊匹配）
+- `/milestone init <名称>` — 基于代码库创建新里程碑和子任务
+- `/milestone add/done/update` — 管理子任务、决策和上下文
+
+### 关键设计决策
+
+- **仅追加的上下文日志** — 永不删除历史，只添加更正
+- **规划器发现** — 自动检测已安装的规划技能
+- **全局技能，本地数据** — 每个项目创建 `.milestones/`
+- **8 条 NEVER 规则** — 不允许琐碎的里程碑、不允许重复、最多 10 个活跃
+
+### 评估
+
+- **`/skill-guard`**: 92/100 (GREEN)
+
+### 安装
+
+```bash
+npx skills add j4rk0r/claude-skills@milestone --yes --global
 ```
 
 ---
