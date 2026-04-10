@@ -40,6 +40,10 @@ npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 npx skills add j4rk0r/claude-skills@milestone -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@usage-tracker -y -g
+```
+
 ## Skills
 
 | Skill | What it does |
@@ -51,6 +55,7 @@ npx skills add j4rk0r/claude-skills@milestone -y -g
 | **[codex-pr-review](skills/codex-pr-review/)** | Drupal 11 pull request review using the Codex methodology — same 18 rules as `codex-diff-develop` but fetches the PR via `git fetch origin pull/<N>/head` so you can audit any GitHub PR. |
 | **[lint-drupal-module](skills/lint-drupal-module/)** | Parallelized Drupal 11 lint review combining 4 sources — PHPStan level 5, PHPCS Drupal/DrupalPractice, `drupal-qa` agent (standards) and `drupal-security` agent (OWASP). Full or diff mode. Consolidates everything into a single actionable report with P0/P1/P2 actions. |
 | **[milestone](skills/milestone/)** | Persistent development tracker that survives across conversations. Each milestone is a self-contained capsule: objective, subtasks with status, decisions, code references, and a running context log. Integrates with Plan mode and all planning skills. |
+| **[usage-tracker](skills/usage-tracker/)** | PostToolUse hook that logs every tool call into `~/.claude/usage.jsonl`. See exactly how much each user request costs — by project, session, day, and tool. |
 
 ## skill-guard
 
@@ -551,6 +556,59 @@ Next conversation: /milestone dashboard → full picture, ready to continue
 
 ```bash
 npx skills add j4rk0r/claude-skills@milestone --yes --global
+```
+
+---
+
+## usage-tracker
+
+> **You're on Claude Max. No per-token billing. But you have no idea which project, conversation, or request is burning through your context limits.**
+
+usage-tracker fixes this. A PostToolUse hook captures every tool call with its tokens, project, and the user request that triggered it — turning an opaque usage history into an actionable breakdown by request, project, session, tool, and day.
+
+### How it works
+
+```
+User: "review the auth module"
+  └─ Read auth.module           → 1,200 tok   ┐
+  └─ Grep hook                  →    80 tok   │ same "request"
+  └─ Read AuthService.php       → 2,400 tok   │ → total: 4,980 tok
+  └─ Bash lint auth/            → 1,300 tok   ┘
+```
+
+Each entry stores: timestamp, session, project, tool, model, label, request text, tokens. The report script aggregates into breakdowns you can actually act on.
+
+### The non-obvious part
+
+The hook captures tool calls in isolation — but Claude sends the entire conversation history with every request. This creates a **non-linear underestimation**:
+
+| Message | Actual underestimation |
+|---------|----------------------|
+| 5       | ~20%                 |
+| 20      | ~60%                 |
+| 40+     | ~80–90%              |
+
+Use it as a **relative index** for comparing projects, sessions, and request types — not as an absolute cost.
+
+Biggest blind spots:
+- **Agent calls** — subagent conversations are completely invisible (500 log tokens = potentially 20,000+ actual)
+- **Long conversations** — context accumulates quadratically; start new conversations for independent tasks
+- **Active skills** — every loaded SKILL.md adds fixed overhead per request
+
+### Commands
+
+```bash
+/usage-tracker install        # Set up hook + scripts
+/usage-tracker report hoy     # Today's report
+/usage-tracker report semana  # Last 7 days
+/usage-tracker top-requests   # Top 15 most expensive requests
+/usage-tracker status         # Verify hook is active
+```
+
+### Install
+
+```bash
+npx skills add j4rk0r/claude-skills@usage-tracker --yes --global
 ```
 
 ---

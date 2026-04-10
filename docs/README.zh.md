@@ -40,6 +40,10 @@ npx skills add j4rk0r/claude-skills@lint-drupal-module -y -g
 npx skills add j4rk0r/claude-skills@milestone -y -g
 ```
 
+```bash
+npx skills add j4rk0r/claude-skills@usage-tracker -y -g
+```
+
 ## 技能列表
 
 | 技能 | 功能 |
@@ -51,6 +55,7 @@ npx skills add j4rk0r/claude-skills@milestone -y -g
 | **[codex-pr-review](../skills/codex-pr-review/)** | Drupal 11 Pull Request 审查 — 使用与 `codex-diff-develop` 相同的 18 条 Codex 规则，但通过 `git fetch origin pull/<N>/head` 拉取 PR，可审查任何 GitHub PR。 |
 | **[lint-drupal-module](../skills/lint-drupal-module/)** | Drupal 11 模块的并行化 lint review,结合 4 个来源 — PHPStan level 5、PHPCS Drupal/DrupalPractice、`drupal-qa` 代理(标准)和 `drupal-security` 代理(OWASP)。完整或 diff 模式。将所有内容整合到一份带 P0/P1/P2 行动的可操作报告中。 |
 | **[milestone](skills/milestone/)** | 跨对话持久化的开发追踪器。每个里程碑都是一个自包含的胶囊：目标、带状态的子任务、决策、代码引用和上下文日志。与 Plan mode 和所有规划技能集成。 |
+| **[usage-tracker](../skills/usage-tracker/)** | PostToolUse 钩子，将每次工具调用记录到 `~/.claude/usage.jsonl`。精确查看每个用户请求的消耗——按项目、会话、日期和工具分类。 |
 
 ## skill-guard
 
@@ -443,6 +448,59 @@ milestone 存储了在任何未来对话中恢复开发工作所需的一切 —
 
 ```bash
 npx skills add j4rk0r/claude-skills@milestone --yes --global
+```
+
+---
+
+## usage-tracker
+
+> **你使用 Claude Max。无按 token 计费。但你完全不知道哪个项目、对话或请求在消耗你的上下文限制。**
+
+usage-tracker 解决了这个问题。一个 PostToolUse 钩子捕获每次工具调用，记录其 token 数、项目和触发它的用户请求——将不透明的使用历史转化为可按请求、项目、会话、工具和日期细分的可操作数据。
+
+### 工作原理
+
+```
+用户："审查 auth 模块"
+  └─ Read auth.module           → 1,200 tok   ┐
+  └─ Grep hook                  →    80 tok   │ 同一"请求"
+  └─ Read AuthService.php       → 2,400 tok   │ → 合计：4,980 tok
+  └─ Bash lint auth/            → 1,300 tok   ┘
+```
+
+每条记录存储：时间戳、会话、项目、工具、模型、标签、请求文本、token 数。报告脚本聚合为可操作的细分。
+
+### 不易察觉的关键点
+
+钩子独立捕获工具调用——但 Claude 每次请求都会发送完整的对话历史。这造成了**非线性低估**：
+
+| 消息轮次 | 实际低估幅度 |
+|---------|------------|
+| 5       | ~20%       |
+| 20      | ~60%       |
+| 40+     | ~80–90%    |
+
+将其用作比较项目、会话和请求类型的**相对指数**——而非绝对成本。
+
+最大的盲点：
+- **Agent 调用** — 子 agent 对话完全不可见（日志中 500 token = 实际可能超过 20,000）
+- **长对话** — 上下文呈二次方累积；为独立任务开启新对话
+- **活跃技能** — 每个加载的 SKILL.md 都会为每次请求增加固定开销
+
+### 命令
+
+```bash
+/usage-tracker install        # 设置钩子 + 脚本
+/usage-tracker report hoy     # 今日报告
+/usage-tracker report semana  # 过去 7 天
+/usage-tracker top-requests   # 消耗最多的 15 个请求
+/usage-tracker status         # 验证钩子是否活跃
+```
+
+### 安装
+
+```bash
+npx skills add j4rk0r/claude-skills@usage-tracker --yes --global
 ```
 
 ---
