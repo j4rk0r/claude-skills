@@ -4,7 +4,7 @@
 
 > **Sie haben ein Feature in 3 Gesprachen fertiggestellt. Das 4. Gesprach beginnt bei null, weil der Kontext nicht uberlebt.**
 
-milestone ist ein persistenter Entwicklungs-Tracker, der den vollstandigen Kontext als Markdown-Dateien in Ihrem Projekt speichert. Jeder Meilenstein ist eine eigenstandige Kapsel: Ziel, Teilaufgaben mit Status, Architekturentscheidungen, Code-Referenzen und ein Protokoll dessen, was getan wurde und warum. Laden Sie ihn in jedem Gesprach und machen Sie genau dort weiter, wo Sie aufgehort haben.
+milestone v2 ist ein persistenter Entwicklungs-Tracker mit **zweistufigem Cache**: kompakte Speicher-Snapshots (~100 Tokens, automatisch geladen) fuer sofortigen Status und autoritative Dateien fuer die vollstaendige Historie. Es klassifiziert Teilaufgaben als `[simple]` oder `[complex]`, und verlangt einen Plan vor der Ausfuehrung komplexer Arbeit — um den teuren Trial-and-Error-Zyklus von 6+ iterativen Edits zu verhindern.
 
 ## Installieren
 
@@ -14,27 +14,24 @@ npx skills add j4rk0r/claude-skills@milestone --yes --global
 
 ## Befehle
 
-| Befehl | Beschreibung |
-|--------|-------------|
-| `/milestone` | Alle Meilensteine mit Status, Fortschritt und Schnelllade-Links auflisten |
-| `/milestone <name>` | Vollstandigen Kontext eines Meilensteins laden (unscharfe Suche) |
-| `/milestone init <name>` | Neuen Meilenstein mit Ziel und Teilaufgaben erstellen |
-| `/milestone add <name> <inhalt>` | Teilaufgabe, Entscheidung, Notiz oder Referenz hinzufugen |
-| `/milestone done <name> <teilaufgabe>` | Teilaufgabe als abgeschlossen markieren |
-| `/milestone update <name>` | Kontext nach einer Arbeitssitzung gesammelt aktualisieren |
+| Phase | Befehl | Beschreibung |
+|-------|--------|--------------|
+| Entdeckung | `/milestone` | Alle Milestones mit Status und Fortschritt auflisten |
+| Entdeckung | `/milestone <name>` | Kontext laden (Fuzzy-Matching) |
+| Planung | `/milestone init <name>` | Neuen Milestone mit Teilaufgaben-Vorschlaegen erstellen |
+| Ausfuehrung | `/milestone start <name>` | Neues Terminal mit kompaktem Kontext oeffnen |
+| Ausfuehrung | `/milestone done <name> <aufgabe>` | Teilaufgabe als erledigt markieren |
+| Review | `/milestone update <name>` | Massen-Update nach Arbeitssitzung |
 
 ## Hauptmerkmale
 
-- **Persistent uber Gesprache hinweg** — Dateien leben in `.milestones/` und uberleben jede Sitzung
-- **Eigenstandiger Kontext** — jede Datei enthalt alles Notige zur Wiederaufnahme der Arbeit
-- **Planungstool-Erkennung** — erkennt automatisch installierte Planungstools und bietet an, deren Ergebnisse zu vereinen
-- **Auto-Status** — Status berechnet sich aus den Teilaufgaben-Checkboxen
-- **Unscharfe Suche** — tippen Sie "dash" um "dashboard-propietario" zu laden
-- **Append-only Kontextlog** — umgekehrt chronologisches Protokoll was passiert ist und warum
-- **Globaler Skill, lokale Daten** — einmal installiert, erstellt projektspezifische Daten
+- **Zweistufiger Cache** — Speicher-Snapshot (~100 tok) fuer Lesezugriffe, autoritative Datei fuer Historie. 99% guenstiger.
+- **Komplexitaetsklassifikation** — `[simple]` vs `[complex]`. Komplexe sind **blockiert** bis ein Plan existiert.
+- **Token-Effizienzregeln** — 3+ Aenderungen gleiche Datei → einzelnes Write (10x guenstiger).
+- **Neue Sitzung** — `/milestone start` oeffnet `claude` in neuem Terminal mit kompaktem Kontext.
+- **12 NEVER-Regeln** — Split-Brain-Praevention, veraltete Snapshots, Edit-Anti-Patterns.
 
-## Sicherheit
+## Bewertung
 
-- Skill-Guard gepruft: **92/100 GREEN**
-- Keine Skripte, keine Netzwerkaufrufe, kein MCP-Zugriff
-- `allowed-tools: Read Write Edit Glob Grep`
+- **`/skill-judge`**: 120/120 (Note A+)
+- **`/skill-guard`**: 92/100 (GREEN)

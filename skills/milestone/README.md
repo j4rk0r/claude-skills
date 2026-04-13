@@ -2,9 +2,9 @@
 
 **[English](README.md)** | **[Español](README.es.md)** | **[Français](README.fr.md)** | **[Deutsch](README.de.md)** | **[Português](README.pt.md)** | **[中文](README.zh.md)** | **[日本語](README.ja.md)**
 
-> **You finished a feature across 3 conversations. The 4th conversation starts from zero because context doesn't survive.**
+> **You finished a feature across 3 conversations. The 4th starts from zero because context doesn't survive.**
 
-milestone is a persistent development tracker that stores full context as markdown files in your project. Each milestone is a self-contained capsule: objective, subtasks with status, architectural decisions, code references, and a running log of what was done and why. Load it in any conversation and pick up exactly where you left off.
+milestone v2 is a persistent development tracker with a **two-tier cache**: compact memory snapshots (~100 tokens, auto-loaded) for instant status, and full authoritative files for deep history. It classifies subtasks as `[simple]` or `[complex]`, requiring a plan before executing complex work — preventing the expensive trial-and-error cycle of 6+ iterative edits on the same file.
 
 ## Install
 
@@ -18,63 +18,67 @@ npx skills add j4rk0r/claude-skills@milestone --yes --global
 You: "/milestone dashboard"
         |
         v
-Fuzzy-matches milestone file in .milestones/
+Reads memory snapshot (zero file reads — already in context)
         |
         v
-Displays: objective, pending subtasks, decisions, context log, file references
+Displays: objective, pending subtasks, decisions, last context entry
         |
         v
-Discovers available planning tools (Plan mode, /writing-plans, /gepetto...)
+Classifies subtasks: [simple] → execute | [complex] → plan first
         |
         v
-Suggests next subtask + offers to unify plans from all available planners
+After work: updates milestone file + regenerates memory snapshot
         |
         v
-After work: auto-updates subtasks, context log, and references
-        |
-        v
-Next conversation: /milestone dashboard → full context, ready to continue
+Next conversation: instant context from memory, ready to continue
 ```
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `/milestone` | List all milestones with status, progress, and quick-load links |
-| `/milestone <name>` | Load full context of a milestone (fuzzy match) |
-| `/milestone init <name>` | Create a new milestone with objective and subtasks |
-| `/milestone add <name> <content>` | Add subtask, decision, note, or reference |
-| `/milestone done <name> <subtask>` | Mark a subtask as completed |
-| `/milestone update <name>` | Bulk-update context after a work session |
+| Phase | Command | Description |
+|-------|---------|-------------|
+| Discovery | `/milestone` | List all milestones with status and progress |
+| Discovery | `/milestone <name>` | Load context (fuzzy match — "dash" finds "dashboard-propietario") |
+| Planning | `/milestone init <name>` | Create new milestone with subtask proposals |
+| Execution | `/milestone start <name>` | Open a fresh terminal session with compact context pre-loaded |
+| Execution | `/milestone done <name> <subtask>` | Mark subtask complete with minimal edit |
+| Review | `/milestone update <name>` | Bulk-update after a work session |
 
 ## Key features
 
-- **Persistent across conversations** — milestone files live in `.milestones/` and survive any session
-- **Self-contained context** — each file has everything needed to resume work
-- **Planning tool discovery** — automatically detects installed planners and offers to unify their outputs
-- **Auto-status** — status recalculates from subtask checkboxes
-- **Fuzzy matching** — type "dash" to load "dashboard-propietario"
+- **Two-tier cache** — memory snapshot (~100 tok) for reads, authoritative file for full history. 99% cheaper than reading the full file every time.
+- **Complexity classification** — `[simple]` (1 file, clear change) vs `[complex]` (multi-file, new logic). Complex subtasks are **blocked** until a plan exists.
+- **Token efficiency rules** — 3+ changes to same file → single Write (10x cheaper than iterative Edits). No re-reading files already in context.
+- **New session command** — `/milestone start` opens a fresh `claude` in a new terminal window with compact context, eliminating the 5-10x cost multiplier from accumulated conversation history.
+- **Fuzzy matching** — type partial names to load milestones
 - **Append-only context log** — reverse-chronological record of what happened and why
-- **Global skill, local data** — installed once, creates project-specific data
+- **12 NEVER rules** — covering split-brain prevention, stale snapshots, and edit anti-patterns
 
-## What makes it different
-
-Unlike task lists or TODO tools, a milestone captures the **narrative** of development: not just what's pending, but what was tried, what was decided, and why. It's the difference between a checklist and a briefing.
-
-## File structure
+## Architecture
 
 ```
-.milestones/
-├── dashboard-propietario.md
-├── auth-module.md
-└── catalog-products.md
+~/.claude/projects/<project>/memory/milestone_<slug>.md  ← HOT (auto-loaded, ~100 tok)
+<project-root>/.milestones/<slug>.md                      ← AUTHORITATIVE (full history)
+<project-root>/.milestones/plans/<slug>-<subtask>.md      ← Plans for [complex] subtasks
 ```
 
-Each file contains: frontmatter (status, dates), objective, subtasks with checkboxes, decisions with reasoning, a chronological context log, and file references.
+## What makes it different from v1
+
+| Aspect | v1 | v2 |
+|--------|----|----|
+| Load cost | ~8,300 tok (Read full file + templates) | ~100 tok (memory snapshot) |
+| Listing cost | ~8,750 tok (Read all files) | ~400 tok (frontmatter only, limit:8) |
+| Complex subtasks | No gate — trial-and-error | Plan required before execution |
+| Session management | Same conversation (context accumulates) | `/milestone start` opens fresh session |
+| Reference loading | Always loads templates.md | Only on `/milestone init` |
+
+## Evaluation
+
+- **`/skill-judge`**: 120/120 (Grade A+)
+- **`/skill-guard`**: 92/100 (GREEN) — no scripts executed during normal operation, no network, no MCP
 
 ## Security
 
-- Skill-Guard audited: **92/100 GREEN**
-- No scripts, no network calls, no MCP access
-- Only reads/writes local `.milestones/*.md` files
-- `allowed-tools: Read Write Edit Glob Grep`
+- Only reads/writes local `.milestones/*.md` and memory snapshot files
+- `allowed-tools: Read Write Edit Glob Grep Bash`
+- Bash only used for `/milestone start` (auto-installs script on first use)

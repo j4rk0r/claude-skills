@@ -4,7 +4,7 @@
 
 > **Vous avez termine une feature en 3 conversations. La 4e repart de zero car le contexte ne survit pas.**
 
-milestone est un tracker de developpement persistant qui stocke le contexte complet sous forme de fichiers markdown dans votre projet. Chaque jalon est une capsule autonome : objectif, sous-taches avec statut, decisions architecturales, references de code et un journal de ce qui a ete fait et pourquoi. Chargez-le dans n'importe quelle conversation et reprenez exactement la ou vous en etiez.
+milestone v2 est un tracker de developpement persistant avec **cache a deux niveaux** : snapshots compacts en memoire (~100 tokens, charges automatiquement) pour un etat instantane, et fichiers autoritatifs pour l'historique complet. Il classifie les sous-taches en `[simple]` ou `[complexe]`, exigeant un plan avant d'executer les taches complexes — evitant le cycle couteux de 6+ modifications iteratives sur le meme fichier.
 
 ## Installer
 
@@ -14,27 +14,24 @@ npx skills add j4rk0r/claude-skills@milestone --yes --global
 
 ## Commandes
 
-| Commande | Description |
-|----------|-------------|
-| `/milestone` | Liste tous les jalons avec statut, progression et liens de chargement rapide |
-| `/milestone <nom>` | Charge le contexte complet d'un jalon (correspondance floue) |
-| `/milestone init <nom>` | Cree un nouveau jalon avec objectif et sous-taches |
-| `/milestone add <nom> <contenu>` | Ajoute sous-tache, decision, note ou reference |
-| `/milestone done <nom> <sous-tache>` | Marque une sous-tache comme terminee |
-| `/milestone update <nom>` | Mise a jour groupee du contexte apres une session de travail |
+| Phase | Commande | Description |
+|-------|----------|-------------|
+| Decouverte | `/milestone` | Lister tous les milestones avec statut et progression |
+| Decouverte | `/milestone <nom>` | Charger le contexte (correspondance floue) |
+| Planification | `/milestone init <nom>` | Creer un nouveau avec propositions de sous-taches |
+| Execution | `/milestone start <nom>` | Ouvrir un terminal neuf avec contexte compact |
+| Execution | `/milestone done <nom> <tache>` | Marquer une sous-tache comme terminee |
+| Revision | `/milestone update <nom>` | Mise a jour globale apres session de travail |
 
 ## Caracteristiques cles
 
-- **Persistant entre conversations** — les fichiers vivent dans `.milestones/` et survivent a toute session
-- **Contexte autonome** — chaque fichier contient tout le necessaire pour reprendre le travail
-- **Decouverte des planificateurs** — detecte automatiquement les skills de planification et propose d'unifier leurs resultats
-- **Auto-statut** — le statut se recalcule depuis les cases a cocher
-- **Correspondance floue** — tapez "dash" pour charger "dashboard-propietario"
-- **Journal append-only** — historique chronologique inverse de ce qui s'est passe et pourquoi
-- **Skill globale, donnees locales** — installee une fois, cree des donnees specifiques par projet
+- **Cache deux niveaux** — snapshot memoire (~100 tok) pour les lectures, fichier autoritatif pour l'historique. 99% moins cher.
+- **Classification de complexite** — `[simple]` vs `[complexe]`. Les complexes sont **bloquees** jusqu'a l'existence d'un plan.
+- **Regles d'efficacite tokens** — 3+ modifications meme fichier → un seul Write (10x moins cher).
+- **Nouvelle session** — `/milestone start` ouvre `claude` dans un nouveau terminal avec contexte compact.
+- **12 regles NEVER** — prevention du split-brain, snapshots obsoletes, anti-patterns d'edition.
 
-## Securite
+## Evaluation
 
-- Audite avec Skill-Guard : **92/100 GREEN**
-- Sans scripts, sans appels reseau, sans acces MCP
-- `allowed-tools: Read Write Edit Glob Grep`
+- **`/skill-judge`** : 120/120 (Grade A+)
+- **`/skill-guard`** : 92/100 (GREEN)
