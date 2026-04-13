@@ -1,128 +1,195 @@
 ---
 name: milestone
-description: "Persistent development milestone tracker with full context that survives across conversations. Each milestone is a self-contained development capsule: objective, subtasks with status, architectural decisions, code references, and a running log of what was done and why. Use this skill whenever the user says '/milestone', mentions tracking development progress, wants to plan a feature with subtasks, asks 'what's left to do on X', wants to break work into trackable pieces, needs to resume work from a previous conversation, or references a specific milestone by name. Also trigger after completing significant work to update the active milestone's context and task status."
-allowed-tools: Read Write Edit Glob Grep
+description: "Persistent development milestone tracker with full context across conversations. Use when: tracking multi-session features, resuming work from a previous conversation, asking 'what's left to do on X' or 'what's pending', breaking work into trackable subtasks, planning complex implementations, updating progress after coding, checking project status, completing a subtask with QA validation, or closing/archiving a finished milestone. Also trigger when user references a milestone by name, says 'what did we do last time', 'resume where we left off', 'how far along is X', 'mark this as done', 'milestone done', 'close this milestone', or wants to plan a feature with subtasks. Commands: /milestone, /milestone <name>, /milestone init, /milestone start, /milestone done, /milestone update."
+allowed-tools: Read Write Edit Glob Grep Bash
 ---
 
-# Milestone — Persistent Development Context
+# Milestone v2 — Persistent Development Context
 
-A milestone is a **development capsule**, not a task list. It persists the full context of a development effort across conversations: objective, subtasks, decisions, code references, and a running log of what happened and why. Loading a milestone in a new chat is like having the previous developer brief you in person.
+## Storage: two-tier cache
 
-## Core mindset
+```
+~/.claude/projects/<project>/memory/milestone_<slug>.md  ← HOT (~100 tok, auto-loaded vía MEMORY.md)
+<project-root>/.milestones/<slug>.md                      ← AUTHORITATIVE (historial completo)
+```
 
-Before any milestone operation, think:
+**Regla de lectura**: Snapshot de memoria primero. Solo `.milestones/` si necesitas historial completo o la memoria no existe. **Nunca leer ambos** si la memoria tiene la información suficiente.
 
-- **"Will the next conversation understand this?"** — Every update should make the file more useful for a future session that has zero context.
-- **"Is this worth a milestone?"** — Milestones are for work that spans multiple sessions. Single-session tasks belong in Plan mode or TodoWrite.
-- **"What would I wish I'd written down?"** — The decisions and dead-ends matter as much as the completed tasks.
+**Regla de escritura**: Cada write a `.milestones/<slug>.md` → actualizar también el snapshot. Ruta: `~/.claude/projects/$(pwd | sed 's|/|-|g; s|^-||')/memory/`.
 
-## Scope: global skill, project-local data
+**Por qué esto importa**: Leer un archivo de milestone de 70 líneas cuesta ~1.500 tok. El snapshot cuesta ~100 tok. En una conversación de 40 mensajes, cada tool call reenvía TODO el historial — el contexto acumulado invisible multiplica el coste real 5-10x. Un snapshot en memoria elimina lecturas y mantiene el contexto mínimo.
 
-Milestone data lives in `<project-root>/.milestones/`. Each project has independent milestones — never cross-pollinate. On first invocation, create the directory and suggest `/milestone init <nombre>`.
+## When to use milestone vs alternatives
 
-## NEVER
+Antes de crear un milestone, pregúntate:
+- **¿Abarca múltiples sesiones?** → No: usar TodoWrite o Plan mode
+- **¿Necesito contexto para retomar?** → No: la tarea es autocontenida
+- **¿Hay decisiones arquitectónicas que recordar?** → Sí: milestone captura el "por qué"
+- **¿Sesiones futuras tocarán esto?** → Sí: milestone es el briefing para la siguiente
 
-- **NEVER create a milestone for tasks under 1 hour** — use TodoWrite or Plan mode. Milestones are for multi-session work. Creating trivial milestones dilutes the system and nobody will maintain them.
-- **NEVER duplicate an existing milestone** — search first. If a similar one exists, add subtasks to it. Duplicate milestones cause split-brain: work gets tracked in one but not the other, and both become unreliable.
-- **NEVER delete context entries** — the log is append-only. If something was wrong, add a correction entry. Deleting history breaks the narrative for future sessions that need to understand what was tried and why it failed.
-- **NEVER leave a milestone without updated context after work** — a stale milestone is worse than no milestone. It gives false confidence about the state of things. If you did work, log it.
-- **NEVER hardcode absolute paths in Referencias** — always relative to project root. Absolute paths break when the project moves or another developer clones it.
-- **NEVER exceed 10 active milestones** — if there are more, some should be closed or merged. Too many milestones means none get maintained properly.
-- **NEVER modify frontmatter status manually** — let auto-status calculate it from subtask checkboxes. Manual status diverges from reality.
-- **NEVER create subtasks without a clear "done" definition** — "work on dashboard" is useless. "Implement routing with dynamic MenuTree links" tells you exactly when it's done.
+Todas "no" → TodoWrite/Plan. Al menos una "sí" → milestone.
 
-## Integration with planning tools
+## Complexity classification
 
-The milestone defines **WHAT** needs doing. Planning tools define **HOW**.
+| Nivel | Criterio | Acción |
+|-------|----------|--------|
+| `[simple]` | 1 archivo, cambio claro, sin dependencias | Ejecutar directamente |
+| `[complejo]` | 2+ archivos, nuevo servicio, refactor, integración, lógica nueva | **BLOQUEANTE**: plan antes de ejecutar |
 
-### Workflow: milestone → plan → execute → update milestone
+Plan para `[complejo]`: Plan mode o `/gepetto` → guardar en `.milestones/plans/<slug>-<subtask>.md` → añadir referencia en el milestone. Previene el ciclo caro de prueba-error (6+ edits iterativos en el mismo archivo).
 
-1. Load milestone → pick a pending subtask
-2. Before planning, **discover available planners** — scan installed skills for:
-   - **Plan mode** (Claude built-in) — interactive checklist, good for medium subtasks
-   - **`/writing-plans`** — structured step-by-step from specs
-   - **`/gepetto`** — multi-LLM review, for complex subtasks
-   - **`/brainstorming`** — explore requirements first, for ambiguous subtasks
-   - **`/subagent-driven-development`** — parallel execution of independent pieces
-3. Present available planners:
-   ```
-   Sistemas de planificacion disponibles:
-   1. Plan mode (Claude) — ideal para subtareas medianas
-   2. /writing-plans — ideal con spec clara
-   3. /gepetto — ideal para subtareas complejas
-   ¿Quieres que use todos y unifique en un unico listado? ¿O prefieres uno?
-   ```
-4. If user says "todos" → run each planner, merge outputs into deduplicated subtask list, mark which planner proposed each item, present for approval
-5. After execution: mark subtasks `[x]`, add context entry, update references
+## Before starting any subtask
 
-### With other skills
+Antes de escribir código, pregúntate:
+- **¿Cuántos archivos toca?** → >2 = `[complejo]`, necesita plan
+- **¿Puedo describir el cambio en una frase?** → No: el alcance no está definido, planificar primero
+- **¿Hay dependencias con otras subtareas?** → Documentar en el plan
+- **¿He hecho algo similar en este milestone?** → Buscar en el contexto antes de repetir trabajo
+- **¿Necesito leer archivos grandes?** → Usar `offset`/`limit` si solo necesito una sección
 
-Record outcomes from `/qa-test-planner`, `/codex-pr-review`, `/commit-work`, `/monday-sync`, etc. as context entries. The milestone is the persistent record; other skills are transient.
+## Reference loading guide
 
-### The golden rule
-
-After meaningful work on an active milestone, **always update**: subtasks `[x]`, new decisions in `## Decisiones`, modified files in `## Referencias`, and a dated entry in `## Contexto`.
+| Comando | Cargar | Do NOT load |
+|---------|--------|-------------|
+| `/milestone` (list) | Nada — solo frontmatter `limit:8` | templates.md, errors.md, qa-validation.md, .milestones/ completos |
+| `/milestone <name>` | Solo snapshot de memoria | templates.md, errors.md, qa-validation.md, .milestones/ si memoria suficiente |
+| `/milestone init` | templates.md (**MANDATORY**) | errors.md, qa-validation.md |
+| `/milestone done` | qa-validation.md (**MANDATORY**) | templates.md, errors.md |
+| `/milestone update` | Nada — contenido ya en contexto | templates.md, errors.md, qa-validation.md |
+| Corrupción detectada | errors.md (**MANDATORY**) | templates.md, qa-validation.md |
 
 ## Commands
 
-### `/milestone` (no arguments) — List all
+### Phase 1 — Discovery
 
-Read `.milestones/*.md`, parse frontmatter and subtasks, display:
-
+#### `/milestone` — Listar todos
+Si `.milestones/` no existe → sugerir `/milestone init <nombre>`.
+Leer solo frontmatter (primeras 8 líneas) de cada archivo con `limit:8`. Mostrar tabla:
 ```
-## Hitos del proyecto
-
-| Estado | Hito | Objetivo | Progreso | Actualizado | |
-|--------|------|----------|----------|-------------|-|
-| 🟡 | Dashboard Propietario | Panel con links dinamicos | 3/7 | 2026-04-09 | → `/milestone dashboard-propietario` |
-| 🔴 | Catalogo Productos | Listado filtrable | 0/5 | 2026-04-07 | → `/milestone catalogo-productos` |
+| Estado | Hito | Progreso | Actualizado |
+| 🟡 | Dashboard Propietario | 3/7 | 2026-04-09 |
 ```
+🟢 completado · 🟡 en progreso · 🔴 no iniciado · ⚠️ sin actividad >30 días.
 
-Status: 🟢 completed, 🟡 in-progress, 🔴 not-started. Flag milestones with `updated` >30 days ago: "⚠️ sin actividad".
+**Checkpoint**: si hay >3 milestones en progreso → advertir al usuario que la dispersión reduce calidad. Sugerir priorizar.
 
-### `/milestone <name>` — Load context
+#### `/milestone <name>` — Cargar contexto
+Fuzzy match: "dash" → "dashboard-propietario". Ambiguo → opciones numeradas. Sin match → listar disponibles.
+1. Leer snapshot de memoria (ya en contexto vía MEMORY.md — zero reads)
+2. Si no hay snapshot o está desactualizado: leer `.milestones/<slug>.md`
+3. Mostrar: objetivo, progreso, subtareas pendientes, último contexto, siguiente acción sugerida
+4. Para subtareas `[complejo]` pendientes: indicar si tienen plan o si hay que crearlo
 
-Fuzzy match against filename/name field. Display all sections, then suggest next subtask with available planners. If all done: *"Todas completadas. ¿Cerramos el hito?"*
+**Checkpoint**: antes de sugerir siguiente acción, verificar si hay dependencias entre subtareas pendientes.
 
-**This is the most critical command.** The output must be a complete briefing — enough for a developer with zero prior context to start working immediately.
+### Phase 2 — Planning
 
-**MANDATORY**: Read [`references/templates.md`](references/templates.md) for the exact display format when loading a milestone for the first time in a session.
+#### `/milestone init <name>` — Crear nuevo
+Verificar que no existe uno similar (por nombre o por objetivo) → si existe, sugerir añadir subtareas al existente.
+Cargar [`references/templates.md`](references/templates.md) (**MANDATORY**).
+1. Extraer objetivo o preguntar
+2. Analizar el codebase para estado actual relevante
+3. Proponer subtareas con `[simple]` o `[complejo]` y definición clara de "done"
+4. Para `[complejo]`: proponer crear plan antes de confirmar
+5. **Esperar confirmación** antes de guardar subtareas pendientes
+6. Crear `.milestones/<slug>.md` + snapshot de memoria + pointer en `MEMORY.md`
 
-On ambiguous match → show options. On no match → list available milestones.
+**Checkpoint**: repasar las subtareas propuestas — ¿cada una tiene una definición de "done" verificable? Si no, refinar antes de guardar.
 
-### `/milestone init <name>` — Create new
+### Phase 3 — Execution
 
-1. Create `.milestones/` if needed
-2. Extract or ask for objective
-3. Analyze codebase for current state relevant to the objective
-4. Propose subtasks (each with clear "done" definition)
-5. Let user adjust, then save
+#### `/milestone start <name>` — Nueva sesión limpia
+**Solo cuando el usuario lo pide explícitamente.** Nunca sugerir.
+Script en [`references/milestone-new-session.sh`](references/milestone-new-session.sh). Auto-install:
+1. Si `~/.claude/milestone-new-session.sh` no existe → copiar desde references + `chmod +x`
+2. `bash ~/.claude/milestone-new-session.sh "$(pwd)" "<slug>"`
 
-**MANDATORY**: Read [`references/templates.md`](references/templates.md) for the file structure.
+macOS: abre iTerm2/Terminal.app. Linux: muestra comando para copiar.
 
-### `/milestone add <name> <content>` — Add content
+#### `/milestone done <name> <subtask>` — Completar subtarea
+Fuzzy match en milestone y subtarea. Si subtarea ya `[x]` → advertir, no duplicar.
 
-Detect type: `tarea:` → subtask, `decision:` → decision with date, `nota:` → context entry, `ref:` → reference. Ambiguous → ask. Auto-recalculate status.
+**MANDATORY — LEER COMPLETO**: Antes de marcar `[x]`, cargar y seguir [`references/qa-validation.md`](references/qa-validation.md) (3 fases: backend + frontend + diseño/Figma).
+**NUNCA marcar `[x]` sin completar la validación QA. Si cualquier criterio falla, la subtarea queda pendiente.**
 
-### `/milestone done <name> <subtask>` — Complete subtask
+Edit mínimo: `old_string` = solo la línea del checkbox. No incluir contexto circundante.
+Añadir entrada en `## Contexto` con resumen QA. Actualizar snapshot de memoria.
 
-Fuzzy match both milestone and subtask text. Mark `[x]`, add context entry with what was done, recalculate status. Show updated progress.
+### Phase 4 — Review
 
-### `/milestone update <name>` — Bulk session update
+#### `/milestone update <name>` — Actualizar tras sesión
 
-After a work session: read milestone, infer or ask what was accomplished, mark subtasks, add context entries, update references. This is the end-of-session command.
+Antes de actualizar, pregúntate:
+- **¿Hay cambios sin commitear?** → `git status` — si hay, el trabajo está en curso, no completado
+- **¿El usuario ha dicho qué hizo?** → Sí: usar su input. No: inferir de git log + archivos en contexto
+- **¿Alguna subtarea se completó?** → Si hay evidencia clara (código existe, tests pasan): marcar `[x]` con QA. Si no hay certeza: preguntar antes de marcar
+
+| Señal | Acción |
+|-------|--------|
+| Subtarea tiene código nuevo que cumple su "done" | Cargar [`references/qa-validation.md`](references/qa-validation.md), ejecutar QA, marcar `[x]` solo si pasa |
+| Código parcial, subtarea a medias | Añadir nota en `## Contexto`, NO marcar `[x]` |
+| Se tomó una decisión arquitectónica | Añadir en `## Decisiones` con fecha + razón |
+| Se descubrió un problema nuevo | Añadir subtarea pendiente (pedir confirmación) |
+| Se modificaron archivos no referenciados | Añadir en `## Referencias` |
+
+Marcar `[x]`, añadir `## Contexto`, actualizar `## Referencias`. Sync memoria.
+
+## Sync de memoria tras cada write
+
+Regenerar snapshot compacto tras cualquier write/edit a `.milestones/`:
+```
+**<Nombre>** | <status> | <done>/<total> | <fecha>
+Objetivo: <primera línea>
+Pendiente: <lista [ ] o "(ninguna)">
+Último avance: <primera línea del Contexto más reciente>
+Archivos clave: <basenames, máx 6>
+```
+Destino: `~/.claude/projects/$(pwd | sed 's|/|-|g; s|^-||')/memory/milestone_<slug>.md`.
+Crear pointer en `MEMORY.md` si es milestone nuevo.
+
+**Si falla**: `mkdir -p` del directorio → reintentar → si persiste: advertir al usuario (milestone funciona sin memoria, solo más lento).
 
 ## Auto-status
+Recalcular en cada write: todos `[x]` → `completed`, algunos → `in-progress`, ninguno → `not-started`. Actualizar frontmatter `status` y `updated`. Errores de formato → [`references/errors.md`](references/errors.md).
 
-Recalculate on every write: all `[x]` → `completed`, some → `in-progress`, none → `not-started`.
+## Freedom calibration
 
-**MANDATORY**: On any file issue (corrupted frontmatter, malformed checkboxes, status mismatch), read [`references/errors.md`](references/errors.md) for the recovery procedure. Do NOT guess — the error handling covers all common cases.
+| Operación | Libertad | Motivo |
+|-----------|----------|--------|
+| init (definir subtareas) | **Alta** | Múltiples descomposiciones válidas, creatividad en estructura |
+| load (mostrar estado) | Media | Formato definido pero juicio en qué destacar al usuario |
+| done (marcar checkbox) | **Baja** | QA obligatoria → Edit exacto si pasa, bloquear si falla |
+| update (registrar trabajo) | Media-baja | Inferir con evidencia (git, contexto), preguntar ante duda, nunca inventar |
+| start (nueva sesión) | **Baja** | Script exacto, sin interpretación |
 
-## Critical behaviors
+## Edge cases
 
-1. **Read before write** — never assume current state.
-2. **Fuzzy match** — "dash" matches "dashboard-propietario". Ambiguous → show options.
-3. **Append-only context** — never delete, only add corrections.
-4. **Track references** — every file created/modified gets added to `## Referencias`.
-5. **Suggest next actions** — after loading, recommend which subtask to tackle based on logical dependencies.
-6. **Capture outcomes** — when Plan mode or other skills produce results, persist them in the milestone.
+| Situación | Acción |
+|-----------|--------|
+| `.milestones/` no existe | Sugerir `/milestone init <nombre>` |
+| Fuzzy match ambiguo (2+ resultados) | Mostrar opciones numeradas, pedir elección |
+| Fuzzy match sin resultado | Listar todos los milestones disponibles |
+| Subtarea ya `[x]` en `/milestone done` | Advertir, no marcar de nuevo |
+| Path con espacios o acentos | Escapar con comillas en comandos bash |
+| Milestone con >20 subtareas | Sugerir dividir en sub-milestones |
+| `## Contexto` con >10 entradas | Las más antiguas pierden relevancia — sugerir archivar a `## Contexto archivado` |
+| Snapshot de memoria con fecha < milestone | Regenerar desde archivo authoritative |
+| Milestone stale (>30 días sin `updated`) | Flag ⚠️ en listing, preguntar si cerrar o retomar |
+| Usuario quiere cerrar/cancelar/archivar con subtareas pendientes | Preguntar motivo. Marcar subtareas pendientes como `[-]` (cancelada) o dejar `[ ]`. Cambiar status a `completed` o `cancelled`. Añadir nota en Contexto con razón del cierre |
+| QA falla pero usuario insiste en marcar done | Explicar qué falló, ofrecer fix. Si insiste: marcar `[x]` con `⚠️ QA parcial` en contexto |
+| Subtarea depende de otra no completada | Advertir de la dependencia, sugerir completar la otra primero |
+
+## NEVER
+- **NUNCA** leer `.milestones/` si el snapshot de memoria tiene la información suficiente — duplica tokens sin aportar nada.
+- **NUNCA** leer `.milestones/` + snapshot en la misma operación — el coste acumulado en 40 mensajes es 10x lo visible.
+- **NUNCA** ejecutar subtarea `[complejo]` sin plan — la experiencia muestra que produce 6+ edits iterativos al mismo archivo, cada uno más caro que un plan previo.
+- **NUNCA** leer `references/templates.md` en load/done/update — solo se necesita en init; cargarlo en otros comandos desperdicia ~900 tok.
+- **NUNCA** usar `old_string` grande en Edit de checkbox — incluir contexto circundante causa fallos de unicidad y edits fallidos.
+- **NUNCA** hacer 3+ Edits al mismo archivo — Write es 6x más barato cuando hay múltiples cambios (Edit reenvía el archivo entero en cada call).
+- **NUNCA** crear milestone para trabajo de <1 hora — TodoWrite existe para eso; un milestone vacío ensucia el listing y nadie lo mantiene.
+- **NUNCA** crear milestone sin verificar que no existe uno similar — dos milestones para lo mismo causan split-brain: el trabajo se trackea en uno pero no en otro.
+- **NUNCA** guardar subtareas pendientes sin confirmación del usuario — las subtareas `[x]` son hechos verificables, pero las `[ ]` son el plan del usuario, no el tuyo.
+- **NUNCA** marcar `[x]` sin pasar la validación QA — código "que debería funcionar" es la fuente #1 de bugs que el usuario descubre después.
+- **NUNCA** dejar snapshot de memoria desactualizado tras write — la siguiente sesión arrancará con datos obsoletos y tomará decisiones equivocadas.
+- **NUNCA** exceder 10 milestones activos simultáneos — más de 10 significa que ninguno recibe atención suficiente y todos se quedan stale.
+- **NUNCA** borrar entradas de `## Contexto` — es append-only porque las sesiones futuras necesitan entender qué se intentó y por qué, incluyendo los errores.
