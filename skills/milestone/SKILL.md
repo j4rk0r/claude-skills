@@ -1,6 +1,6 @@
 ---
 name: milestone
-description: "Persistent development milestone tracker with full context across conversations. Use when: tracking multi-session features, resuming work from a previous conversation, asking 'what's left to do on X' or 'what's pending', breaking work into trackable subtasks, planning complex implementations, updating progress after coding, checking project status, completing a subtask with QA validation, or closing/archiving a finished milestone. Also trigger when user references a milestone by name, says 'what did we do last time', 'resume where we left off', 'how far along is X', 'mark this as done', 'milestone done', 'close this milestone', or wants to plan a feature with subtasks. Commands: /milestone, /milestone <name>, /milestone init, /milestone start, /milestone done, /milestone update."
+description: "Persistent development milestone tracker with full context across conversations. Use when: tracking multi-session features, resuming work from a previous conversation, asking 'what's left to do on X' or 'what's pending', breaking work into trackable subtasks, planning complex implementations, updating progress after coding, checking project status, completing a subtask with QA validation, auditing what's missing in the project, syncing milestones with actual code state, or closing/archiving a finished milestone. Also trigger when user references a milestone by name, says 'what did we do last time', 'resume where we left off', 'how far along is X', 'mark this as done', 'milestone done', 'close this milestone', 'what's missing', 'audit the project', 'sync milestones', or wants to plan a feature with subtasks. Commands: /milestone, /milestone <name>, /milestone init, /milestone sync, /milestone start, /milestone done, /milestone update."
 allowed-tools: Read Write Edit Glob Grep Bash
 ---
 
@@ -53,7 +53,8 @@ Antes de escribir código, pregúntate:
 |---------|--------|-------------|
 | `/milestone` (list) | Nada — solo frontmatter `limit:8` | templates.md, errors.md, qa-validation.md, .milestones/ completos |
 | `/milestone <name>` | Solo snapshot de memoria | templates.md, errors.md, qa-validation.md, .milestones/ si memoria suficiente |
-| `/milestone init` | templates.md (**MANDATORY**) | errors.md, qa-validation.md |
+| `/milestone init` | templates.md (**MANDATORY**), project-audit.md (si hay doc técnico) | errors.md, qa-validation.md |
+| `/milestone sync` | project-audit.md (**MANDATORY**) | templates.md, errors.md |
 | `/milestone done` | qa-validation.md (**MANDATORY**) | templates.md, errors.md |
 | `/milestone update` | Nada — contenido ya en contexto | templates.md, errors.md, qa-validation.md |
 | Corrupción detectada | errors.md (**MANDATORY**) | templates.md, qa-validation.md |
@@ -84,9 +85,24 @@ Fuzzy match: "dash" → "dashboard-propietario". Ambiguo → opciones numeradas.
 
 ### Phase 2 — Planning
 
+#### `/milestone sync` — Auditoría del proyecto vs milestones
+**MANDATORY — LEER COMPLETO**: Cargar [`references/project-audit.md`](references/project-audit.md).
+
+Cruza documento técnico + codebase + milestones existentes para detectar:
+- Milestones desactualizados (subtareas completadas sin marcar, código nuevo sin reflejar)
+- Funcionalidades descritas en el doc técnico sin milestone
+- Deuda técnica no trackeada
+
+Presenta informe con tabla de cobertura (✅/🟡/🔴/⚠️), propone actualizaciones y nuevos milestones con subtareas. **Espera confirmación** antes de crear o modificar nada.
+
+**Trigger automático**: al ejecutar `/milestone` (listar) si hace >14 días de la última auditoría → sugerir ejecutar sync.
+
 #### `/milestone init <name>` — Crear nuevo
 Verificar que no existe uno similar (por nombre o por objetivo) → si existe, sugerir añadir subtareas al existente.
 Cargar [`references/templates.md`](references/templates.md) (**MANDATORY**).
+
+**Si el proyecto tiene documento técnico** (CLAUDE.md, docs/, spec): antes de crear, cargar [`references/project-audit.md`](references/project-audit.md) y verificar si hay otras funcionalidades sin milestone. Ofrecer crear todos los milestones necesarios de una vez, no solo el solicitado — el usuario decide cuáles confirmar.
+
 1. Extraer objetivo o preguntar
 2. Analizar el codebase para estado actual relevante
 3. Proponer subtareas con `[simple]` o `[complejo]` y definición clara de "done"
