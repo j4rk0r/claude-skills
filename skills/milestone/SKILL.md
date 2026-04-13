@@ -173,6 +173,7 @@ Recalcular en cada write: todos `[x]` → `completed`, algunos → `in-progress`
 | Operación | Libertad | Motivo |
 |-----------|----------|--------|
 | init (definir subtareas) | **Alta** | Múltiples descomposiciones válidas, creatividad en estructura |
+| sync (auditoría proyecto) | Media | Juicio necesario para clasificar cobertura, pero confirmación obligatoria antes de modificar |
 | load (mostrar estado) | Media | Formato definido pero juicio en qué destacar al usuario |
 | done (marcar checkbox) | **Baja** | QA obligatoria → Edit exacto si pasa, bloquear si falla |
 | update (registrar trabajo) | Media-baja | Inferir con evidencia (git, contexto), preguntar ante duda, nunca inventar |
