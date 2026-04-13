@@ -54,7 +54,7 @@ npx skills add j4rk0r/claude-skills@usage-tracker -y -g
 | **[codex-diff-develop](../skills/codex-diff-develop/)** | Revue de code Drupal 11 de la branche actuelle contre `develop` selon la methodologie Codex — 18 regles eprouvees en production avec le *pourquoi* derriere chacune. Genere un rapport `.md` structure. |
 | **[codex-pr-review](../skills/codex-pr-review/)** | Revue de pull requests Drupal 11 avec la methodologie Codex — memes 18 regles que `codex-diff-develop` mais recupere le PR via `git fetch origin pull/<N>/head` pour auditer n'importe quel PR GitHub. |
 | **[lint-drupal-module](../skills/lint-drupal-module/)** | Lint review parallelisee de modules Drupal 11 combinant 4 sources — PHPStan level 5, PHPCS Drupal/DrupalPractice, agent `drupal-qa` (standards) et agent `drupal-security` (OWASP). Modes complet ou diff. Consolide tout dans un seul rapport actionnable avec actions P0/P1/P2. |
-| **[milestone](skills/milestone/)** | Tracker de developpement persistant qui survit entre conversations. Chaque jalon est une capsule autonome : objectif, sous-taches avec statut, decisions, references de code et journal de contexte. S'integre avec Plan mode et tous les skills de planification. |
+| **[milestone](skills/milestone/)** | Tracker de developpement persistant v2 avec cache a deux niveaux (snapshots memoire + fichiers autoritatifs). Classe les sous-taches en `[simple]`/`[complex]`, exige un plan avant le travail complexe. Efficace en tokens : charges 99% moins couteuses, regle 3-Edit→Write. |
 | **[usage-tracker](../skills/usage-tracker/)** | Hook PostToolUse qui enregistre chaque appel d'outil dans `~/.claude/usage.jsonl`. Voyez exactement combien coûte chaque requête utilisateur — par projet, session, jour et outil. |
 
 ## skill-guard

@@ -54,7 +54,7 @@ npx skills add j4rk0r/claude-skills@usage-tracker -y -g
 | **[codex-diff-develop](skills/codex-diff-develop/)** | Drupal 11 code review of the current branch vs `develop` using the Codex methodology — 18 production-tested rules with the *why* behind each one. Generates a structured `.md` report. |
 | **[codex-pr-review](skills/codex-pr-review/)** | Drupal 11 pull request review using the Codex methodology — same 18 rules as `codex-diff-develop` but fetches the PR via `git fetch origin pull/<N>/head` so you can audit any GitHub PR. |
 | **[lint-drupal-module](skills/lint-drupal-module/)** | Parallelized Drupal 11 lint review combining 4 sources — PHPStan level 5, PHPCS Drupal/DrupalPractice, `drupal-qa` agent (standards) and `drupal-security` agent (OWASP). Full or diff mode. Consolidates everything into a single actionable report with P0/P1/P2 actions. |
-| **[milestone](skills/milestone/)** | Persistent development tracker that survives across conversations. Each milestone is a self-contained capsule: objective, subtasks with status, decisions, code references, and a running context log. Integrates with Plan mode and all planning skills. |
+| **[milestone](skills/milestone/)** | Persistent development tracker v2 with two-tier cache (memory snapshots + authoritative files). Classifies subtasks as `[simple]`/`[complex]`, requires plans before complex work. Token-efficient: 99% cheaper loads via memory, 3-Edit→Write rule, fresh session command. |
 | **[usage-tracker](skills/usage-tracker/)** | PostToolUse hook that logs every tool call into `~/.claude/usage.jsonl`. See exactly how much each user request costs — by project, session, day, and tool. |
 
 ## skill-guard
@@ -502,9 +502,9 @@ npx skills add j4rk0r/claude-skills@lint-drupal-module --yes --global
 
 ## milestone
 
-> **You finished a feature across 3 conversations. The 4th conversation starts from zero because context doesn't survive.**
+> **You finished a feature across 3 conversations. The 4th starts from zero because context doesn't survive.**
 
-milestone stores everything needed to resume development work in any future conversation — objective, subtasks with status, architectural decisions, code references, and a reverse-chronological log of what was done and why. Load a milestone by name and start working immediately.
+milestone v2 stores everything needed to resume development in any future conversation — with a **two-tier cache** that makes loading 99% cheaper than reading the full file.
 
 ### How it works
 
@@ -512,45 +512,44 @@ milestone stores everything needed to resume development work in any future conv
 You: "/milestone dashboard"
         |
         v
-Fuzzy-matches milestone file in .milestones/
+Reads memory snapshot (zero file reads — already in context)
         |
         v
-Displays full context: objective, subtasks, decisions, log, references
+Displays: objective, pending subtasks, decisions, last context entry
         |
         v
-Discovers available planners (Plan mode, /writing-plans, /gepetto...)
+Classifies subtasks: [simple] → execute | [complex] → plan first
         |
         v
-"Use all planners and unify?" or pick one
+After work: updates milestone file + regenerates memory snapshot
         |
         v
-After work: updates subtasks, context log, references
-        |
-        v
-Next conversation: /milestone dashboard → full picture, ready to continue
+Next conversation: instant context from memory, ready to continue
 ```
 
 ### Commands
 
-| Command | What it does |
-|---------|-------------|
-| `/milestone` | List all milestones with status, progress, and quick-load commands |
-| `/milestone <name>` | Load full context (fuzzy match — "dash" finds "dashboard-propietario") |
-| `/milestone init <name>` | Create new milestone with objective + codebase-aware subtask proposals |
-| `/milestone add <name> <content>` | Add subtask, decision, note, or file reference |
-| `/milestone done <name> <subtask>` | Mark subtask complete, log context, recalculate status |
-| `/milestone update <name>` | Bulk session update — mark tasks, log decisions, add references |
+| Phase | Command | What it does |
+|-------|---------|-------------|
+| Discovery | `/milestone` | List all milestones with status and progress |
+| Discovery | `/milestone <name>` | Load context (fuzzy match — "dash" finds "dashboard-propietario") |
+| Planning | `/milestone init <name>` | Create new with codebase-aware subtask proposals |
+| Execution | `/milestone start <name>` | Open fresh terminal with compact context pre-loaded |
+| Execution | `/milestone done <name> <subtask>` | Mark subtask complete with minimal edit |
+| Review | `/milestone update <name>` | Bulk session update — mark tasks, log decisions |
 
-### Key design decisions
+### What's new in v2
 
-- **Append-only context log** — never delete history, only add corrections. Future sessions need the narrative.
-- **Planning tool discovery** — automatically detects all installed planners and offers to run them all, then unifies into a single subtask list.
-- **Global skill, local data** — installed once globally, creates `.milestones/` per project. Each project's milestones are independent.
-- **8 NEVER rules** — no milestones for <1h tasks, no duplicates, no stale milestones, no vague subtasks, max 10 active.
+- **Two-tier cache** — memory snapshot (~100 tok) for reads, authoritative file for full history. 99% cheaper loads.
+- **Complexity classification** — `[simple]` (1 file) vs `[complex]` (multi-file). Complex subtasks are **blocked** until a plan exists.
+- **Token efficiency** — 3+ changes to same file → single Write (10x cheaper). No re-reading files in context.
+- **Fresh session command** — `/milestone start` opens `claude` in a new terminal, eliminating the 5-10x cost from accumulated context.
+- **12 NEVER rules** — covering split-brain, stale snapshots, edit anti-patterns, and scope control.
 
 ### Evaluation
 
-- **`/skill-guard`**: 92/100 (GREEN) — no scripts, no network, no MCP. Only local file I/O.
+- **`/skill-judge`**: 120/120 (Grade A+)
+- **`/skill-guard`**: 92/100 (GREEN) — no scripts during normal operation, no network, no MCP.
 
 ### Install
 
