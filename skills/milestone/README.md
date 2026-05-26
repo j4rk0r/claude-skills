@@ -4,7 +4,7 @@
 
 > **You finished a feature across 3 conversations. The 4th starts from zero because context doesn't survive. And your teammate is working off a stale to-do list.**
 
-milestone v2 is a persistent development tracker with a **two-tier cache**: compact memory snapshots (~100 tokens, auto-loaded) for instant status, and full authoritative files for deep history. It classifies subtasks as `[simple]` or `[complex]`, requiring a plan before executing complex work — preventing the expensive trial-and-error cycle of 6+ iterative edits on the same file. **Optional team mode (R13)** makes the milestone a single shared source of truth, git-synced to a canonical branch so the whole team always sees the same up-to-date list.
+milestone v2 is a persistent development tracker with a **two-tier cache**: compact memory snapshots (~100 tokens, auto-loaded) for instant status, and full authoritative files for deep history. It classifies subtasks as `[simple]` or `[complex]`, requiring a plan before executing complex work — preventing the expensive trial-and-error cycle of 6+ iterative edits on the same file. **Optional team mode (R13 + R14)** makes the milestone a single shared source of truth, git-synced to a canonical branch so the whole team always sees the same up-to-date list — and **atomically reserves subtasks via the canonical branch BEFORE anyone touches code**, so two members can never accidentally pick the same one.
 
 ## Install
 
@@ -61,22 +61,41 @@ Next conversation / next teammate: instant, current context
 - **Append-only context log** — reverse-chronological record of what happened and why
 - **17 NEVER rules** — covering split-brain prevention, stale snapshots, edit anti-patterns, and team git-sync hazards
 
-## Team mode (R13) — opt-in
+## Team mode (R13 + R14) — opt-in
 
-Without this, the milestone is a per-machine local file. On a team that degrades into duplicated lists (every feature branch edits the same file) and stale to-do lists. Team mode makes the milestone a **single shared source of truth on a canonical branch**, edited only against that branch via a dedicated worktree — never inside code branches.
+Without this, the milestone is a per-machine local file. On a team that degrades into duplicated lists (every feature branch edits the same file) and stale to-do lists. Team mode makes the milestone a **single shared source of truth on a canonical branch**, edited only against that branch via a dedicated worktree — never inside code branches. Plus it reserves each subtask atomically the moment someone starts working on it, so two people never end up doing the same thing.
 
 Enable per project in `.milestones/config.yml`:
 
 ```yaml
 milestone_sync:
-  enabled: true        # absent or false -> the whole of R13 is a silent no-op
+  enabled: true        # absent or false -> the whole of team mode is a silent no-op
   branch: develop      # canonical branch (default: develop)
   path: .milestones     # synced subdir (default: .milestones)
 ```
 
+### R13 — shared source of truth
+
 - **On read** (`/milestone <name>`, `/milestone sync`): fetches the canonical branch and, if a teammate advanced the milestone, warns and offers to adopt it before you work.
 - **On write** (init / update / done / session-end): after refreshing the snapshot, commits **only** `<path>/<slug>.md` and pushes it to the canonical branch through an isolated worktree under `.git/` — your code branch and working tree are never touched.
-- **PR stamping**: a subtask whose work is in an open PR keeps its `[~]` state with an inline `` `⏳ PR #N` `` annotation (not a new state — `[~]` already means "code-complete, pending approval"; the PR is that approval's vehicle).
+- **PR stamping**: a subtask whose work is in an open PR keeps its `[~]` state with an inline `` `⏳ PR #N` `` annotation.
+
+### R14 — atomic claim before touching code
+
+When you run `/milestone start`, the system **reserves the subtask in the canonical branch BEFORE you touch any code**. The line becomes `[>]` with an inline annotation:
+
+```
+- [>] 1.4 [complex] Stripe integration — `🔒 Jane Doe (jdoe) · 2026-05-26 15:01` [Backend]
+```
+
+- **Atomic via `git push --fast-forward`**: if two members try to claim the same subtask at the same time, only one fast-forward push wins. The loser fetches, re-validates, sees the winner's claim and aborts with `race-lost:<winner>`. Impossible to double-claim.
+- **Live verification mandatory**: `claim` does `git fetch` and aborts with `noop:fetch-failed` if the network check fails. No claiming against stale local data.
+- **`/milestone` listing in team mode must consult claims**: the list of milestones shows who has what reserved. A subtask claimed by someone else can never appear as "free" for you.
+- **Audit trail**: every claim/release is a dedicated commit on `<branch>` (`chore(milestone): claim <slug> <X.Y> by <Jane Doe (jdoe)>`). The branch history *is* the team's coordination log.
+- **Handover via `/milestone release <slug> <X.Y> --force`** when needed (vacation, machine down, refusal). Add a note in `## Contexto` justifying the forced release; the original claimer sees `not-claimed` next time.
+
+### Common behavior
+
 - **Graceful degradation**: no git / no remote / no canonical branch / block absent → silent no-op. The zero-dependency promise still holds.
 - **Never bypasses guards**: if a push is blocked by a security guard or auth, the commit stays in the worktree and you get the exact command to run — it never silences the failure or blocks your work.
 
@@ -98,7 +117,8 @@ milestone_sync:
 | Complex subtasks | No gate — trial-and-error | Plan required before execution |
 | Session management | Same conversation (context accumulates) | `/milestone start` opens fresh session |
 | Reference loading | Always loads templates.md | Only on `/milestone init` |
-| Team collaboration | None — local file only | Opt-in git-synced shared milestone (R13) |
+| Team collaboration | None — local file only | Opt-in git-synced shared milestone (R13) + atomic claim before touching code (R14) |
+| Race protection | None | Git fast-forward push as serialization lock — impossible to double-claim a subtask (R14) |
 
 ## Evaluation
 

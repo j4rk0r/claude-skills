@@ -1,6 +1,7 @@
 # milestone
 
 **[English](README.md)** | **[Español](README.es.md)** | **[Français](README.fr.md)** | **[Deutsch](README.de.md)** | **[Português](README.pt.md)** | **[中文](README.zh.md)** | **[日本語](README.ja.md)**
+> ⚠️ **v1.1.0 — atomic claim (R14) added.** This translated page may not yet reflect the latest team-mode improvements. See the [English README](README.md), [CHANGELOG.md](CHANGELOG.md) and [SKILL.md](SKILL.md) for full details on the R14 atomic claim.
 
 > **你跨 3 次对话完成了一个功能。第 4 次从零开始，因为上下文无法存活。而且你的同事还在用一份过时的待办清单。**
 

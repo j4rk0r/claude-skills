@@ -61,22 +61,41 @@ Siguiente conversación / siguiente compañero: contexto instantáneo y al día
 - **Log de contexto append-only** — registro en orden cronológico inverso de qué pasó y por qué
 - **17 reglas NEVER** — cubren prevención de split-brain, snapshots obsoletos, anti-patrones de edición y riesgos del git-sync en equipo
 
-## Modo equipo (R13) — opt-in
+## Modo equipo (R13 + R14) — opt-in
 
-Sin esto, el milestone es un fichero local por máquina. En equipo eso degenera en listas duplicadas (cada feature branch edita el mismo fichero) y listas de tareas obsoletas. El modo equipo convierte el milestone en una **única fuente de verdad compartida en una rama canónica**, editado solo contra esa rama vía un worktree dedicado — nunca dentro de las ramas de código.
+Sin esto, el milestone es un fichero local por máquina. En equipo eso degenera en listas duplicadas (cada feature branch edita el mismo fichero) y listas de tareas obsoletas. El modo equipo convierte el milestone en una **única fuente de verdad compartida en una rama canónica**, editado solo contra esa rama vía un worktree dedicado — nunca dentro de las ramas de código. Además **reserva atómicamente cada subtarea en el momento en que alguien la arranca**, así dos personas nunca acaban haciendo lo mismo.
 
 Actívalo por proyecto en `.milestones/config.yml`:
 
 ```yaml
 milestone_sync:
-  enabled: true        # ausente o false -> todo R13 es un no-op silencioso
+  enabled: true        # ausente o false -> todo el modo equipo es no-op silencioso
   branch: develop      # rama canónica (default: develop)
   path: .milestones     # subdir sincronizado (default: .milestones)
 ```
 
+### R13 — fuente de verdad compartida
+
 - **En lectura** (`/milestone <name>`, `/milestone sync`): trae la rama canónica y, si un compañero avanzó el milestone, avisa y ofrece adoptarlo antes de que trabajes.
 - **En escritura** (init / update / done / fin de sesión): tras refrescar el snapshot, commitea **solo** `<path>/<slug>.md` y lo pushea a la rama canónica vía un worktree aislado bajo `.git/` — tu rama de código y tu working tree nunca se tocan.
-- **Sello de PR**: una subtarea cuyo trabajo está en un PR abierto mantiene su estado `[~]` con una anotación inline `` `⏳ PR #N` `` (no es un estado nuevo — `[~]` ya significa "code-complete, pendiente de aprobación"; el PR es el vehículo de esa aprobación).
+- **Sello de PR**: una subtarea cuyo trabajo está en un PR abierto mantiene su estado `[~]` con una anotación inline `` `⏳ PR #N` ``.
+
+### R14 — claim atómico antes de tocar código
+
+Cuando ejecutas `/milestone start`, el sistema **reserva la subtarea en la rama canónica ANTES de que toques código**. La línea pasa a `[>]` con una anotación inline:
+
+```
+- [>] 1.4 [complejo] Integración Stripe — `🔒 Jane Doe (jdoe) · 2026-05-26 15:01` [Backend]
+```
+
+- **Atómico vía `git push --fast-forward`**: si dos miembros intentan claimear la misma subtarea a la vez, solo un FF push gana. El perdedor hace fetch, re-valida, ve el claim del ganador y aborta con `race-lost:<ganador>`. Imposible doble claim.
+- **Verificación en vivo obligatoria**: `claim` hace `git fetch` y aborta con `noop:fetch-failed` si el chequeo de red falla. Sin claim contra datos locales obsoletos.
+- **`/milestone` listing en modo equipo consulta claims**: el listado muestra quién tiene qué reservado. Una subtarea claimeada por otro NUNCA aparece como "libre" para ti.
+- **Trazabilidad**: cada claim/release deja un commit dedicado en `<branch>` (`chore(milestone): claim <slug> <X.Y> by <Jane Doe (jdoe)>`). El historial de la rama *es* el log de coordinación del equipo.
+- **Handover vía `/milestone release <slug> <X.Y> --force`** cuando hace falta (vacaciones, máquina caída, abandono). Dejar nota en `## Contexto` justificando; el claimer original verá `not-claimed` la próxima vez.
+
+### Comportamiento común
+
 - **Degradación con gracia**: sin git / sin remoto / sin rama canónica / bloque ausente → no-op silencioso. La promesa zero-dependency se mantiene.
 - **Nunca salta los guards**: si un push lo bloquea un guard de seguridad o la auth, el commit se queda en el worktree y recibes el comando exacto a ejecutar — nunca silencia el fallo ni bloquea tu trabajo.
 
@@ -98,7 +117,8 @@ milestone_sync:
 | Subtareas complejas | Sin gate — prueba y error | Plan requerido antes de ejecutar |
 | Gestión de sesión | Misma conversación (el contexto se acumula) | `/milestone start` abre sesión fresca |
 | Carga de referencias | Siempre carga templates.md | Solo en `/milestone init` |
-| Colaboración en equipo | Ninguna — solo fichero local | Milestone compartido git-sincronizado opt-in (R13) |
+| Colaboración en equipo | Ninguna — solo fichero local | Milestone compartido git-sincronizado opt-in (R13) + claim atómico antes de tocar código (R14) |
+| Protección de carrera | Ninguna | Git fast-forward push como lock de serialización — imposible doble claim de una subtarea (R14) |
 
 ## Evaluación
 

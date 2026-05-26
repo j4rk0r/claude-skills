@@ -1,6 +1,7 @@
 # milestone
 
 **[English](README.md)** | **[Español](README.es.md)** | **[Français](README.fr.md)** | **[Deutsch](README.de.md)** | **[Português](README.pt.md)** | **[中文](README.zh.md)** | **[日本語](README.ja.md)**
+> ⚠️ **v1.1.0 — atomic claim (R14) added.** This translated page may not yet reflect the latest team-mode improvements. See the [English README](README.md), [CHANGELOG.md](CHANGELOG.md) and [SKILL.md](SKILL.md) for full details on the R14 atomic claim.
 
 > **3 回の会話にまたがって機能を完成させた。4 回目はコンテキストが残らないためゼロから始まる。しかも同僚は古いタスクリストで作業している。**
 
