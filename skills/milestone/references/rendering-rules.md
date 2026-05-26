@@ -61,6 +61,7 @@ TODOS los milestones del listing llevan desglose. Si falta en el snapshot, leer 
 - `[x]` completada: *cursiva* + `~~tachado~~`.
 - `[ ]` no iniciada: *cursiva*.
 - `[>]` en curso (NUEVO): texto regular (ni cursiva ni negrita) + nota en backticks inline → `` `⚙️ W<k>/<N> code-complete` `` o `` `⚙️ en curso` ``. Pesa visual neutro, para que `👉 siguiente` siga destacando. Si una wave quedó rota, añadir `` `⚙️ W<k>/<N> · W<k+1> broken: <archivo>` ``. Etiqueta `[Dept]` fuera de los backticks.
+- `[>]` con claim (R14, team mode): si la línea trae `` `🔒 <handle> · <ts>` ``, renderizar igual que `[>]` clásico pero **prefijar la línea con el handle**: `[>] X.Y [complejo] <título> 🔒 @<handle> desde <ts>` en texto regular. La anotación backtick va inline al final, antes de `[Dept]`. Si el `<handle>` es distinto del usuario actual (`git config user.email` substring), añadir además `` `⚠️ no claimeable por ti` `` para evitar que aparezca como "siguiente sugerida". Si el claim es del propio usuario, omitir el aviso. Si la edad del claim > 24h (stale), añadir `` `⚠️ stale >24h` ``.
 - `[~]` pendiente de aprobación: título en *cursiva* + nota en **backticks inline** → `` `⏳ pendiente aprobación (QA)` ``. Renderiza con fondo monospace, color distinto al título. NUNCA `<sub>…</sub>` (idéntico a texto plano). Etiqueta `[Dept]` va fuera de los backticks.
 - `[-]` cancelada: *cursiva* + `~~tachado~~`.
 - `👉 siguiente`: TODA la línea en **negrita**, sin cursiva, sin tachado. Única que destaca. Si la "siguiente" es `[>]` (típico: subtarea en curso), combina: `👉 **[>] X.Y [complejo] <título> — W<k>/<N> code-complete — siguiente** [Dept]`. La nota backticks se omite (queda redundante con el wave counter inline en bold).
@@ -73,6 +74,7 @@ Una única subtarea lleva prefijo `👉 ` antes del checkbox y palabra `siguient
 - Si todas `[~]` bloqueadas → primera accionable o primera `[ ]`.
 - Si no hay `[~]` pero sí `[ ]` → primera `[ ]`.
 - Si todas `[x]` → "milestone completo".
+- **R14 team mode**: NUNCA elegir una `[>]` claimeada por OTRO como "siguiente sugerida" (sería invitar a pisar trabajo). Si la única libre es una `[>]` con `🔒` de otro, mostrar "ninguna subtarea libre — pídele a `<handle>` que cierre `X.Y` o haz `/milestone release <slug> X.Y --force`". Una `[>]` claimeada por el PROPIO usuario sí puede ser "siguiente" (continuar trabajo).
 
 ### 4. Bloque `/milestone start` debajo
 Tras subtareas, bloque de código una línea para copiar-pegar en **nueva tab del IDE**:

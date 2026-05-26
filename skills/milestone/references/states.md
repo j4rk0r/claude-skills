@@ -53,3 +53,54 @@ aprobación. Parser-safe: no cambia el checkbox ni los marcadores de sección
 (anti-pattern #13). Al mergear + aprobación humana explícita → `/milestone done`
 → `[x]` (la anotación se retira en ese Edit). Lo estampa
 `milestone-sync.sh stamp` — ver [`git-sync.md`](git-sync.md) §7.
+
+## Claim atómico (R14 — team mode)
+
+Cuando team mode (R13) está activo, **arrancar una subtarea genera un claim
+atómico en la rama canónica antes de tocar nada de código**. Una subtarea no se
+pone `[>]` sólo porque haya evidencia de archivos tocados — primero se *reserva*
+con un commit dedicado en `<branch>` que pone `[ ]`→`[>]` y añade la anotación
+inline `` `🔒 <handle> · YYYY-MM-DD HH:MM` `` en la línea. Mismo estilo
+backticks que `` `⏳ PR #<n>` ``, parser-safe.
+
+```
+- [>] 1.1 [simple] Canal smee.io ... — `🔒 j4rk0r · 2026-05-26 14:45` [DevOps]
+```
+
+**Metadatos extraíbles de la anotación**: `claimer` (handle antes de `·`) y
+`claimed_at` (timestamp). No vive en el frontmatter — vive en la propia línea
+para que el render no necesite leer otra fuente.
+
+**Estado vs claim**:
+
+- `[>]` SIN anotación `🔒` → en curso por trabajo verificado (modelo clásico,
+  válido en R13 sin team mode o en repos sin git).
+- `[>]` CON anotación `🔒` → en curso y *reservado* explícitamente. Cualquier
+  otro miembro que ejecute `/milestone start` ve la anotación y NO puede
+  claimear la misma subtarea (el helper devuelve `already-claimed:<handle>`).
+- `[>]` con waves (`⚙️ W<k>/<N>`) + `🔒` → coexisten. La anotación va siempre la
+  última, antes de `[Dept]`.
+
+**Quién marca**:
+
+- Claude promueve `[ ]` → `[>]` con anotación `🔒` SOLO vía
+  `milestone-sync.sh claim` (no editando el archivo a mano). El helper
+  garantiza atomicidad: un solo `git push --ff` gana la carrera, el segundo
+  recibe `race-lost:<handle>` y debe elegir otra subtarea.
+- `[>]` (con 🔒) → `[ ]` vía `milestone-sync.sh release` (mismo claimer, o
+  `--force`). Promueve a `[~]` cuando el trabajo está code-complete (la
+  anotación 🔒 se retira en ese Edit).
+
+**Reglas duras**:
+
+1. En team mode (R13), **prohibido tocar código de una subtarea sin claim
+   previo**. El `claim` es el primer paso del trabajo, antes de la primera línea
+   de código.
+2. El claim NO requiere confirmación del usuario (sólo toca `.milestones/` en
+   la rama canónica vía worktree). El commit del **código** sigue requiriendo
+   confirmación (regla global "PR — confirmación explícita").
+3. Si `milestone_sync.enabled` es false o no hay remoto, el claim degrada a
+   no-op silencioso: el modelo clásico `[ ]` → `[>]` (sin 🔒) sigue siendo
+   válido, basado en evidencia. R14 no rompe nada.
+
+Detalle del flujo, carrera y degradación → [`git-sync.md`](git-sync.md) §11.

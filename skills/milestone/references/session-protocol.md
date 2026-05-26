@@ -57,6 +57,18 @@ del milestone y el refresh del snapshot, ejecutar
 revertir la operación. El commit del **código** sigue siendo aparte y SÍ
 requiere confirmación. Detalle → [`git-sync.md`](git-sync.md) §5.
 
+### 7. Manejo del claim al cerrar (R14 — opt-in team mode)
+
+Si la subtarea tenía claim propio `🔒 <tu_handle>`:
+
+| Resultado del trabajo | Acción sobre el claim |
+|-----------------------|------------------------|
+| Promoviste `[>]` → `[~]` (code-complete) | El Edit del checkbox **retira la anotación 🔒 en el mismo Edit**. El claim ya cumplió su función. |
+| Sigues en `[>]` con waves parciales | Mantén el claim — vas a continuar en próxima sesión. Otros siguen viendo `🔒 <tu_handle>`. |
+| Decides no continuar (cancelación / handoff) | `milestone-sync.sh release <root> <slug> <X.Y>` libera explícitamente. La subtarea vuelve a `[ ]` para que otro la coja. |
+
+NUNCA dejar `[~]` o `[x]` con `🔒` residual. Si pasa, R12 lo limpia.
+
 ### Sesión sin cambios de código
 
 → No mover checkbox, pero SÍ añadir entrada `## Contexto` minimal si hubo decisiones o bloqueos documentados.
@@ -117,6 +129,22 @@ Con los resultados del recovery.
 - MCP tool crash en mitad de un Edit
 - Usuario cambia de tema y no vuelve a la subtarea
 - Pérdida de contexto (auto-compaction truncó el `## Contexto` no persistido)
+
+### 6. Stale claim detection (R14 — opt-in team mode)
+
+Tras los pasos 1-5 anteriores, si team mode está activo:
+
+1. `milestone-sync.sh claims <root> <slug>` → lista TSV `X.Y\thandle\tts` de claims activos.
+2. Para cada claim CUYO `handle` coincide con tu `user_handle()`:
+   - Si la edad del claim es **>2h** Y la subtarea sigue `[>]` sin evidencia en `git status` / `git log` reciente → preguntar al usuario:
+     > "Tienes `X.Y` claimeada desde `<ts>` (`<Nh>` horas) sin commits recientes. ¿Sigues trabajando en ella o la libero?"
+   - Si confirma "libero" → `milestone-sync.sh release <root> <slug> <X.Y>`.
+   - Si confirma "sigo" → mantener; refresca `updated` para evitar el aviso en próxima sesión.
+3. Para claims de OTROS miembros con edad > umbral configurado (default 24h):
+   - Solo informar, NO liberar automáticamente. La decisión "liberar el claim de alguien que se olvidó" debe ser humana y explícita (`release --force`).
+   - `milestone-sync.sh stale <root> <slug>` lista claims viejos.
+
+El stale check evita el problema "máquina se cuelga con claim activo, nadie puede continuar". El claim no es prisión permanente.
 
 ### Qué evita la recovery
 

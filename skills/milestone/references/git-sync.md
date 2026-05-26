@@ -168,3 +168,122 @@ El milestone es el contrato de "qué falta y quién lo tiene". En solo es un
 fichero; en equipo, sin una única copia canónica viva, se convierte en N
 ficheros mintiéndose entre sí. R13 garantiza una sola verdad, fuera de las
 ramas de código, sin romper los proyectos que no la usan.
+
+## 11. Claim atómico (R14 — opt-in con R13)
+
+Sin R14, R13 garantiza que **el archivo** es único y vivo, pero NO impide que
+dos miembros arranquen la misma subtarea (uno marca `[>]` el lunes, otro hace lo
+mismo el martes sin haber pulled). R14 cierra ese hueco: `/milestone start`
+reserva la subtarea en la rama canónica ANTES del primer commit de código.
+
+### 11.1 Flujo del claim (`/milestone start` con team mode)
+
+```
+1. milestone-sync.sh check <root> <slug>
+     up-to-date / local-only       → continuar
+     remote-newer / diverged       → pull / reconciliar primero
+2. Render del milestone con la versión canónica fresca. Mostrar al usuario:
+     - Subtareas [ ] libres
+     - Subtareas [>] con su claimer (`🔒 handle · ts`) → BLOQUEADAS para él
+3. Usuario elige X.Y libre (o forzar override consciente, vía release del otro)
+4. milestone-sync.sh claim <root> <slug> <X.Y>
+     claimed                       → continuar trabajo
+     already-claimed:<handle>      → "ya lo tiene <handle>, elige otra"
+     race-lost:<handle>            → carrera perdida en el push; mostrar quién
+                                     ganó y volver al paso 3
+     not-claimable:[~]/[x]/[-]     → estado avanzado, no claimable
+     not-claimable:not-found       → X.Y no existe (typo)
+     noop:no-remote-file           → milestone aún no publicado en <branch>;
+                                     hacer push primero
+5. (sólo tras 'claimed') arranque del trabajo de código
+```
+
+### 11.2 Carrera y atomicidad
+
+Git fast-forward push **es** el lock. No hay nada externo:
+
+- Dos miembros ejecutan `claim X.Y` en paralelo.
+- Cada uno prepara su worktree, edita el archivo local, commitea.
+- El primero en `git push` gana FF.
+- El segundo recibe rejection no-ff. El helper hace `fetch + reset --hard
+  origin/<branch>` y **revalida** la línea: ahora aparece `[>]` por el otro
+  → `race-lost:<handle>`. Aborta sin reintentos en bucle.
+
+Pseudocódigo de la sección crítica:
+
+```
+prepare_worktree(branch)
+fetch + reset --hard origin/<branch>
+validate(line[X.Y].state == "[ ]")  # paso 1
+edit(line[X.Y] = "[>] ... `🔒 me · now` ...")
+commit
+push --ff
+  ok           → claimed
+  rejected     →
+    fetch
+    reset --hard origin/<branch>
+    validate(line[X.Y].state == "[ ]")  # paso 2 (post-rebase)
+      false  → race-lost
+      true   → re-edit + commit + push (1 retry)
+        ok      → claimed
+        rejected → commit-pending-push (auth/protección/red)
+```
+
+Dos validaciones secuenciales (antes del primer push y antes del retry tras
+rebase) cierran la ventana de carrera a "ambos ganaron FF" — imposible: el
+servidor sólo acepta un FF a la vez. Si ambos llegan al retry, sólo uno revalida
+`[ ]`; el otro ve `[>]` y aborta.
+
+### 11.3 Release y handover
+
+```
+milestone-sync.sh release <root> <slug> <X.Y> [--force]
+  released          → [>] → [ ], anotación 🔒 retirada
+  not-claimed       → la subtarea no está claimeada (ya está [ ] o [~] o [x])
+  not-claimer:<h>   → la tiene otra persona; usa --force si es necesario
+```
+
+Casos de uso: el claimer decide no continuar; un compañero coge el relevo
+(release con `--force` desde su sesión; el claimer original recibirá un aviso
+visual en el próximo render); el trabajo termina y promueve a `[~]` (en ese
+Edit la anotación 🔒 se retira y el helper deja `[~]` sin claim — un PR posterior
+podrá llevar `⏳ PR #<n>`).
+
+### 11.4 Stale claims
+
+```
+milestone-sync.sh stale <root> <slug> [hours]   # default 24
+  → TSV: <X.Y>\t<handle>\t<age_hours>
+```
+
+Render del listing (`/milestone`) marca con `⚠️ stale claim` los claims >24h.
+No los libera automáticamente — sólo informa. La decisión "liberar el claim de
+alguien que se olvidó" debe ser humana.
+
+### 11.5 Inspección
+
+```
+milestone-sync.sh claims <root> <slug>
+  → TSV: <X.Y>\t<handle>\t<YYYY-MM-DD HH:MM>
+```
+
+Útil para alimentar render del listing sin parsear el .md a mano, y para
+auditorías rápidas ("¿qué está cogido y por quién?").
+
+### 11.6 Degradación
+
+Sin team mode → `claim`/`release`/`claims`/`stale` devuelven `noop:disabled`,
+silenciosos. El skill sigue funcionando con el modelo clásico de estados
+basado en evidencia (`[ ]` → `[>]` cuando hay archivos verificados, sin
+anotación 🔒). R14 es estrictamente aditivo.
+
+### 11.7 Por qué NO usamos un lock external (Redis/DB/file lock)
+
+- Cero infraestructura: el repo git ya existe, el servidor remoto ya serializa
+  pushes a una rama. Aprovechar eso es gratis.
+- Trazabilidad: cada claim deja un commit en `<branch>` con autor, fecha y
+  mensaje (`chore(milestone): claim <slug> <X.Y> by <handle>`). El historial
+  del milestone *es* el log de claims.
+- Recuperación: si una máquina se cuelga con un claim activo, `git revert` o
+  `release --force` desde otra máquina resuelve. Un lock external requeriría
+  un panel de "liberar locks huérfanos" con su propia complejidad.

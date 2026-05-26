@@ -134,6 +134,98 @@ Claude: ✓ R11 ya ejecutado. Milestone queda [>] W2/4.
         Próxima sesión: /milestone start dashboard → W3 webhook handler.
 ```
 
+## Ejemplo 5 — Claim atómico R14 (team mode, dos miembros)
+
+Demuestra: claim en sesión origen → otra persona intenta la misma subtarea → already-claimed → handover vía release --force.
+
+```
+[15:01 — Pedro]
+User: "vamos con 1.4 de dashboard"
+
+Claude (sesión origen Modo A, team mode detectado):
+  [/milestone update dashboard → snapshot refresh + push a develop]
+  [milestone-sync.sh check → up-to-date]
+  [milestone-sync.sh claims → lista vacía]
+  [proponer claim de 1.4 a Pedro]
+  [milestone-sync.sh claim ./ dashboard 1.4]
+  ✓ Subtarea 1.4 claimeada en `develop` por Pedro Luis Roman de la Calle (j4rk0r) · 2026-05-26 15:01
+    → otros miembros la verán como bloqueada hasta que termines.
+
+  Pega en nueva ventana del plugin:
+  /milestone start dashboard
+
+[15:02 — Ana, en otra máquina, otro Claude]
+User: "voy con 1.4 de dashboard"
+
+Claude (sesión origen Modo A):
+  [/milestone update dashboard]
+  [milestone-sync.sh check → remote-newer → pull adoptado]
+  [milestone-sync.sh claims → 1.4 claimeada por Pedro Luis Roman de la Calle (j4rk0r) desde 15:01]
+  ⚠️ 1.4 ya está en curso por Pedro Luis Roman de la Calle (j4rk0r) desde hace 1 minuto.
+     Otra subtarea libre que puedo proponer: 1.5, 2.1, 2.3.
+     Si necesitas que Ana coja 1.4 en su lugar → /milestone release dashboard 1.4 --force
+     (recomendado: avisarle a Pedro antes).
+
+User: "voy con 1.5 entonces"
+
+Claude:
+  [milestone-sync.sh claim ./ dashboard 1.5]
+  ✓ Subtarea 1.5 claimeada por Ana Pérez (ana). Trabajo en paralelo sin colisión.
+
+[16:30 — Pedro cierra sesión sin terminar 1.4]
+Claude (R11 session-end):
+  [git status → archivos parciales: StripeSyncService.php, sin tests]
+  [phpcs ok pero scope incompleto — quedó W2/4]
+  [Edit milestone: 1.4 sigue [>] (claim 🔒 se mantiene) con nota W2/4 code-complete]
+  [Edit `## Contexto`: progreso, próximo paso W3]
+  [refresh snapshot]
+  [milestone-sync.sh push → pushed a develop]
+  ✓ Cierre limpio. 1.4 sigue claimeada por ti para mañana.
+
+[Día siguiente 10:00 — Pedro vuelve]
+User: "/milestone start dashboard"
+
+Claude (Modo B, snapshot >2h → R12 + R14 stale check):
+  [milestone-sync.sh check → up-to-date]
+  [milestone-sync.sh claims → 1.4 claimeada por Pedro Luis Roman de la Calle (j4rk0r) desde ayer 15:01]
+  [edad del claim: ~19h — bajo umbral 24h, no es stale crítico]
+  📍 Tienes 1.4 reservada desde ayer 15:01 (W2/4). ¿Continuamos?
+```
+
+## Ejemplo 6 — Handover legítimo con release --force
+
+Demuestra: Pedro se va de vacaciones con un claim activo; Ana lo asume con la conversación adecuada.
+
+```
+[Slack interno]
+Pedro: "Me voy 2 semanas, dejo 1.4 a medias. Ana, ¿la coges? Está en W2/4."
+Ana: "Sí, la sigo. Lo libero y la claimeo a mí ahora."
+
+[Ana en su máquina]
+User: "voy a coger 1.4 que dejó Pedro"
+
+Claude:
+  [milestone-sync.sh check]
+  [milestone-sync.sh claims → 1.4 claimeada por Pedro Luis Roman de la Calle (j4rk0r)]
+  ⚠️ 1.4 la tiene Pedro. Confirmas handover legítimo (avisado por Slack)?
+
+User: "sí, releásala y claimea a mi nombre"
+
+Claude:
+  [milestone-sync.sh release ./ dashboard 1.4 --force]
+  ✓ 1.4 liberada (release forzado por handover).
+  [milestone-sync.sh claim ./ dashboard 1.4]
+  ✓ 1.4 ahora claimeada por Ana Pérez (ana) · 2026-06-09 10:15
+  [Edit `## Contexto` con justificación del --force]
+  [milestone-sync.sh push]
+
+  En develop quedan los commits:
+  - chore(milestone): release dashboard 1.4 by Ana Pérez (ana)
+  - chore(milestone): claim dashboard 1.4 by Ana Pérez (ana)
+
+  Trazabilidad permanente del handover.
+```
+
 ## Lecciones condensadas
 
 - **R12 siempre primero** al tocar un milestone con snapshot >2h.
@@ -141,3 +233,5 @@ Claude: ✓ R11 ya ejecutado. Milestone queda [>] W2/4.
 - **Aprobación ≠ QA**: "apruebo" significa "procede con el cierre", pero QA aún es obligatorio antes de `[x]`.
 - **Wave counter en la línea** (`— W<k>/<N>`) es OBLIGATORIO en estado `[>]` multi-wave.
 - **Modo A vs B** solo se distingue por antigüedad del snapshot y historial de la sesión actual.
+- **R14 claim en sesión origen** (no en ventana nueva) — cierra la ventana de carrera entre ver el comando y abrir la nueva ventana.
+- **release --force = avisar primero** — el sistema técnico no sustituye la comunicación humana en handovers.

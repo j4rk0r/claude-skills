@@ -69,6 +69,24 @@ Los 3 más críticos están repetidos en SKILL.md. Este archivo contiene los 17 
 17. **NEVER bloquear ni abortar la operación de milestone si el git-sync no está disponible** (sin git/remoto/rama canónica, o `milestone_sync` ausente en config).
     Degrada a no-op silencioso — la skill sigue siendo portable y zero-dependency. R13 es estrictamente aditivo.
 
+## Claim atómico (R14 — team mode)
+
+18. **NEVER editar la anotación `🔒 <handle> · ts` a mano en el archivo del milestone.**
+    El claim es atómico en `<branch>` y se construye / valida exclusivamente vía `milestone-sync.sh claim` / `release`. Editarla a mano:
+    - rompe la comparación de claimer (`extract_claim_handle`) si cambias el formato;
+    - puede dejar `[>]` sin anotación `🔒` o anotación `🔒` con `[~]`/`[x]` (estado inconsistente);
+    - NO genera commit auditable en `develop` (la trazabilidad se pierde).
+    Para liberar/cambiar un claim → `release [--force]`. Para reasignar handover → `release --force` (notificando al claimer original).
+
+19. **NEVER tocar código de una subtarea sin claim previo cuando team mode está activo.**
+    R14 obliga a que el primer paso del trabajo sea `milestone-sync.sh claim`. Tocar código antes deja el milestone mintiendo (otros la ven libre y pueden duplicar trabajo). Si descubres a mitad de sesión que olvidaste claimear y la subtarea sigue `[ ]` en `develop` → `claim` ahora y deja constancia en `## Contexto` ("claim retroactivo tras X archivos ya tocados").
+
+20. **NEVER ejecutar `release --force` sin avisar al claimer original.**
+    `--force` está pensado para handover legítimo (abandono, vacaciones, máquina caída). Forzar release sin avisar al claimer convierte un sistema de coordinación en una guerra silenciosa. Si necesitas forzar:
+    - Avisa antes por el canal habitual del equipo (Slack, email, chat).
+    - Deja entrada en `## Contexto`: "release forzado de X.Y a <claimer> por <razón>".
+    - El claimer original recibirá `not-claimed` la próxima vez que intente operar y verá el `## Contexto`.
+
 ## Por qué importa esta lista
 
 Estos 17 NEVER resumen los fallos observados en más de 1.400 sesiones: drift entre checkbox e implementación, contexto perdido al cerrar sesión, tokens desperdiciados por doble lectura, aprobaciones ambiguas que marcan `[x]` cuando solo era "continúa", y —en equipo— milestones duplicados por rama o pushes silenciados. La lista no es opinión — es cicatriz.
