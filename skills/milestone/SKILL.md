@@ -10,7 +10,7 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 ## Overview
 
-Portable skill for multi-session development tracking. Manages state (`[ ]`/`[>]`/`[~]`/`[x]`/`[-]`), history (`## Contexto`), decisions, and memory snapshots. Zero external dependencies. Integrations (Monday/Jira/Linear/Slack) live in separate skills that observe `.milestones/*.md` via hooks. **Optional team mode (R13 + R14)**: opt-in via `.milestones/config.yml` makes the milestone a single shared source of truth git-synced to a canonical branch (R13) AND requires an atomic claim before starting any subtask so two members can never accidentally pick the same one (R14) — degrades to no-op when not configured, so the zero-dependency promise still holds.
+Portable skill for multi-session development tracking. Manages state (`[ ]`/`[>]`/`[~]`/`[x]`/`[-]`), history (`## Contexto`), decisions, and memory snapshots. Zero external dependencies. Integrations (Monday/Jira/Linear/Slack) live in separate skills that observe `.milestones/*.md` via hooks. **Optional team mode (R13 + R14)**: opt-in via `.milestones/config.yml` makes the milestone a single shared source of truth git-synced to a canonical branch (R13) AND requires an atomic claim before starting any subtask so two members can never accidentally pick the same one (R14) — degrades to no-op when not configured, so the zero-dependency promise still holds. **Optional central storage (R13 §2b)**: opt-in by placing the config in the central memories repo (`~/.claude/projects/<key>/milestones/config.yml`) instead of the project repo — the client repo stays 100% clean of internal planning.
 
 **Use when**: multi-session work OR need to resume context OR architectural decisions to remember. Otherwise → TodoWrite/Plan.
 
@@ -36,7 +36,7 @@ Transiciones legales, edge cases (dependencia en cadena, wave parcial, session c
 
 ## Rules (R1–R14)
 
-**R1. Two-tier storage**: `~/.claude/projects/<project>/memory/milestone_<slug>.md` (HOT ~100 tok) + `<root>/.milestones/<slug>.md` (AUTHORITATIVE). Every write to auth → refresh snapshot.
+**R1. Two-tier storage**: `~/.claude/projects/<project>/memory/milestone_<slug>.md` (HOT ~100 tok) + AUTHORITATIVE en `<root>/.milestones/<slug>.md` (clásico) **o**, en modo central, `~/.claude/projects/<key>/milestones/<slug>.md` (repo central de memorias — el repo del proyecto queda limpio; discovery automático, detalle → [`references/git-sync.md`](references/git-sync.md) §2b). Si existen ambos, gana el clásico (migración pendiente). Every write to auth → refresh snapshot.
 
 **R2. 5-state model** → [`references/states.md`](references/states.md).
 
@@ -46,7 +46,7 @@ Transiciones legales, edge cases (dependencia en cadena, wave parcial, session c
 
 **R5. Complexity**: `[simple]` (1 file, sin dependencias) → execute. `[complejo]` (2+ files, refactor, integración) → BLOCKING plan in `.milestones/plans/<slug>-<subtask>.md` first.
 
-**R6. Project config** (MANDATORY): `.milestones/config.yml` define `project_type` (drupal/laravel/react/…) + `roles` (lista válida). Si no existe → Step 0→A→D en `/milestone init` antes de crear subtareas. Presets → [`references/roles-presets.md`](references/roles-presets.md).
+**R6. Project config** (MANDATORY): `.milestones/config.yml` (o `<key>/milestones/config.yml` en modo central) define `project_type` (drupal/laravel/react/…) + `roles` (lista válida). Si no existe → Step 0→A→D en `/milestone init` antes de crear subtareas. Presets → [`references/roles-presets.md`](references/roles-presets.md).
 
 **R7. Listing rendering** (two blocks): (A) summary table con `YYYY-MM-DD HH:MM`, (B) per-milestone breakdown. MANDATORY load [`references/rendering-rules.md`](references/rendering-rules.md). En team mode (R14) → OBLIGATORIO ejecutar `milestone-sync.sh claims` para enriquecer el render con claimers visibles.
 
@@ -60,7 +60,7 @@ Transiciones legales, edge cases (dependencia en cadena, wave parcial, session c
 
 **R12. Session-start recovery**: trigger si snapshot >2h o sin cierre limpio. Mini-sync (git log + grep) → compare con checkbox → downgrade/upgrade con confirmación. Detalle → [`references/session-protocol.md`](references/session-protocol.md).
 
-**R13. Git-synced milestone (opt-in, team mode)**: si `.milestones/config.yml` define `milestone_sync.enabled: true`, el milestone es propiedad compartida en una rama canónica (`milestone_sync.branch`, default `develop`). Lectura comprueba versión remota antes de mostrar/auditar; escritura sincroniza vía worktree aislado tras refrescar snapshot; un PR sella la subtarea `[~]` con `` `⏳ PR #<n>` ``. **Degrada a no-op** sin git/remoto/rama o si el bloque está ausente (retrocompat total — la skill sigue portable y zero-dep). Detalle → [`references/git-sync.md`](references/git-sync.md).
+**R13. Git-synced milestone (opt-in, team mode)**: si `config.yml` define `milestone_sync.enabled: true`, el milestone es propiedad compartida en una rama canónica (`milestone_sync.branch`, default `develop`; en modo central, la rama del repo central — default su HEAD, normalmente `main`). Lectura comprueba versión remota antes de mostrar/auditar; escritura sincroniza vía worktree aislado tras refrescar snapshot; un PR sella la subtarea `[~]` con `` `⏳ PR #<n>` ``. **Modo central (§2b)**: config y archivos autoritativos en `~/.claude/projects/<key>/milestones/` — el sync y los claims serializan contra el repo central de memorias, no contra el repo del cliente. **Degrada a no-op** sin git/remoto/rama o si el bloque está ausente (retrocompat total — la skill sigue portable y zero-dep). Detalle → [`references/git-sync.md`](references/git-sync.md).
 
 **R14. Claim atómico (opt-in, requiere R13 team mode)**: arrancar una subtarea en team mode **exige un claim previo en la rama canónica antes de tocar código**. El claim sucede en la **sesión origen** (terminal padre o IDE Modo A) ANTES de abrir ventana nueva, no dentro de ella — así no queda ventana de carrera entre "el usuario ve el comando" y "abre la nueva ventana". `/milestone start` invoca `milestone-sync.sh claim <root> <slug> <X.Y>` que pone `[ ]`→`[>]` y añade `` `🔒 <handle> · YYYY-MM-DD HH:MM` `` inline, commiteando atómicamente en `<branch>`. Git fast-forward push es el lock: dos miembros que claimean a la vez serializan; el perdedor recibe `race-lost:<handle>` y elige otra. **`/milestone` (list) en team mode es OBLIGATORIO consultar `milestone-sync.sh claims` antes de renderizar** — sin eso, el listing puede mostrar como libre algo ya reservado por otro. Subcomandos: `claim`/`release`/`claims`/`stale`. Sin team mode → no-op, modelo clásico de estados sigue válido. Detalle → [`references/git-sync.md`](references/git-sync.md) §11 y [`references/states.md`](references/states.md) "Claim atómico".
 
@@ -101,7 +101,7 @@ Ejemplo end-to-end (R11+R12, modo A/B del IDE, wave counter) → [`references/ex
 | Trigger detection dudosa | `triggers-catalog.md` | Others |
 | Crear/regenerar snapshot | `snapshot-format.md` | Others |
 | Anti-pattern check | `anti-patterns.md` | Others |
-| Git-sync milestone (team mode: lectura/escritura/sello PR/claim) | `git-sync.md` | Others |
+| Git-sync milestone (team mode: lectura/escritura/sello PR/claim; modo central §2b) | `git-sync.md` | Others |
 | install context-guard | `context-guard.sh` | Others |
 | Corrupción detectada | `errors.md` | Others |
 
@@ -112,6 +112,7 @@ Formato compacto (~100 tok) y expandido (para >6 subtareas o fases) + destino de
 ## Context Guard & Errors
 
 - [`references/context-guard.sh`](references/context-guard.sh) — PreToolUse hook, warns at 20+/40+ tool calls. Install: `cp` + `chmod +x` + register in `settings.json`.
-- [`references/milestone-sync.sh`](references/milestone-sync.sh) — R13/R14 helper (opt-in team mode). Subcomandos: `check`/`pull`/`push`/`stamp` (R13) + `claim`/`release`/`claims`/`stale` (R14). Auto-install on first sync: `cp ~/.claude/skills/milestone/references/milestone-sync.sh ~/.claude/milestone-sync.sh` + `chmod +x`. No-op si `.milestones/config.yml` no trae `milestone_sync.enabled`.
+- [`references/milestone-sync.sh`](references/milestone-sync.sh) — R13/R14 helper (opt-in team mode; resuelve solo el modo central §2b). Subcomandos: `check`/`pull`/`push`/`stamp` (R13) + `claim`/`release`/`claims`/`stale` (R14). Auto-install on first sync: `cp ~/.claude/skills/milestone/references/milestone-sync.sh ~/.claude/milestone-sync.sh` + `chmod +x`. No-op si ninguna config trae `milestone_sync.enabled`.
+- [`references/team-bootstrap.sh`](references/team-bootstrap.sh) — alta de un miembro del equipo en modo central: clona/actualiza el repo central de memorias, instala skill + helper y verifica la identidad git para los claims.
 - [`references/errors.md`](references/errors.md) — format corruption, broken snapshots, missing frontmatter recovery.
 - Common failure modes (troubleshooting table: síntoma → causa → fix) → [`references/errors.md`](references/errors.md).

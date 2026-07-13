@@ -39,6 +39,61 @@ Resolución de la rama canónica:
 2. Si no: `develop` si existe en `origin`; si no, la rama por defecto del remoto.
 3. Si no hay remoto → no-op (degradación, ver §6).
 
+## 2b. Modo central — almacén en el repo de memorias (opt-in por ubicación)
+
+**Problema que resuelve**: `.milestones/` dentro del repo del proyecto significa que
+la planificación interna del equipo (subtareas, claims, decisiones, planes) viaja
+en un repo que puede pertenecer o ser visible al **cliente**. En proyectos de
+cliente eso es inaceptable: el repo del cliente debe quedar **sin rastro** de la
+operativa interna.
+
+**Cómo se activa**: NO se crea `.milestones/` en el proyecto. En su lugar, la
+config y los archivos autoritativos viven en el repo central de memorias:
+
+```
+~/.claude/projects/<clave>/milestones/config.yml     ← config (R6 + milestone_sync)
+~/.claude/projects/<clave>/milestones/<slug>.md      ← AUTHORITATIVE
+~/.claude/projects/<clave>/milestones/plans/         ← planes R5
+~/.claude/projects/<clave>/memory/milestone_<slug>.md ← snapshot HOT (igual que siempre)
+```
+
+`<clave>` = path absoluto del proyecto con `/` → `-` (la misma convención que las
+carpetas de memoria; ej.: `/Users/dev/projects/acme-shop` →
+`-Users-dev-projects-acme-shop`).
+
+**Discovery (automático, en el helper y en la skill)**:
+1. `<root>/.milestones/config.yml` existe → modo clásico (precedencia total).
+2. Si no existe → probar `~/.claude/projects/<clave>/milestones/config.yml`
+   (override del root central para tests: `MILESTONE_CENTRAL_ROOT`).
+3. Ninguna → R13/R14 no-op (modelo clásico local sin sync).
+4. Si existieran AMBAS → gana la clásica y se AVISA al usuario de que hay una
+   migración pendiente (mover el contenido local al central y borrar
+   `.milestones/` del repo del proyecto).
+
+**Qué cambia respecto al modo clásico** (todo lo demás — estados, claims,
+worktree, sello PR — es idéntico):
+
+| Aspecto | Clásico | Central |
+|---|---|---|
+| Repo de sync | el del proyecto | el central de memorias (`~/.claude/projects`) |
+| `path` default | `.milestones` | `<clave>/milestones` |
+| Rama canónica default | `develop` → HEAD remoto | HEAD remoto del central (normalmente `main`) |
+| Visibilidad cliente | `.milestones/` visible en su repo | **cero archivos** en su repo |
+| Claims (R14) | serializan en la rama del proyecto | serializan en `main` del central |
+
+**Requisitos**: el repo central debe permitir `*/milestones/**` en su
+`.gitignore` (por defecto los repos de memoria solo permiten `*/memory/**`), y
+cada miembro del equipo necesita clone del repo central + identidad git
+configurada (su handle en los claims). Alta de un miembro →
+[`team-bootstrap.sh`](team-bootstrap.sh).
+
+**Migración de un proyecto clásico a central**: `git mv` del contenido de
+`.milestones/` a `~/.claude/projects/<clave>/milestones/` (commit en el central),
+borrar `.milestones/` del repo del proyecto (commit en el proyecto; valorar con
+el usuario si hace falta purgar el histórico — eso es destructivo y se decide
+caso a caso), y verificar con `milestone-sync.sh check <root> <slug>` que
+responde desde el central.
+
 ## 3. Helper
 
 Todo el git lo encapsula `references/milestone-sync.sh`. Auto-install igual que

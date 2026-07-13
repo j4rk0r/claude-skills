@@ -60,6 +60,7 @@ Siguiente conversación / siguiente compañero: contexto instantáneo y al día
 - **Fuzzy matching** — escribe nombres parciales para cargar milestones
 - **Log de contexto append-only** — registro en orden cronológico inverso de qué pasó y por qué
 - **17 reglas NEVER** — cubren prevención de split-brain, snapshots obsoletos, anti-patrones de edición y riesgos del git-sync en equipo
+- **Modo central (v1.2.0, opt-in)** — config y ficheros autoritativos en el repo central de memorias (`~/.claude/projects/<clave>/milestones/`) en vez del repo del proyecto: **los repos de cliente quedan sin rastro de planificación interna**. Discovery automático; el modo clásico local siempre tiene precedencia. Alta de miembros del equipo con `references/team-bootstrap.sh`.
 
 ## Modo equipo (R13 + R14) — opt-in
 
@@ -106,6 +107,10 @@ Cuando ejecutas `/milestone start`, el sistema **reserva la subtarea en la rama 
 <project-root>/.milestones/<slug>.md                      ← AUTORITATIVO (histórico completo)
 <project-root>/.milestones/plans/<slug>-<subtask>.md      ← Planes para subtareas [complejo]
 <project-root>/.git/milestone-sync-wt/                     ← Worktree aislado R13 (solo modo equipo)
+
+# Modo central (v1.2.0 — el repo del cliente queda limpio):
+~/.claude/projects/<clave>/milestones/config.yml          ← config (marcador de discovery)
+~/.claude/projects/<clave>/milestones/<slug>.md           ← AUTORITATIVO (central)
 ```
 
 ## Qué lo diferencia de v1

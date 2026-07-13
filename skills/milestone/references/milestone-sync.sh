@@ -6,6 +6,14 @@
 # working tree. Opt-in: si .milestones/config.yml no trae milestone_sync.enabled
 # todo es no-op silencioso. Nunca aborta la operación de milestone que lo llama.
 #
+# Modo central (opt-in por ubicación): si el proyecto NO tiene
+# .milestones/config.yml pero existe ~/.claude/projects/<clave>/milestones/config.yml
+# (repo central de memorias; <clave> = path absoluto del proyecto con '/'→'-'),
+# el almacén autoritativo vive ALLÍ y todas las operaciones (check/pull/push/
+# claim/release/claims/stale/stamp) se redirigen a ese repo. El repo del
+# proyecto queda sin rastro de planificación interna. Ver git-sync.md §2b.
+# Override del root central (tests): MILESTONE_CENTRAL_ROOT.
+#
 # Uso:
 #   milestone-sync.sh check   <repo_root> <slug>
 #   milestone-sync.sh pull    <repo_root> <slug>
@@ -35,7 +43,23 @@ trap cleanup EXIT
 
 [ -n "$cmd" ] && [ -n "$root" ] && [ -n "$slug" ] || { log "args: <cmd> <repo_root> <slug> [...]"; echo "noop:bad-args"; exit 0; }
 
+# Resolución de config: la local (.milestones/ del proyecto) tiene precedencia.
+# Si no existe, se intenta el modo central (repo de memorias). Si ambas
+# existieran, gana la local (migración pendiente — ver git-sync.md §2b).
+central_mode=0
 CFG="$root/.milestones/config.yml"
+if [ ! -f "$CFG" ]; then
+  central_base="${MILESTONE_CENTRAL_ROOT:-$HOME/.claude/projects}"
+  root_abs="$(cd "$root" 2>/dev/null && pwd)"
+  if [ -n "$root_abs" ] && [ -d "$central_base" ]; then
+    mkey="$(printf '%s' "$root_abs" | tr '/' '-')"
+    if [ -f "$central_base/$mkey/milestones/config.yml" ]; then
+      CFG="$central_base/$mkey/milestones/config.yml"
+      root="$central_base"
+      central_mode=1
+    fi
+  fi
+fi
 
 cfg() {
   [ -f "$CFG" ] || return 0
@@ -57,7 +81,10 @@ enabled="$(cfg enabled)"
 git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 || noop "not-git"
 git -C "$root" remote get-url origin >/dev/null 2>&1 || noop "no-remote"
 
-path="$(cfg path)"; [ -n "$path" ] || path=".milestones"
+path="$(cfg path)"
+if [ -z "$path" ]; then
+  if [ "$central_mode" = 1 ]; then path="$mkey/milestones"; else path=".milestones"; fi
+fi
 file_rel="$path/$slug.md"
 local_file="$root/$file_rel"
 

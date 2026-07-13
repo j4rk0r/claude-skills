@@ -2,6 +2,21 @@
 
 Cambios visibles a usuarios del skill. Cada versión documenta qué se añade, qué se modifica y qué hay que hacer para migrar.
 
+## [1.2.0] — 2026-07-13 — Modo central: milestones fuera del repo del cliente
+
+### Añadido
+
+- **Modo central de almacenamiento (git-sync.md §2b)** — opt-in por ubicación: si el proyecto NO tiene `.milestones/config.yml` pero existe `~/.claude/projects/<clave>/milestones/config.yml` (repo central de memorias; `<clave>` = path del proyecto con `/`→`-`), el almacén autoritativo, los planes R5 y la config R6 viven en el repo central. El repo del proyecto/cliente queda **sin rastro de planificación interna** (subtareas, claims, decisiones, horas).
+  - `milestone-sync.sh` resuelve el modo solo: discovery de config con precedencia local > central, redirect de `root`/`path` al repo central, rama canónica default = HEAD del central (normalmente `main`). Todas las operaciones R13/R14 (`check`/`pull`/`push`/`stamp`/`claim`/`release`/`claims`/`stale`) funcionan igual, serializando contra el central.
+  - Override para tests: `MILESTONE_CENTRAL_ROOT`.
+- **`references/team-bootstrap.sh`** — alta de un miembro del equipo: clona/actualiza el repo central de memorias en `~/.claude/projects` (maneja el caso "directorio existente no-git" de instalaciones previas de Claude Code con init in-place), instala skill + helper y verifica la identidad git que firma los claims.
+- **Documentación**: SKILL.md (Overview, R1, R6, R13, Context Guard) + `git-sync.md` §2b con tabla clásico-vs-central, requisitos (`.gitignore` del central debe permitir `*/milestones/**`) y procedimiento de migración clásico→central.
+
+### Migración
+
+- Proyectos existentes: nada que hacer — el modo clásico tiene precedencia total y sigue siendo el default.
+- Para pasar un proyecto a central: mover `.milestones/` a `~/.claude/projects/<clave>/milestones/` (commit en el central), borrar `.milestones/` del repo del proyecto, verificar con `milestone-sync.sh check <root> <slug>`. Purga del histórico del repo cliente: decisión explícita del usuario (destructiva).
+
 ## [1.1.0] — 2026-05-26 — R14 claim atómico (team mode)
 
 ### Añadido

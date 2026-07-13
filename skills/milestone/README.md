@@ -60,6 +60,7 @@ Next conversation / next teammate: instant, current context
 - **Fuzzy matching** — type partial names to load milestones
 - **Append-only context log** — reverse-chronological record of what happened and why
 - **17 NEVER rules** — covering split-brain prevention, stale snapshots, edit anti-patterns, and team git-sync hazards
+- **Central storage mode (v1.2.0, opt-in)** — config and authoritative files live in the central memories repo (`~/.claude/projects/<key>/milestones/`) instead of the project repo: **client repos carry zero internal planning**. Auto-discovered; classic local mode always takes precedence. Team onboarding via `references/team-bootstrap.sh`.
 
 ## Team mode (R13 + R14) — opt-in
 
@@ -106,6 +107,10 @@ When you run `/milestone start`, the system **reserves the subtask in the canoni
 <project-root>/.milestones/<slug>.md                      ← AUTHORITATIVE (full history)
 <project-root>/.milestones/plans/<slug>-<subtask>.md      ← Plans for [complex] subtasks
 <project-root>/.git/milestone-sync-wt/                     ← R13 isolated worktree (team mode only)
+
+# Central mode (v1.2.0 — the client repo stays clean):
+~/.claude/projects/<key>/milestones/config.yml            ← config (discovery marker)
+~/.claude/projects/<key>/milestones/<slug>.md             ← AUTHORITATIVE (central)
 ```
 
 ## What makes it different from v1
