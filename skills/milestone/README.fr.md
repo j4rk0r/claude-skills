@@ -1,7 +1,6 @@
 # milestone
 
 **[English](README.md)** | **[Español](README.es.md)** | **[Français](README.fr.md)** | **[Deutsch](README.de.md)** | **[Português](README.pt.md)** | **[中文](README.zh.md)** | **[日本語](README.ja.md)**
-> ⚠️ **v1.1.0 — atomic claim (R14) added.** This translated page may not yet reflect the latest team-mode improvements. See the [English README](README.md), [CHANGELOG.md](CHANGELOG.md) and [SKILL.md](SKILL.md) for full details on the R14 atomic claim.
 
 > **Vous avez terminé une fonctionnalité sur 3 conversations. La 4ᵉ repart de zéro car le contexte ne survit pas. Et votre collègue travaille sur une liste de tâches obsolète.**
 
@@ -62,22 +61,59 @@ Conversation suivante / collègue suivant : contexte instantané et à jour
 - **Journal de contexte append-only** — enregistrement chronologique inverse de ce qui s'est passé et pourquoi
 - **17 règles NEVER** — couvrant la prévention du split-brain, les snapshots obsolètes, les anti-patterns d'édition et les risques du git-sync en équipe
 
-## Mode équipe (R13) — opt-in
+## Mode équipe (R13 + R14) — opt-in
 
-Sans cela, le milestone est un fichier local par machine. En équipe cela dégénère en listes dupliquées (chaque feature branch édite le même fichier) et listes de tâches obsolètes. Le mode équipe fait du milestone une **source de vérité unique partagée sur une branche canonique**, éditée uniquement contre cette branche via un worktree dédié — jamais dans les branches de code.
+Sans cela, le milestone est un fichier local par machine. En équipe cela dégénère en listes dupliquées (chaque feature branch édite le même fichier) et listes de tâches obsolètes. Le mode équipe fait du milestone une **source de vérité unique partagée sur une branche canonique**, éditée uniquement contre cette branche via un worktree dédié — jamais dans les branches de code. Il **découvre les milestones que d'autres membres ont créés** avant que vous ne listiez ou n'en créiez un (pour que vous ne dupliquiez jamais `foo` alors qu'un collègue vient de le créer il y a une minute), et il **réserve chaque sous-tâche de façon atomique** dès que quelqu'un commence à y travailler — pour que deux personnes ne finissent jamais par faire la même chose, et le système vous dit *qui* est arrivé en premier.
 
 Activez-le par projet dans `.milestones/config.yml` :
 
 ```yaml
 milestone_sync:
-  enabled: true        # absent ou false -> tout R13 est un no-op silencieux
+  enabled: true        # absent ou false -> tout le mode équipe est un no-op silencieux
   branch: develop      # branche canonique (défaut : develop)
   path: .milestones     # sous-dossier synchronisé (défaut : .milestones)
 ```
 
+### R13 — source de vérité partagée
+
 - **En lecture** (`/milestone <name>`, `/milestone sync`) : récupère la branche canonique et, si un collègue a fait avancer le milestone, avertit et propose de l'adopter avant que vous travailliez.
 - **En écriture** (init / update / done / fin de session) : après avoir rafraîchi le snapshot, commit **uniquement** `<path>/<slug>.md` et le push sur la branche canonique via un worktree isolé sous `.git/` — votre branche de code et votre working tree ne sont jamais touchés.
-- **Estampille de PR** : une sous-tâche dont le travail est dans une PR ouverte garde son état `[~]` avec une annotation inline `` `⏳ PR #N` `` (pas un nouvel état — `[~]` signifie déjà « code-complete, en attente d'approbation » ; la PR est le véhicule de cette approbation).
+- **Estampille de PR** : une sous-tâche dont le travail est dans une PR ouverte garde son état `[~]` avec une annotation inline `` `⏳ PR #N` ``.
+
+### R14 — réservation atomique avant de toucher au code
+
+Quand vous lancez `/milestone start`, le système **réserve la sous-tâche dans la branche canonique AVANT que vous ne touchiez au moindre code**. La ligne devient `[>]` avec une annotation inline :
+
+```
+- [>] 1.4 [complex] Stripe integration — `🔒 Jane Doe (jdoe) · 2026-05-26 15:01` [Backend]
+```
+
+- **Atomique via `git push --fast-forward`** : si deux membres tentent de réserver la même sous-tâche en même temps, un seul push fast-forward gagne. Le perdant fait un fetch, revalide, voit la réservation du gagnant et s'interrompt avec `race-lost:<winner>` — cela vous dit exactement qui l'a prise. Si l'autre membre avait déjà publié la réservation, vous obtenez `already-claimed:<winner>` d'emblée. Impossible de réserver deux fois.
+- **Boucle de retry, pas un seul essai** : en cas de fast-forward perdu, la réservation rebase et revalide jusqu'à 5 fois, de sorte qu'avec 3+ personnes réservant simultanément un `commit-pending-push` trompeur n'apparaît jamais — ce statut ne signifie désormais qu'un vrai problème de push (auth / branche protégée / réseau).
+- **Vérification en direct obligatoire** : `claim` effectue un `git fetch` et s'interrompt avec `noop:fetch-failed` si la vérification réseau échoue. Pas de réservation contre des données locales obsolètes.
+- **Le listage `/milestone` en mode équipe doit consulter les réservations** : la liste des milestones montre qui a réservé quoi. Une sous-tâche réservée par quelqu'un d'autre ne peut jamais apparaître comme « libre » pour vous.
+- **Piste d'audit** : chaque réservation/libération est un commit dédié sur `<branch>` (`chore(milestone): claim <slug> <X.Y> by <Jane Doe (jdoe)>`). L'historique de la branche *est* le journal de coordination de l'équipe.
+- **Réservations périmées remontées au démarrage** : si tout ce qui est libre est pris mais qu'une réservation date de plus de 24 h, `/milestone start` suggère le contournement conscient (`release --force` + nouvelle réservation) au lieu de se contenter de la lister.
+- **Transfert via `/milestone release <slug> <X.Y> --force`** quand nécessaire (vacances, machine hors service, refus). Ajoutez une note dans `## Contexto` justifiant la libération forcée ; le réservataire initial voit `not-claimed` la fois suivante.
+
+### Synchronisation de l'index — ne jamais créer de doublon (H4)
+
+R13/R14 synchronisent un seul `<slug>.md` à la fois, mais cela seul ne peut pas révéler **les nouveaux milestones qu'un collègue a créés et que vous n'avez pas en local**. La synchronisation de l'index comble cet écart en lisant tout le catalogue des milestones publiés avant que vous ne listiez ou ne créiez :
+
+- **`milestone-sync.sh index <root>`** liste chaque milestone de la branche canonique sous la forme `<slug>` · `<created_by>` · `<created_at>` · `<updated_at>` (auteur/date issus du commit qui a *ajouté* le fichier).
+- **Sur `/milestone init`** : le nom proposé est comparé à l'index (exact et « quasi-collision » en ignorant `-`/`_`/casse). En cas de collision → il ne crée **pas** ; il vous dit **qui l'a créé et quand**, et propose de le charger plutôt que de le dupliquer.
+- **Sur `/milestone` (liste)** : les milestones présents sur la branche mais pas en local sont affichés comme `🆕 remote · created by <handle>`, pour que vous voyiez d'un coup d'œil ce que d'autres ont commencé, avant même de puller.
+
+### Mise à jour automatique du helper (H1)
+
+Le helper s'installe à `~/.claude/milestone-sync.sh`. Pour empêcher deux machines d'exécuter une logique de réservation différente, il est **versionné** : la skill compare la `version` installée à la copie de référence et re-copie lorsqu'elles diffèrent (ou lorsqu'elle est absente), à la première synchronisation de chaque session.
+
+### Limite — frontière honnête
+
+Git est distribué : l'index et les réservations ne voient que ce qui est **sur la branche canonique**. Une réservation que quelqu'un détient sans l'avoir pushée est invisible, exactement comme n'importe quel commit local. C'est précisément pourquoi R14 force la réservation à être **publiée à l'instant où vous démarrez** (avant la première ligne de code) — « démarrer une tâche » et « que tout le monde la voie » deviennent le même acte atomique.
+
+### Comportement commun
+
 - **Dégradation gracieuse** : pas de git / pas de remote / pas de branche canonique / bloc absent → no-op silencieux. La promesse zéro-dépendance tient toujours.
 - **Ne contourne jamais les guards** : si un push est bloqué par un guard de sécurité ou l'auth, le commit reste dans le worktree et vous recevez la commande exacte à exécuter — il ne masque jamais l'échec ni ne bloque votre travail.
 

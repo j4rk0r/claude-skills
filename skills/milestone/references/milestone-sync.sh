@@ -10,14 +10,16 @@
 # .milestones/config.yml pero existe ~/.claude/projects/<clave>/milestones/config.yml
 # (repo central de memorias; <clave> = path absoluto del proyecto con '/'→'-'),
 # el almacén autoritativo vive ALLÍ y todas las operaciones (check/pull/push/
-# claim/release/claims/stale/stamp) se redirigen a ese repo. El repo del
+# claim/release/claims/stale/stamp/index) se redirigen a ese repo. El repo del
 # proyecto queda sin rastro de planificación interna. Ver git-sync.md §2b.
 # Override del root central (tests): MILESTONE_CENTRAL_ROOT.
 #
 # Uso:
+#   milestone-sync.sh version
 #   milestone-sync.sh check   <repo_root> <slug>
 #   milestone-sync.sh pull    <repo_root> <slug>
 #   milestone-sync.sh push    <repo_root> <slug>
+#   milestone-sync.sh index   <repo_root>                          # R13/H4 — descubre milestones remotos
 #   milestone-sync.sh stamp   <repo_root> <slug> <X.Y> <pr_number>
 #   milestone-sync.sh claim   <repo_root> <slug> <X.Y>             # R14
 #   milestone-sync.sh release <repo_root> <slug> <X.Y> [--force]   # R14
@@ -25,9 +27,11 @@
 #   milestone-sync.sh stale   <repo_root> <slug> [hours]           # R14 (default 24h)
 #
 # Salidas (stdout, una palabra-estado; detalle a stderr):
+#   version  → entero de versión del helper (para auto-update de la skill, H1)
 #   check    → up-to-date | remote-newer | diverged | local-only | noop:<razón>
 #   pull     → pulled | noop:<razón>
 #   push     → pushed | commit-pending-push:<cmd> | noop:<razón>
+#   index    → lista TSV: <slug>\t<created_by>\t<created_at>\t<updated_at>  (vacío si ninguno)
 #   stamp    → stamped | noop:<razón> | (delega salida de push)
 #   claim    → claimed | already-claimed:<handle> | not-claimable:<estado> | race-lost:<handle> | noop:<razón>
 #   release  → released | not-claimer:<handle> | not-claimed | noop:<razón>
@@ -35,13 +39,26 @@
 #   stale    → lista TSV de claims con edad > hours: <X.Y>\t<handle>\t<age_hours>
 set -o pipefail
 
+# Versión del helper. Súbela +1 en cada cambio de comportamiento observable.
+# La skill compara esta versión contra la copia instalada (~/.claude/milestone-sync.sh)
+# y re-copia si difiere (evita helpers divergentes entre máquinas del equipo — H1).
+MILESTONE_SYNC_VERSION=2
+
 cmd="${1:-}"; root="${2:-}"; slug="${3:-}"
 log() { printf '%s\n' "$*" >&2; }
 noop() { echo "noop:$1"; exit 0; }
 cleanup() { [ -n "${remote_tmp:-}" ] && rm -f "$remote_tmp"; [ -n "${wt_tmp:-}" ] && rm -f "$wt_tmp"; [ -n "${aux_tmp:-}" ] && rm -f "$aux_tmp"; }
 trap cleanup EXIT
 
-[ -n "$cmd" ] && [ -n "$root" ] && [ -n "$slug" ] || { log "args: <cmd> <repo_root> <slug> [...]"; echo "noop:bad-args"; exit 0; }
+# 'version' no necesita repo ni slug: responde y sale (usado por el auto-update).
+if [ "$cmd" = "version" ]; then echo "$MILESTONE_SYNC_VERSION"; exit 0; fi
+
+[ -n "$cmd" ]  || { log "args: <cmd> <repo_root> [<slug>] [...]"; echo "noop:bad-args"; exit 0; }
+[ -n "$root" ] || { log "falta <repo_root>"; echo "noop:bad-args"; exit 0; }
+# 'index' opera sobre el repo entero (todos los slugs), sin <slug>.
+if [ "$cmd" != "index" ]; then
+  [ -n "$slug" ] || { log "falta <slug>"; echo "noop:bad-args"; exit 0; }
+fi
 
 # Resolución de config: la local (.milestones/ del proyecto) tiene precedencia.
 # Si no existe, se intenta el modo central (repo de memorias). Si ambas
@@ -85,8 +102,6 @@ path="$(cfg path)"
 if [ -z "$path" ]; then
   if [ "$central_mode" = 1 ]; then path="$mkey/milestones"; else path=".milestones"; fi
 fi
-file_rel="$path/$slug.md"
-local_file="$root/$file_rel"
 
 branch="$(cfg branch)"
 if [ -z "$branch" ]; then
@@ -104,6 +119,36 @@ else
   fetch_ok=0
 fi
 
+# --- index (H4): descubrir TODOS los milestones existentes en la rama canónica ---
+# No requiere slug. Sale TSV: <slug>\t<created_by>\t<created_at>\t<updated_at>.
+# Alimenta el sync de índice: /milestone (list) muestra los que aún no tienes en
+# local; /milestone init detecta colisión de slug antes de crear un duplicado.
+if [ "$cmd" = "index" ]; then
+  # Lista los <path>/*.md de primer nivel (excluye plans/ y subdirs) en origin/<branch>.
+  git -C "$root" ls-tree -r --name-only "origin/$branch" -- "$path" 2>/dev/null | while IFS= read -r f; do
+    case "$f" in
+      *.md) ;;
+      *) continue ;;
+    esac
+    rel="${f#"$path"/}"
+    case "$rel" in
+      */*) continue ;;   # nested (plans/…) → no es un milestone
+    esac
+    b="$(basename "$f" .md)"
+    [ "$b" = "config" ] && continue
+    # Autor + fecha del commit que AÑADIÓ el archivo (creación) y fecha del último.
+    cmeta="$(git -C "$root" log "origin/$branch" --diff-filter=A --format='%an%x09%ad' --date=format:'%Y-%m-%d %H:%M' -1 -- "$f" 2>/dev/null)"
+    umeta="$(git -C "$root" log "origin/$branch" --format='%ad' --date=format:'%Y-%m-%d %H:%M' -1 -- "$f" 2>/dev/null)"
+    cby="$(printf '%s' "$cmeta" | cut -f1)"
+    cat="$(printf '%s' "$cmeta" | cut -f2)"
+    printf '%s\t%s\t%s\t%s\n' "$b" "${cby:-?}" "${cat:-?}" "${umeta:-?}"
+  done
+  exit 0
+fi
+
+file_rel="$path/$slug.md"
+local_file="$root/$file_rel"
+
 user_handle() {
   # Formato: "Nombre Completo (handle)" si hay ambos.
   # Fallback: solo lo que esté disponible (name | handle | $USER).
@@ -119,6 +164,14 @@ user_handle() {
   if [ -n "$n" ]; then printf '%s\n' "$n"; return; fi
   if [ -n "$eprefix" ]; then printf '%s\n' "$eprefix"; return; fi
   printf '%s\n' "${USER:-anon}"
+}
+
+# ¿La identidad git es fiable para trazar claims en equipo? (no cae a $USER)
+identity_reliable() {
+  local n e
+  n="$(git -C "$root" config user.name 2>/dev/null)"
+  e="$(git -C "$root" config user.email 2>/dev/null)"
+  [ -n "$n" ] || [ -n "$e" ]
 }
 
 upd() { grep -m1 '^updated:' "$1" 2>/dev/null | sed "s/^updated:[[:space:]]*//; s/[\"' ]//g"; }
@@ -320,6 +373,7 @@ case "$cmd" in
     [ -n "$xy" ] || { log "claim: falta <X.Y>"; noop "bad-args"; }
     [ "$fetch_ok" = "1" ] || { log "claim: fetch de origin/$branch falló — sin verificación en vivo no se puede claimear (sin red? sin permisos?). Vuelve a intentarlo cuando tengas conexión."; noop "fetch-failed"; }
     [ "$have_remote" = 1 ] || { log "claim necesita el milestone publicado en $branch"; noop "no-remote-file"; }
+    identity_reliable || log "claim: AVISO — sin git user.name/email; el claim se firmará como '$(user_handle)' (poco fiable para trazar en equipo). Configura tu identidad git."
 
     cur_line="$(find_subtask_line "$remote_tmp" "$xy")"
     if [ -z "$cur_line" ]; then
@@ -355,48 +409,53 @@ case "$cmd" in
 
     wt_path="$(wt_file)"
     [ -f "$wt_path" ] || { log "claim: el archivo no está en la rama canónica"; noop "no-remote-file"; }
-    cur_line_wt="$(find_subtask_line "$wt_path" "$xy")"
-    state_wt="$(printf '%s' "$cur_line_wt" | cut -c4)"
-    if [ "$state_wt" != " " ]; then
-      lost_h="$(extract_claim_handle "$cur_line_wt")"
-      log "claim: race-lost — alguien claimeó $xy mientras preparabas (claimer: ${lost_h:-desconocido})"
-      echo "race-lost:${lost_h:-unknown}"; exit 0
-    fi
-
-    if ! replace_subtask_line "$wt_path" "$xy" "$new_line"; then
-      log "claim: no se pudo reemplazar la línea (no encontrada tras prep)"
-      noop "race-vanished"
-    fi
 
     gid_e="$(git -C "$root" config user.email 2>/dev/null)"; [ -n "$gid_e" ] || gid_e="milestone-sync@local"
     gid_n="$(git -C "$root" config user.name 2>/dev/null)"; [ -n "$gid_n" ] || gid_n="milestone-sync"
     msg="chore(milestone): claim $slug $xy by $handle [skip ci]"
-    git -C "$WT" add -- "$file_rel" 2>/dev/null
-    if git -C "$WT" diff --cached --quiet -- "$file_rel" 2>/dev/null; then
-      log "claim: el diff quedó vacío (algo raro)"; noop "no-change"
-    fi
-    git -C "$WT" -c user.email="$gid_e" -c user.name="$gid_n" commit -q -m "$msg" -- "$file_rel" || { log "claim: commit falló"; noop "commit-failed"; }
 
-    if git -C "$WT" push -q origin "HEAD:$branch" 2>/dev/null; then
-      :
-    else
-      log "claim: push perdió FF; rebase y reintento"
-      git -C "$WT" fetch -q origin "$branch" 2>/dev/null || true
-      git -C "$WT" reset -q --hard "origin/$branch" 2>/dev/null
-      cur_line_wt2="$(find_subtask_line "$wt_path" "$xy")"
-      state_wt2="$(printf '%s' "$cur_line_wt2" | cut -c4)"
-      if [ "$state_wt2" != " " ]; then
-        lost_h2="$(extract_claim_handle "$cur_line_wt2")"
-        log "claim: race-lost tras rebase — claimer: ${lost_h2:-desconocido}"
-        echo "race-lost:${lost_h2:-unknown}"; exit 0
+    # Loop de reintentos (H2): git FF push es el lock. Ante rejection no-ff,
+    # rebasar (fetch+reset), REVALIDAR el estado y reintentar. Solo tras agotar
+    # los reintentos con la línea aún libre se reporta commit-pending-push
+    # (que entonces SÍ es auth/protección/red, no una carrera).
+    max_attempts=5
+    attempt=0
+    while :; do
+      attempt=$((attempt + 1))
+
+      # (Re)validar que sigue libre en la copia recién rebaseada.
+      cur_line_wt="$(find_subtask_line "$wt_path" "$xy")"
+      state_wt="$(printf '%s' "$cur_line_wt" | cut -c4)"
+      if [ "$state_wt" != " " ]; then
+        lost_h="$(extract_claim_handle "$cur_line_wt")"
+        log "claim: race-lost — alguien claimeó $xy (claimer: ${lost_h:-desconocido})"
+        echo "race-lost:${lost_h:-unknown}"; exit 0
       fi
-      replace_subtask_line "$wt_path" "$xy" "$new_line" || noop "race-vanished"
-      git -C "$WT" add -- "$file_rel"
-      git -C "$WT" -c user.email="$gid_e" -c user.name="$gid_n" commit -q -m "$msg" -- "$file_rel" || noop "commit-failed"
-      if ! git -C "$WT" push -q origin "HEAD:$branch" 2>/dev/null; then
+
+      if ! replace_subtask_line "$wt_path" "$xy" "$new_line"; then
+        log "claim: no se pudo reemplazar la línea (no encontrada tras prep)"
+        noop "race-vanished"
+      fi
+
+      git -C "$WT" add -- "$file_rel" 2>/dev/null
+      if git -C "$WT" diff --cached --quiet -- "$file_rel" 2>/dev/null; then
+        log "claim: el diff quedó vacío (algo raro)"; noop "no-change"
+      fi
+      git -C "$WT" -c user.email="$gid_e" -c user.name="$gid_n" commit -q -m "$msg" -- "$file_rel" || { log "claim: commit falló"; noop "commit-failed"; }
+
+      if git -C "$WT" push -q origin "HEAD:$branch" 2>/dev/null; then
+        break
+      fi
+
+      if [ "$attempt" -ge "$max_attempts" ]; then
+        log "claim: push sigue rechazado tras $max_attempts intentos — no es carrera (auth/protección/red)."
         echo "commit-pending-push:git -C $WT push origin HEAD:$branch"; exit 0
       fi
-    fi
+
+      log "claim: push perdió FF (intento $attempt/$max_attempts); rebase y revalidación"
+      git -C "$WT" fetch -q origin "$branch" 2>/dev/null || true
+      git -C "$WT" reset -q --hard "origin/$branch" 2>/dev/null
+    done
 
     if [ -f "$local_file" ]; then replace_subtask_line "$local_file" "$xy" "$new_line" >/dev/null 2>&1 || true; fi
 

@@ -10,7 +10,7 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 ## Overview
 
-Portable skill for multi-session development tracking. Manages state (`[ ]`/`[>]`/`[~]`/`[x]`/`[-]`), history (`## Contexto`), decisions, and memory snapshots. Zero external dependencies. Integrations (Monday/Jira/Linear/Slack) live in separate skills that observe `.milestones/*.md` via hooks. **Optional team mode (R13 + R14)**: opt-in via `.milestones/config.yml` makes the milestone a single shared source of truth git-synced to a canonical branch (R13) AND requires an atomic claim before starting any subtask so two members can never accidentally pick the same one (R14) — degrades to no-op when not configured, so the zero-dependency promise still holds. **Optional central storage (R13 §2b)**: opt-in by placing the config in the central memories repo (`~/.claude/projects/<key>/milestones/config.yml`) instead of the project repo — the client repo stays 100% clean of internal planning.
+Portable skill for multi-session development tracking. Manages state (`[ ]`/`[>]`/`[~]`/`[x]`/`[-]`), history (`## Contexto`), decisions, and memory snapshots. Zero external dependencies. Integrations (Monday/Jira/Linear/Slack) live in separate skills that observe `.milestones/*.md` via hooks. **Optional team mode (R13 + R14)**: opt-in via `.milestones/config.yml` makes the milestone a single shared source of truth git-synced to a canonical branch (R13) AND requires an atomic claim before starting any subtask so two members can never accidentally pick the same one (R14). Además, un **sync de índice** (H4, git-sync.md §12) descubre milestones que otro creó antes de listar o crear: al hacer `/milestone init` avisa si el nombre ya existe (y quién lo creó, cuándo) en vez de duplicar; al hacer `/milestone` (list) muestra los milestones remotos que aún no tienes en local. Todo degrada a no-op cuando no está configurado, así que la promesa zero-dependency se mantiene. **Optional central storage (R13 §2b)**: opt-in by placing the config in the central memories repo (`~/.claude/projects/<key>/milestones/config.yml`) instead of the project repo — the client repo stays 100% clean of internal planning.
 
 **Use when**: multi-session work OR need to resume context OR architectural decisions to remember. Otherwise → TodoWrite/Plan.
 
@@ -48,7 +48,7 @@ Transiciones legales, edge cases (dependencia en cadena, wave parcial, session c
 
 **R6. Project config** (MANDATORY): `.milestones/config.yml` (o `<key>/milestones/config.yml` en modo central) define `project_type` (drupal/laravel/react/…) + `roles` (lista válida). Si no existe → Step 0→A→D en `/milestone init` antes de crear subtareas. Presets → [`references/roles-presets.md`](references/roles-presets.md).
 
-**R7. Listing rendering** (two blocks): (A) summary table con `YYYY-MM-DD HH:MM`, (B) per-milestone breakdown. MANDATORY load [`references/rendering-rules.md`](references/rendering-rules.md). En team mode (R14) → OBLIGATORIO ejecutar `milestone-sync.sh claims` para enriquecer el render con claimers visibles.
+**R7. Listing rendering** (two blocks): (A) summary table con `YYYY-MM-DD HH:MM`, (B) per-milestone breakdown. MANDATORY load [`references/rendering-rules.md`](references/rendering-rules.md). En team mode → OBLIGATORIO ejecutar `milestone-sync.sh index` (merge con milestones remotos aún no locales, H4 §12) y `milestone-sync.sh claims` (claimers visibles por subtarea) antes de renderizar.
 
 **R8. Session discipline**: 1 subtask = 1 new window (fuera de IDE). Pre-start sync OBLIGATORIO antes de `/milestone start`. IDE → solo texto `/milestone start <slug>`, nunca bash script. En team mode (R14): claim atómico en sesión origen ANTES de mostrar el comando para nueva ventana.
 
@@ -60,9 +60,9 @@ Transiciones legales, edge cases (dependencia en cadena, wave parcial, session c
 
 **R12. Session-start recovery**: trigger si snapshot >2h o sin cierre limpio. Mini-sync (git log + grep) → compare con checkbox → downgrade/upgrade con confirmación. Detalle → [`references/session-protocol.md`](references/session-protocol.md).
 
-**R13. Git-synced milestone (opt-in, team mode)**: si `config.yml` define `milestone_sync.enabled: true`, el milestone es propiedad compartida en una rama canónica (`milestone_sync.branch`, default `develop`; en modo central, la rama del repo central — default su HEAD, normalmente `main`). Lectura comprueba versión remota antes de mostrar/auditar; escritura sincroniza vía worktree aislado tras refrescar snapshot; un PR sella la subtarea `[~]` con `` `⏳ PR #<n>` ``. **Modo central (§2b)**: config y archivos autoritativos en `~/.claude/projects/<key>/milestones/` — el sync y los claims serializan contra el repo central de memorias, no contra el repo del cliente. **Degrada a no-op** sin git/remoto/rama o si el bloque está ausente (retrocompat total — la skill sigue portable y zero-dep). Detalle → [`references/git-sync.md`](references/git-sync.md).
+**R13. Git-synced milestone (opt-in, team mode)**: si `config.yml` define `milestone_sync.enabled: true`, el milestone es propiedad compartida en una rama canónica (`milestone_sync.branch`, default `develop`; en modo central, la rama del repo central — default su HEAD, normalmente `main`). Lectura comprueba versión remota antes de mostrar/auditar; escritura sincroniza vía worktree aislado tras refrescar snapshot; un PR sella la subtarea `[~]` con `` `⏳ PR #<n>` ``. **Sync de índice (H4 §12)**: `milestone-sync.sh index` descubre TODOS los milestones publicados en la rama canónica (con creador y fecha) — `/milestone init` lo consulta para NO crear un duplicado de algo que otro ya creó, y `/milestone` (list) lo consulta para mostrar los remotos que aún no tienes en local. **Modo central (§2b)**: config y archivos autoritativos en `~/.claude/projects/<key>/milestones/` — el sync y los claims serializan contra el repo central de memorias, no contra el repo del cliente. **Degrada a no-op** sin git/remoto/rama o si el bloque está ausente (retrocompat total — la skill sigue portable y zero-dep). Detalle → [`references/git-sync.md`](references/git-sync.md).
 
-**R14. Claim atómico (opt-in, requiere R13 team mode)**: arrancar una subtarea en team mode **exige un claim previo en la rama canónica antes de tocar código**. El claim sucede en la **sesión origen** (terminal padre o IDE Modo A) ANTES de abrir ventana nueva, no dentro de ella — así no queda ventana de carrera entre "el usuario ve el comando" y "abre la nueva ventana". `/milestone start` invoca `milestone-sync.sh claim <root> <slug> <X.Y>` que pone `[ ]`→`[>]` y añade `` `🔒 <handle> · YYYY-MM-DD HH:MM` `` inline, commiteando atómicamente en `<branch>`. Git fast-forward push es el lock: dos miembros que claimean a la vez serializan; el perdedor recibe `race-lost:<handle>` y elige otra. **`/milestone` (list) en team mode es OBLIGATORIO consultar `milestone-sync.sh claims` antes de renderizar** — sin eso, el listing puede mostrar como libre algo ya reservado por otro. Subcomandos: `claim`/`release`/`claims`/`stale`. Sin team mode → no-op, modelo clásico de estados sigue válido. Detalle → [`references/git-sync.md`](references/git-sync.md) §11 y [`references/states.md`](references/states.md) "Claim atómico".
+**R14. Claim atómico (opt-in, requiere R13 team mode)**: arrancar una subtarea en team mode **exige un claim previo en la rama canónica antes de tocar código**. El claim sucede en la **sesión origen** (terminal padre o IDE Modo A) ANTES de abrir ventana nueva, no dentro de ella — así no queda ventana de carrera entre "el usuario ve el comando" y "abre la nueva ventana". `/milestone start` invoca `milestone-sync.sh claim <root> <slug> <X.Y>` que pone `[ ]`→`[>]` y añade `` `🔒 <handle> · YYYY-MM-DD HH:MM` `` inline, commiteando atómicamente en `<branch>`. Git fast-forward push es el lock: dos miembros que claimean a la vez serializan; el perdedor recibe `race-lost:<handle>` (o `already-claimed:<handle>` si el otro ya había publicado) y elige otra — en ambos casos **se le dice quién la tiene**. El push reintenta en loop revalidando estado (hasta 5 veces, H2), así `commit-pending-push` sólo aparece ante un problema real de push (auth/protección/red), nunca por una simple carrera. **`/milestone` (list) en team mode es OBLIGATORIO consultar `index` + `claims` antes de renderizar** — sin eso, el listing puede mostrar como inexistente algo que otro creó, o como libre algo ya reservado. Subcomandos: `claim`/`release`/`claims`/`stale`. Sin team mode → no-op, modelo clásico de estados sigue válido. Detalle → [`references/git-sync.md`](references/git-sync.md) §11–§12 y [`references/states.md`](references/states.md) "Claim atómico".
 
 ## Workflow
 
@@ -70,11 +70,11 @@ Transiciones legales, edge cases (dependencia en cadena, wave parcial, session c
 
 | Phase | Command | Purpose | MANDATORY refs |
 |-------|---------|---------|----------------|
-| Discovery | `/milestone` (list) | Two-block output con (A)+(B); team mode → consulta `claims` antes de render | `rendering-rules.md` + `git-sync.md` si team mode |
+| Discovery | `/milestone` (list) | Two-block output con (A)+(B); team mode → `index` (milestones remotos) + `claims` antes de render | `rendering-rules.md` + `git-sync.md` si team mode |
 | Discovery | `/milestone <name>` | Load context; trigger R12 si stale; R13 check + R14 claims si team mode | `session-protocol.md` si R12; `git-sync.md` si team mode |
 | Planning | `/milestone sync` | Audit code vs milestones | `project-audit.md` + `roles-presets.md` si legacy + `git-sync.md` si team mode |
-| Planning | `/milestone init <name>` | Create new; verify codebase antes de asignar estados | `templates.md` + `roles-presets.md` si no hay config |
-| Execution | `/milestone start <name>` | Claim en sesión origen (team mode) → nueva sesión limpia | `session-protocol.md` si R12 triggered; `git-sync.md` si team mode |
+| Planning | `/milestone init <name>` | Create new; team mode → `index` primero (aborta si el slug ya existe, dice quién); verify codebase antes de asignar estados | `templates.md` + `roles-presets.md` si no hay config + `git-sync.md` §12 si team mode |
+| Execution | `/milestone start <name>` | Claim en sesión origen (team mode; stale claims sugeridos) → nueva sesión limpia | `session-protocol.md` si R12 triggered; `git-sync.md` si team mode |
 | Execution | `/milestone done <name> <X.Y>` | Close subtarea; solo con aprobación explícita; retira `🔒` y `⏳ PR` | `qa-validation.md` |
 | Execution | `/milestone release <name> <X.Y>` | (R14 team mode) liberar claim propio o ajeno (`--force`) | `git-sync.md` |
 | Review | `/milestone update <name>` | Promote estados on evidence, normalize numbering | Ninguna — contexto ya cargado |
@@ -85,11 +85,11 @@ Ejemplo end-to-end (R11+R12, modo A/B del IDE, wave counter) → [`references/ex
 
 | Comando | Cargar | Do NOT load |
 |---------|--------|-------------|
-| `/milestone` (list) | Solo snapshots ya en contexto; si team mode → OBLIGATORIO ejecutar `milestone-sync.sh claims` antes de render | All references, `.milestones/` completos |
+| `/milestone` (list) | Solo snapshots ya en contexto; si team mode → OBLIGATORIO ejecutar `milestone-sync.sh index` + `claims` antes de render | All references, `.milestones/` completos |
 | `/milestone <name>` | Snapshot; `session-protocol.md` si R12 triggered; `git-sync.md` si team mode; ejecutar `check` + `claims` | `.milestones/` si memoria suficiente |
-| `/milestone init` | `templates.md` + `roles-presets.md` si no hay config + `project-audit.md` si hay doc | `qa-validation.md`, `errors.md` |
+| `/milestone init` | `templates.md` + `roles-presets.md` si no hay config + `project-audit.md` si hay doc + `git-sync.md` §12 si team mode (anti-duplicado vía `index`) | `qa-validation.md`, `errors.md` |
 | `/milestone sync` | `project-audit.md` + `roles-presets.md` si legacy + `git-sync.md` si team mode | `templates.md`, `errors.md` |
-| `/milestone start` | `git-sync.md` si team mode (claim antes de abrir ventana nueva) | Others |
+| `/milestone start` | `git-sync.md` si team mode (claim antes de abrir ventana nueva; `stale` para sugerir override) | Others |
 | `/milestone done` | `qa-validation.md` | `templates.md`, `errors.md` |
 | `/milestone release` | `git-sync.md` (sólo aplica en team mode) | Others |
 | `/milestone update` | Ninguna | All references |
@@ -101,7 +101,7 @@ Ejemplo end-to-end (R11+R12, modo A/B del IDE, wave counter) → [`references/ex
 | Trigger detection dudosa | `triggers-catalog.md` | Others |
 | Crear/regenerar snapshot | `snapshot-format.md` | Others |
 | Anti-pattern check | `anti-patterns.md` | Others |
-| Git-sync milestone (team mode: lectura/escritura/sello PR/claim; modo central §2b) | `git-sync.md` | Others |
+| Git-sync milestone (team mode: lectura/escritura/sello PR/claim/índice; modo central §2b) | `git-sync.md` | Others |
 | install context-guard | `context-guard.sh` | Others |
 | Corrupción detectada | `errors.md` | Others |
 
@@ -112,7 +112,7 @@ Formato compacto (~100 tok) y expandido (para >6 subtareas o fases) + destino de
 ## Context Guard & Errors
 
 - [`references/context-guard.sh`](references/context-guard.sh) — PreToolUse hook, warns at 20+/40+ tool calls. Install: `cp` + `chmod +x` + register in `settings.json`.
-- [`references/milestone-sync.sh`](references/milestone-sync.sh) — R13/R14 helper (opt-in team mode; resuelve solo el modo central §2b). Subcomandos: `check`/`pull`/`push`/`stamp` (R13) + `claim`/`release`/`claims`/`stale` (R14). Auto-install on first sync: `cp ~/.claude/skills/milestone/references/milestone-sync.sh ~/.claude/milestone-sync.sh` + `chmod +x`. No-op si ninguna config trae `milestone_sync.enabled`.
+- [`references/milestone-sync.sh`](references/milestone-sync.sh) — R13/R14 helper (opt-in team mode; resuelve solo el modo central §2b). Subcomandos: `version` (auto-update) + `check`/`pull`/`push`/`index`/`stamp` (R13/H4) + `claim`/`release`/`claims`/`stale` (R14). **Auto-install/auto-update por versión** (H1): en la primera invocación de sync de la sesión, comparar `~/.claude/milestone-sync.sh version` con `references/milestone-sync.sh version`; si difieren (o el instalado no existe) → `cp references/milestone-sync.sh ~/.claude/milestone-sync.sh` + `chmod +x`. Evita helpers divergentes entre máquinas del equipo. No-op si ninguna config trae `milestone_sync.enabled`.
 - [`references/team-bootstrap.sh`](references/team-bootstrap.sh) — alta de un miembro del equipo en modo central: clona/actualiza el repo central de memorias, instala skill + helper y verifica la identidad git para los claims.
 - [`references/errors.md`](references/errors.md) — format corruption, broken snapshots, missing frontmatter recovery.
 - Common failure modes (troubleshooting table: síntoma → causa → fix) → [`references/errors.md`](references/errors.md).

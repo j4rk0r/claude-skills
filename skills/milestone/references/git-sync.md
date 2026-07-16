@@ -104,10 +104,27 @@ Subcomandos (todos idempotentes, todos no-op-safe):
 
 | Comando | Uso |
 |---|---|
+| `milestone-sync.sh version` | Entero de versión del helper. La skill lo usa para el auto-update (ver abajo). No toca git. |
 | `milestone-sync.sh check <repo_root> <slug>` | Estado vs rama canónica: `up-to-date` / `remote-newer` / `diverged` / `local-only` / `noop:<razón>` |
+| `milestone-sync.sh index <repo_root>` | **Descubre TODOS los milestones existentes en la rama canónica** (sin `<slug>`). TSV: `<slug>\t<created_by>\t<created_at>\t<updated_at>`. Base del sync de índice (§12): anti-duplicado en `init` y merge de la lista en `/milestone`. |
 | `milestone-sync.sh pull <repo_root> <slug>` | Trae la versión canónica al working copy local (tras confirmación del usuario) |
 | `milestone-sync.sh push <repo_root> <slug>` | Commit+push de `<path>/<slug>.md` a la rama canónica vía worktree. Salida: `pushed` / `commit-pending-push:<cmd>` / `noop:<razón>` |
 | `milestone-sync.sh stamp <repo_root> <slug> <X.Y> <pr_number>` | Anota `` `⏳ PR #<n>` `` en la línea de la subtarea `[~]` y hace push |
+
+**Auto-update por versión (H1 — evita helpers divergentes entre máquinas).** El
+helper se instala en `~/.claude/milestone-sync.sh`. En equipo, si una máquina se
+quedó con una copia vieja, dos miembros ejecutarían lógicas de claim distintas.
+Por eso el auto-install NO es solo "copiar si no existe": la skill compara
+versiones y re-copia si difieren, en la primera invocación de sync de cada sesión:
+
+```
+inst=$(~/.claude/milestone-sync.sh version 2>/dev/null || echo 0)
+ref=$(~/.claude/skills/milestone/references/milestone-sync.sh version 2>/dev/null || echo 0)
+[ "$ref" != "$inst" ] && cp ~/.claude/skills/milestone/references/milestone-sync.sh ~/.claude/milestone-sync.sh && chmod +x ~/.claude/milestone-sync.sh
+```
+
+Si el instalado no existe → se copia (arranque en frío). `version` no toca git,
+así que la comprobación es barata.
 
 ## 4. Comportamiento en LECTURA
 
@@ -240,6 +257,10 @@ reserva la subtarea en la rama canónica ANTES del primer commit de código.
 2. Render del milestone con la versión canónica fresca. Mostrar al usuario:
      - Subtareas [ ] libres
      - Subtareas [>] con su claimer (`🔒 handle · ts`) → BLOQUEADAS para él
+     - Ejecutar `milestone-sync.sh stale <root> <slug>` y marcar con
+       `⚠️ stale claim` las que lleven >24h reservadas. Si TODO lo libre está
+       cogido pero hay claims stale, sugerir al usuario el override consciente
+       (`/milestone release <slug> <X.Y> --force` y re-claim) — H3.
 3. Usuario elige X.Y libre (o forzar override consciente, vía release del otro)
 4. milestone-sync.sh claim <root> <slug> <X.Y>
      claimed                       → continuar trabajo
@@ -269,25 +290,25 @@ Pseudocódigo de la sección crítica:
 ```
 prepare_worktree(branch)
 fetch + reset --hard origin/<branch>
-validate(line[X.Y].state == "[ ]")  # paso 1
-edit(line[X.Y] = "[>] ... `🔒 me · now` ...")
-commit
-push --ff
-  ok           → claimed
-  rejected     →
-    fetch
-    reset --hard origin/<branch>
-    validate(line[X.Y].state == "[ ]")  # paso 2 (post-rebase)
-      false  → race-lost
-      true   → re-edit + commit + push (1 retry)
-        ok      → claimed
-        rejected → commit-pending-push (auth/protección/red)
+loop (hasta 5 intentos):                 # H2 — loop, no retry único
+  validate(line[X.Y].state == "[ ]")     # revalida en cada vuelta tras rebase
+    false → race-lost:<handle>           # otro ganó → aborta, dice quién
+  edit(line[X.Y] = "[>] ... `🔒 me · now` ...")
+  commit
+  push --ff
+    ok        → claimed                  # sale del loop
+    rejected  → fetch + reset --hard origin/<branch>; siguiente intento
+agotados los 5 intentos con la línea aún libre → commit-pending-push
+  (ya NO es carrera: es auth / rama protegida / red)
 ```
 
-Dos validaciones secuenciales (antes del primer push y antes del retry tras
-rebase) cierran la ventana de carrera a "ambos ganaron FF" — imposible: el
-servidor sólo acepta un FF a la vez. Si ambos llegan al retry, sólo uno revalida
-`[ ]`; el otro ve `[>]` y aborta.
+La revalidación en CADA vuelta cierra la ventana de carrera a "ambos ganaron
+FF" — imposible: el servidor sólo acepta un FF a la vez. Con N contendientes
+simultáneos, en cada ronda gana uno (FF) y los demás rebasan y revalidan: el que
+ve `[>]` aborta con `race-lost`, el resto reintenta sobre el estado fresco. El
+loop (en vez de un único retry) evita que un `commit-pending-push` engañoso
+aparezca cuando en realidad hubo ≥3 claims a la vez — ese estado ahora sólo
+significa un problema real de push (auth/protección/red).
 
 ### 11.3 Release y handover
 
@@ -342,3 +363,71 @@ anotación 🔒). R14 es estrictamente aditivo.
 - Recuperación: si una máquina se cuelga con un claim activo, `git revert` o
   `release --force` desde otra máquina resuelve. Un lock external requeriría
   un panel de "liberar locks huérfanos" con su propia complejidad.
+
+## 12. Sync de índice (H4 — descubrir milestones de otros; anti-duplicado)
+
+R13/R14 sincronizan **un** `<slug>.md` concreto. Pero eso no cubre el caso de
+**milestones nuevos que otro miembro creó y tú no tienes en local**: sin mirar la
+rama canónica, harías `/milestone init foo` sin saber que Ana ya creó `foo` hace
+un minuto → duplicado. El sync de índice cierra ese hueco leyendo el catálogo
+completo de milestones publicados antes de listar o crear.
+
+Lo resuelve `milestone-sync.sh index <root>` — sin `<slug>`, devuelve TSV con
+**todos** los milestones de primer nivel en `origin/<branch>`:
+
+```
+<slug>\t<created_by>\t<created_at>\t<updated_at>
+checkout-refactor\tAna Dev (ana)\t2026-07-16 09:29\t2026-07-16 09:41
+```
+
+`created_by`/`created_at` salen del commit que **añadió** el archivo
+(`--diff-filter=A`); `updated_at` del último commit que lo tocó. Excluye `plans/`
+(subdirs) y `config`.
+
+### 12.1 En `/milestone init <name>` (team mode) — ANTES de crear
+
+1. Auto-update del helper (§3) + `milestone-sync.sh index <root>`.
+2. Normalizar el nombre propuesto a slug y compararlo con los slugs del índice
+   (match exacto Y "casi-igual": mismo slug ignorando `-`/`_`/mayúsculas, para
+   cazar `checkout-refactor` vs `checkout_refactor`).
+3. **Si colisiona** → NO crear. Avisar:
+   > «Ya existe el milestone **`<slug>`**, creado por **<created_by>**
+   > (<created_at>). Usa `/milestone <slug>` para cargarlo, o elige otro nombre.»
+   Ofrecer cargarlo (`pull` + load) en vez de duplicar.
+4. **Si no colisiona** → seguir el flujo normal de `init` (Step 0→7) y, al
+   escribir el `<slug>.md`, el `push` de §5 lo publica en la rama canónica; a
+   partir de ahí el resto del equipo lo verá en su `index`.
+
+### 12.2 En `/milestone` (list, team mode) — merge local + remoto
+
+El listado clásico enumera los `<slug>.md` locales. En team mode, ANTES de
+renderizar, hacer merge con el índice remoto:
+
+1. `milestone-sync.sh index <root>` → set de slugs remotos.
+2. Slugs presentes en remoto pero NO en local → añadirlos al render marcados
+   `🆕 remoto · creado por <created_by>` con la sugerencia `/milestone <slug>`
+   (hace `check`→`pull`). Así ves de un vistazo lo que otros crearon aunque no lo
+   tengas en disco.
+3. Slugs locales que ya no están en remoto → posiblemente renombrados/borrados
+   por otro; marcar `⚠️ no está en <branch>` sin borrar nada local.
+4. El `claims` por-milestone (R14) sigue enriqueciendo cada milestone con quién
+   tiene qué subtarea. `index` responde "qué milestones hay"; `claims` responde
+   "qué subtareas están cogidas dentro de uno".
+
+### 12.3 Coste y degradación
+
+`index` es un `ls-tree` + un `git log -1` por archivo sobre `origin/<branch>` ya
+fetcheado — barato. Igual que el resto del helper, degrada a `noop:disabled` sin
+team mode, así que `/milestone` e `init` en solitario no pagan ninguna latencia
+de red. El `fetch` de la rama canónica ya lo hace el propio helper una vez por
+invocación.
+
+### 12.4 Límite honesto: "en local" = "en cuanto se publica el claim"
+
+Git es distribuido: el índice y los claims sólo ven lo que está **en la rama
+canónica**. Un milestone o un claim que otro tiene sin pushear es invisible —
+igual que cualquier commit local ajeno. Por eso R14 obliga a **publicar el claim
+en el instante de arrancar** (antes de la primera línea de código): así "empezar
+una tarea" y "que el resto lo vea" son el mismo acto atómico. No hay un canal
+fuera-de-git que detecte trabajo no publicado; el contrato del equipo es "claim
+antes de tocar código", y el helper lo hace cumplir con el push atómico.

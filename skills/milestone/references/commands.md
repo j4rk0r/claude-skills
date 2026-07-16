@@ -6,13 +6,21 @@ Detalle completo de cada slash command.
 
 ### `/milestone` — Listar todos
 
-**Step 0 (R14 team mode) — OBLIGATORIO antes de renderizar**: Para CADA milestone listado, si `.milestones/config.yml` trae `milestone_sync.enabled: true`, ejecutar `milestone-sync.sh claims <root> <slug>`. Capturar el TSV `X.Y\thandle\tts` y usarlo en Step 3 para:
+**Step 0 (R13/R14 team mode) — OBLIGATORIO antes de renderizar**: si `.milestones/config.yml` (o el config central §2b) trae `milestone_sync.enabled: true`:
+
+0a. **Auto-update del helper (H1)**: comparar `~/.claude/milestone-sync.sh version` con `references/milestone-sync.sh version`; si difieren o no existe → `cp` + `chmod +x` (ver "Sync de memoria tras cada write" → R13).
+
+0b. **Índice de milestones (H4 §12)**: ejecutar `milestone-sync.sh index <root>` (sin slug). El TSV `<slug>\t<created_by>\t<created_at>\t<updated_at>` es la lista canónica de milestones existentes. Merge con los locales:
+- slug remoto no presente en local → añadirlo al render marcado `🆕 remoto · creado por <created_by>` con `/milestone <slug>` como acción (hace `check`→`pull`).
+- slug local ausente del remoto → marcar `⚠️ no está en <branch>` (posible rename/borrado ajeno); no borrar nada local.
+
+0c. **Claims por milestone (R14)**: para CADA milestone, ejecutar `milestone-sync.sh claims <root> <slug>`. Capturar el TSV `X.Y\thandle\tts` y usarlo en Step 3 para:
 - Columna "Progreso": añadir `(K in flight by @h1, @h2, …)` con los claimers únicos.
 - Render del bloque (B): cada `[>]` con `🔒` ajeno NO puede ser "siguiente sugerida"; el render añade `` `⚠️ no claimeable por ti` `` si el claimer ≠ tu handle (`git config user.email` substring antes de `@`).
 - Si `claims` devuelve vacío → render normal sin marcas.
-- Si `claims` devuelve `noop:disabled` (team mode off) → silencioso, render clásico.
+- Si `index`/`claims` devuelven `noop:disabled` (team mode off) → silencioso, render clásico.
 
-SIN este Step 0 en team mode, el listing miente: dos personas pueden ver la misma subtarea como libre. NO es opcional.
+SIN este Step 0 en team mode, el listing miente: dos personas pueden ver la misma subtarea como libre, o no ver un milestone que otro ya creó. NO es opcional.
 
 **Step 1**: Si `.milestones/` no existe → sugerir `/milestone init <nombre>`.
 
@@ -76,6 +84,8 @@ Cruza doc técnico + codebase + milestones existentes para detectar:
 ### `/milestone init <name>` — Crear nuevo
 
 Verificar no existe similar (nombre u objetivo) → si existe, sugerir añadir subtareas al existente.
+
+**Step -1 — Anti-duplicado en equipo (R13/R14 team mode, H4 §12) — ANTES de cualquier otra cosa**: si el config trae `milestone_sync.enabled: true`, auto-update del helper (H1) y ejecutar `milestone-sync.sh index <root>`. Normalizar el nombre propuesto a slug y compararlo con los slugs del índice — match exacto **y** "casi-igual" (mismo slug ignorando `-`/`_`/mayúsculas). Si colisiona → **NO crear**: avisar «Ya existe el milestone `<slug>`, creado por **<created_by>** (<created_at>). Usa `/milestone <slug>` para cargarlo, o elige otro nombre» y ofrecer cargarlo (`pull` + load). Sólo si NO colisiona → seguir. Esto evita que dos miembros creen el mismo milestone sin saberlo. (`noop:disabled`/sin team mode → saltar este paso, el chequeo local de arriba basta.)
 
 **MANDATORY**: Cargar [`templates.md`](templates.md).
 
@@ -324,7 +334,7 @@ Si `.milestones/config.yml` trae `milestone_sync.enabled: true`, INMEDIATAMENTE 
 - `commit-pending-push:<cmd>` → el commit en el worktree está hecho; el push lo bloqueó el guard de seguridad / auth / protección. Avisar con el comando exacto; NO reintentar en bucle; NO bloquear ni revertir la operación de milestone.
 - `noop:<razón>` → silencioso (degradación; ver matriz en [`git-sync.md`](git-sync.md) §8).
 
-NO requiere confirmación del usuario (solo toca `.milestones/`, rama canónica, worktree aislado bajo `.git/`). El commit del **código** es aparte y SÍ requiere confirmación. Auto-install del helper en el primer uso: `cp ~/.claude/skills/milestone/references/milestone-sync.sh ~/.claude/milestone-sync.sh && chmod +x ~/.claude/milestone-sync.sh`. Detalle completo → [`git-sync.md`](git-sync.md).
+NO requiere confirmación del usuario (solo toca `.milestones/`, rama canónica, worktree aislado bajo `.git/`). El commit del **código** es aparte y SÍ requiere confirmación. **Auto-install/auto-update del helper por versión (H1)** — en la primera invocación de sync de la sesión: `inst=$(~/.claude/milestone-sync.sh version 2>/dev/null || echo 0); ref=$(~/.claude/skills/milestone/references/milestone-sync.sh version 2>/dev/null || echo 0); [ "$ref" != "$inst" ] && cp ~/.claude/skills/milestone/references/milestone-sync.sh ~/.claude/milestone-sync.sh && chmod +x ~/.claude/milestone-sync.sh`. Evita helpers divergentes entre máquinas del equipo. Detalle completo → [`git-sync.md`](git-sync.md) §3.
 
 ## Auto-status (recalcular en cada write)
 

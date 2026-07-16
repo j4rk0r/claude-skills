@@ -2,6 +2,25 @@
 
 Cambios visibles a usuarios del skill. Cada versión documenta qué se añade, qué se modifica y qué hay que hacer para migrar.
 
+## [1.3.0] — 2026-07-16 — Sync de índice + robustez del claim en equipo
+
+### Añadido
+
+- **Sync de índice (H4, git-sync.md §12)** — nuevo subcomando `milestone-sync.sh index <root>`: descubre TODOS los milestones publicados en la rama canónica (TSV `<slug>\t<created_by>\t<created_at>\t<updated_at>`, creador/fecha del commit que añadió el archivo). Cierra el hueco de que el sync era solo por-slug y no veía milestones nuevos de otros.
+  - **Anti-duplicado en `/milestone init`**: antes de crear, se consulta `index` y se compara el slug propuesto (match exacto y "casi-igual" ignorando `-`/`_`/mayúsculas). Si ya existe → NO se crea; se avisa **quién lo creó y cuándo** y se ofrece cargarlo.
+  - **Merge en `/milestone` (list)**: los milestones presentes en la rama canónica pero no en local se muestran marcados `🆕 remoto · creado por <handle>`.
+- **Versionado del helper + auto-update (H1)** — `milestone-sync.sh version` imprime un entero de versión. La skill compara la copia instalada (`~/.claude/milestone-sync.sh`) con la de referencia y **re-copia si difieren**, evitando que dos máquinas del equipo corran lógicas de claim distintas.
+
+### Modificado
+
+- **Claim con loop de reintentos (H2)** — el push del claim ya no hace un único retry: reintenta hasta 5 veces revalidando el estado en cada vuelta tras rebase. Con ≥3 claims simultáneos, `commit-pending-push` ya no aparece de forma engañosa por una carrera; sólo señala un problema real de push (auth/rama protegida/red).
+- **Stale claims sugeridos en `/milestone start` (H3)** — si todo lo libre está cogido pero hay claims >24h, el flujo sugiere el override consciente (`release --force` + re-claim) en vez de solo informar en el listado.
+- **Aviso de identidad no fiable** — `claim` avisa si no hay `git user.name/email` (el handle caería a `$USER`, poco fiable para trazar en equipo).
+
+### Migración
+
+- Nada que hacer. Todo es aditivo y opt-in (team mode). Proyectos en solitario o sin `milestone_sync.enabled` no cambian de comportamiento. El helper instalado se auto-actualiza a la nueva versión en la primera invocación de sync.
+
 ## [1.2.0] — 2026-07-13 — Modo central: milestones fuera del repo del cliente
 
 ### Añadido

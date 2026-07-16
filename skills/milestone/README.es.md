@@ -64,7 +64,7 @@ Siguiente conversación / siguiente compañero: contexto instantáneo y al día
 
 ## Modo equipo (R13 + R14) — opt-in
 
-Sin esto, el milestone es un fichero local por máquina. En equipo eso degenera en listas duplicadas (cada feature branch edita el mismo fichero) y listas de tareas obsoletas. El modo equipo convierte el milestone en una **única fuente de verdad compartida en una rama canónica**, editado solo contra esa rama vía un worktree dedicado — nunca dentro de las ramas de código. Además **reserva atómicamente cada subtarea en el momento en que alguien la arranca**, así dos personas nunca acaban haciendo lo mismo.
+Sin esto, el milestone es un fichero local por máquina. En equipo eso degenera en listas duplicadas (cada feature branch edita el mismo fichero) y listas de tareas obsoletas. El modo equipo convierte el milestone en una **única fuente de verdad compartida en una rama canónica**, editado solo contra esa rama vía un worktree dedicado — nunca dentro de las ramas de código. **Descubre los milestones que otros crearon** antes de que listes o crees uno (así no duplicas `foo` cuando un compañero lo creó hace un minuto), y **reserva atómicamente cada subtarea** en el momento en que alguien la arranca — así dos personas nunca acaban haciendo lo mismo, y el sistema te dice *quién* llegó antes.
 
 Actívalo por proyecto en `.milestones/config.yml`:
 
@@ -89,11 +89,29 @@ Cuando ejecutas `/milestone start`, el sistema **reserva la subtarea en la rama 
 - [>] 1.4 [complejo] Integración Stripe — `🔒 Jane Doe (jdoe) · 2026-05-26 15:01` [Backend]
 ```
 
-- **Atómico vía `git push --fast-forward`**: si dos miembros intentan claimear la misma subtarea a la vez, solo un FF push gana. El perdedor hace fetch, re-valida, ve el claim del ganador y aborta con `race-lost:<ganador>`. Imposible doble claim.
+- **Atómico vía `git push --fast-forward`**: si dos miembros intentan claimear la misma subtarea a la vez, solo un FF push gana. El perdedor hace fetch, re-valida, ve el claim del ganador y aborta con `race-lost:<ganador>` — te dice exactamente quién la cogió. Si el otro ya había publicado el claim, recibes `already-claimed:<ganador>` de entrada. Imposible doble claim.
+- **Loop de reintentos, no un único intento**: al perder el FF, el claim rebasa y re-valida hasta 5 veces, así con 3+ claimers simultáneos no aparece un `commit-pending-push` engañoso — ese estado ya solo significa un problema real de push (auth / rama protegida / red).
 - **Verificación en vivo obligatoria**: `claim` hace `git fetch` y aborta con `noop:fetch-failed` si el chequeo de red falla. Sin claim contra datos locales obsoletos.
 - **`/milestone` listing en modo equipo consulta claims**: el listado muestra quién tiene qué reservado. Una subtarea claimeada por otro NUNCA aparece como "libre" para ti.
 - **Trazabilidad**: cada claim/release deja un commit dedicado en `<branch>` (`chore(milestone): claim <slug> <X.Y> by <Jane Doe (jdoe)>`). El historial de la rama *es* el log de coordinación del equipo.
+- **Claims caducados sugeridos al arrancar**: si todo lo libre está cogido pero un claim tiene más de 24h, `/milestone start` sugiere el override consciente (`release --force` + re-claim) en vez de solo listarlo.
 - **Handover vía `/milestone release <slug> <X.Y> --force`** cuando hace falta (vacaciones, máquina caída, abandono). Dejar nota en `## Contexto` justificando; el claimer original verá `not-claimed` la próxima vez.
+
+### Sync de índice — nunca crees un duplicado (H4)
+
+R13/R14 sincronizan un `<slug>.md` cada vez, pero eso por sí solo no revela **milestones nuevos que un compañero creó y tú no tienes en local**. El sync de índice cierra ese hueco leyendo el catálogo completo de milestones publicados antes de que listes o crees:
+
+- **`milestone-sync.sh index <root>`** lista cada milestone de la rama canónica como `<slug>` · `<creado_por>` · `<creado_el>` · `<actualizado_el>` (autor/fecha del commit que *añadió* el fichero).
+- **En `/milestone init`**: el nombre propuesto se compara con el índice (exacto y "casi-igual" ignorando `-`/`_`/mayúsculas). Si colisiona → **no** lo crea; te dice **quién lo creó y cuándo**, y ofrece cargarlo en vez de duplicar.
+- **En `/milestone` (list)**: los milestones presentes en la rama pero no en local se muestran como `🆕 remoto · creado por <handle>`, así ves de un vistazo lo que otros arrancaron incluso antes de hacer pull.
+
+### Auto-update del helper (H1)
+
+El helper se instala en `~/.claude/milestone-sync.sh`. Para que dos máquinas no corran lógicas de claim distintas, está **versionado**: la skill compara la `version` instalada con la copia de referencia y re-copia cuando difieren (o cuando falta), en el primer sync de cada sesión.
+
+### Límite honesto
+
+Git es distribuido: el índice y los claims solo ven lo que está **en la rama canónica**. Un claim que alguien tiene sin pushear es invisible, igual que cualquier commit local. Por eso R14 obliga a **publicar el claim en el instante de arrancar** (antes de la primera línea de código) — "empezar una tarea" y "que el resto lo vea" son el mismo acto atómico.
 
 ### Comportamiento común
 

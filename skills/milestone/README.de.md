@@ -62,22 +62,63 @@ Nächste Konversation / nächster Kollege: sofortiger, aktueller Kontext
 - **Append-only-Kontextprotokoll** — umgekehrt chronologische Aufzeichnung dessen, was passiert ist und warum
 - **17 NEVER-Regeln** — decken Split-Brain-Prävention, veraltete Snapshots, Edit-Anti-Patterns und Team-Git-Sync-Risiken ab
 
-## Team-Modus (R13) — Opt-in
+## Team-Modus (R13 + R14) — Opt-in
 
-Ohne dies ist das Milestone eine maschinenlokale Datei. In einem Team entartet das zu duplizierten Listen (jeder Feature-Branch editiert dieselbe Datei) und veralteten To-do-Listen. Der Team-Modus macht das Milestone zu einer **einzigen geteilten Quelle der Wahrheit auf einem kanonischen Branch**, die nur gegen diesen Branch über ein dediziertes Worktree editiert wird — niemals innerhalb der Code-Branches.
+Ohne dies ist das Milestone eine maschinenlokale Datei. In einem Team entartet das zu duplizierten Listen (jeder Feature-Branch editiert dieselbe Datei) und veralteten To-do-Listen. Der Team-Modus macht das Milestone zu einer **einzigen geteilten Quelle der Wahrheit auf einem kanonischen Branch**, die nur gegen diesen Branch über ein dediziertes Worktree editiert wird — niemals innerhalb der Code-Branches. Er **entdeckt Milestones, die andere Mitglieder erstellt haben**, bevor du eines auflistest oder erstellst (sodass du niemals `foo` duplizierst, wenn ein Kollege es vor einer Minute angelegt hat), und er **reserviert jede Teilaufgabe atomar** in dem Moment, in dem jemand anfängt daran zu arbeiten — sodass zwei Personen nie dasselbe machen, und das System sagt dir, *wer* zuerst da war.
 
 Pro Projekt in `.milestones/config.yml` aktivieren:
 
 ```yaml
 milestone_sync:
-  enabled: true        # fehlt oder false -> ganz R13 ist ein stiller No-op
+  enabled: true        # fehlt oder false -> der gesamte Team-Modus ist ein stiller No-op
   branch: develop      # kanonischer Branch (Standard: develop)
   path: .milestones     # synchronisiertes Unterverzeichnis (Standard: .milestones)
 ```
 
+### R13 — geteilte Quelle der Wahrheit
+
 - **Beim Lesen** (`/milestone <name>`, `/milestone sync`): holt den kanonischen Branch und warnt, falls ein Kollege das Milestone vorangebracht hat, mit dem Angebot, es zu übernehmen, bevor du arbeitest.
 - **Beim Schreiben** (init / update / done / Sitzungsende): nach dem Aktualisieren des Snapshots committet es **nur** `<path>/<slug>.md` und pusht es auf den kanonischen Branch über ein isoliertes Worktree unter `.git/` — dein Code-Branch und dein Working Tree werden nie berührt.
-- **PR-Stempel**: eine Teilaufgabe, deren Arbeit in einem offenen PR liegt, behält ihren Zustand `[~]` mit einer Inline-Annotation `` `⏳ PR #N` `` (kein neuer Zustand — `[~]` bedeutet bereits „code-complete, Freigabe ausstehend“; der PR ist das Vehikel dieser Freigabe).
+- **PR-Stempel**: eine Teilaufgabe, deren Arbeit in einem offenen PR liegt, behält ihren Zustand `[~]` mit einer Inline-Annotation `` `⏳ PR #N` ``.
+
+### R14 — atomarer Claim, bevor Code angefasst wird
+
+Wenn du `/milestone start` ausführst, **reserviert das System die Teilaufgabe im kanonischen Branch, BEVOR du irgendeinen Code anfasst**. Die Zeile wird zu `[>]` mit einer Inline-Annotation:
+
+```
+- [>] 1.4 [complex] Stripe integration — `🔒 Jane Doe (jdoe) · 2026-05-26 15:01` [Backend]
+```
+
+- **Atomar via `git push --fast-forward`**: Wenn zwei Mitglieder gleichzeitig dieselbe Teilaufgabe beanspruchen wollen, gewinnt nur ein Fast-Forward-Push. Der Verlierer holt (fetch), revalidiert, sieht den Claim des Gewinners und bricht mit `race-lost:<winner>` ab — es sagt dir genau, wer sie genommen hat. Hatte das andere Mitglied den Claim bereits veröffentlicht, bekommst du direkt `already-claimed:<winner>`. Ein Doppel-Claim ist unmöglich.
+- **Retry-Schleife, kein einzelner Versuch**: bei einem verlorenen Fast-Forward rebast der Claim und revalidiert bis zu 5 Mal, sodass bei 3+ gleichzeitigen Beanspruchern ein irreführendes `commit-pending-push` nie auftaucht — dieser Status bedeutet jetzt nur noch ein echtes Push-Problem (Auth / geschützter Branch / Netzwerk).
+- **Live-Verifikation zwingend**: `claim` führt `git fetch` aus und bricht mit `noop:fetch-failed` ab, wenn die Netzwerkprüfung fehlschlägt. Kein Beanspruchen gegen veraltete lokale Daten.
+- **`/milestone`-Auflistung im Team-Modus muss Claims konsultieren**: die Liste der Milestones zeigt, wer was reserviert hat. Eine von jemand anderem beanspruchte Teilaufgabe kann für dich nie als „frei“ erscheinen.
+- **Audit-Trail**: jeder Claim/Release ist ein dedizierter Commit auf `<branch>` (`chore(milestone): claim <slug> <X.Y> by <Jane Doe (jdoe)>`). Die Branch-Historie *ist* das Koordinationsprotokoll des Teams.
+- **Veraltete Claims werden beim Start angezeigt**: ist alles Freie vergeben, aber ein Claim älter als 24 Std., schlägt `/milestone start` das bewusste Override vor (`release --force` + erneut beanspruchen), statt es nur aufzulisten.
+- **Übergabe via `/milestone release <slug> <X.Y> --force`** bei Bedarf (Urlaub, Maschine aus, Verweigerung). Füge eine Notiz in `## Contexto` hinzu, die den erzwungenen Release begründet; der ursprüngliche Beansprucher sieht beim nächsten Mal `not-claimed`.
+
+### Index-Sync — nie ein Duplikat erstellen (H4)
+
+R13/R14 synchronisieren jeweils eine `<slug>.md` auf einmal, aber das allein kann **neue Milestones, die ein Kollege erstellt hat und die du lokal nicht hast**, nicht aufdecken. Der Index-Sync schließt diese Lücke, indem er den gesamten Katalog der veröffentlichten Milestones liest, bevor du auflistest oder erstellst:
+
+- **`milestone-sync.sh index <root>`** listet jedes Milestone auf dem kanonischen Branch als `<slug>` · `<created_by>` · `<created_at>` · `<updated_at>` auf (Autor/Datum aus dem Commit, der die Datei *hinzugefügt* hat).
+- **Bei `/milestone init`**: der vorgeschlagene Name wird gegen den Index abgeglichen (exakt und „Near-Miss“ unter Ignorieren von `-`/`_`/Groß-Kleinschreibung). Bei einer Kollision → wird es **nicht** erstellt; es sagt dir, **wer es wann erstellt hat**, und bietet an, es zu laden, statt zu duplizieren.
+- **Bei `/milestone` (Liste)**: Milestones, die auf dem Branch vorhanden, aber nicht lokal sind, werden als `🆕 remote · created by <handle>` angezeigt, sodass du auf einen Blick siehst, was andere begonnen haben, noch bevor du pullst.
+
+### Helper-Auto-Update (H1)
+
+Der Helper installiert sich unter `~/.claude/milestone-sync.sh`. Damit nicht zwei Maschinen unterschiedliche Claim-Logik ausführen, ist er **versioniert**: die Skill vergleicht die installierte `version` mit der Referenzkopie und kopiert erneut, wenn sie sich unterscheiden (oder wenn sie fehlt), beim ersten Sync jeder Sitzung.
+
+### Zentraler Modus & Onboarding
+
+Im zentralen Modus (v1.2.0) liegen die Konfiguration und die autoritativen Dateien im geteilten Memories-Repo, sodass das Client-Repo sauber bleibt. `references/team-bootstrap.sh` bindet ein neues Mitglied ein: klont/aktualisiert dieses Repo, installiert die Skill + den Helper und verifiziert die git-Identität, die Claims signiert.
+
+### Grenze — ehrliche Abgrenzung
+
+Git ist verteilt: der Index und die Claims sehen nur, was **auf dem kanonischen Branch** liegt. Ein Claim, den jemand hält, ohne zu pushen, ist unsichtbar — genau wie jeder lokale Commit. Genau deshalb erzwingt R14, dass der Claim **im Moment des Starts veröffentlicht wird** (vor der ersten Codezeile) — „eine Aufgabe starten“ und „alle sehen es“ werden zum selben atomaren Akt.
+
+### Gemeinsames Verhalten
+
 - **Anmutige Degradation**: kein git / kein Remote / kein kanonischer Branch / Block fehlt → stiller No-op. Das Zero-Dependency-Versprechen bleibt bestehen.
 - **Umgeht nie die Guards**: wird ein Push von einem Sicherheits-Guard oder der Auth blockiert, bleibt der Commit im Worktree und du erhältst den exakten auszuführenden Befehl — der Fehler wird nie verschwiegen und deine Arbeit nie blockiert.
 

@@ -64,7 +64,7 @@ Next conversation / next teammate: instant, current context
 
 ## Team mode (R13 + R14) — opt-in
 
-Without this, the milestone is a per-machine local file. On a team that degrades into duplicated lists (every feature branch edits the same file) and stale to-do lists. Team mode makes the milestone a **single shared source of truth on a canonical branch**, edited only against that branch via a dedicated worktree — never inside code branches. Plus it reserves each subtask atomically the moment someone starts working on it, so two people never end up doing the same thing.
+Without this, the milestone is a per-machine local file. On a team that degrades into duplicated lists (every feature branch edits the same file) and stale to-do lists. Team mode makes the milestone a **single shared source of truth on a canonical branch**, edited only against that branch via a dedicated worktree — never inside code branches. It **discovers milestones other members created** before you list or create one (so you never duplicate `foo` when a teammate made it a minute ago), and it **reserves each subtask atomically** the moment someone starts working on it — so two people never end up doing the same thing, and the system tells you *who* got there first.
 
 Enable per project in `.milestones/config.yml`:
 
@@ -89,11 +89,33 @@ When you run `/milestone start`, the system **reserves the subtask in the canoni
 - [>] 1.4 [complex] Stripe integration — `🔒 Jane Doe (jdoe) · 2026-05-26 15:01` [Backend]
 ```
 
-- **Atomic via `git push --fast-forward`**: if two members try to claim the same subtask at the same time, only one fast-forward push wins. The loser fetches, re-validates, sees the winner's claim and aborts with `race-lost:<winner>`. Impossible to double-claim.
+- **Atomic via `git push --fast-forward`**: if two members try to claim the same subtask at the same time, only one fast-forward push wins. The loser fetches, re-validates, sees the winner's claim and aborts with `race-lost:<winner>` — it tells you exactly who took it. If the other member had already published the claim, you get `already-claimed:<winner>` up front. Impossible to double-claim.
+- **Retry loop, not a single try**: on a lost fast-forward the claim rebases and re-validates up to 5 times, so with 3+ simultaneous claimers a misleading `commit-pending-push` never shows up — that status now means only a real push problem (auth / protected branch / network).
 - **Live verification mandatory**: `claim` does `git fetch` and aborts with `noop:fetch-failed` if the network check fails. No claiming against stale local data.
 - **`/milestone` listing in team mode must consult claims**: the list of milestones shows who has what reserved. A subtask claimed by someone else can never appear as "free" for you.
 - **Audit trail**: every claim/release is a dedicated commit on `<branch>` (`chore(milestone): claim <slug> <X.Y> by <Jane Doe (jdoe)>`). The branch history *is* the team's coordination log.
+- **Stale claims surfaced on start**: if everything free is taken but a claim is older than 24h, `/milestone start` suggests the conscious override (`release --force` + re-claim) instead of only listing it.
 - **Handover via `/milestone release <slug> <X.Y> --force`** when needed (vacation, machine down, refusal). Add a note in `## Contexto` justifying the forced release; the original claimer sees `not-claimed` next time.
+
+### Index sync — never create a duplicate (H4)
+
+R13/R14 sync one `<slug>.md` at a time, but that alone can't reveal **new milestones a teammate created that you don't have locally**. The index sync closes that gap by reading the whole catalogue of published milestones before you list or create:
+
+- **`milestone-sync.sh index <root>`** lists every milestone on the canonical branch as `<slug>` · `<created_by>` · `<created_at>` · `<updated_at>` (author/date from the commit that *added* the file).
+- **On `/milestone init`**: the proposed name is matched against the index (exact and "near-miss" ignoring `-`/`_`/case). If it collides → it does **not** create; it tells you **who created it and when**, and offers to load it instead of duplicating.
+- **On `/milestone` (list)**: milestones present on the branch but not local are shown as `🆕 remote · created by <handle>`, so you see at a glance what others started even before pulling.
+
+### Helper auto-update (H1)
+
+The helper installs at `~/.claude/milestone-sync.sh`. To stop two machines from running different claim logic, it is **versioned**: the skill compares the installed `version` against the reference copy and re-copies when they differ (or when it's missing), on the first sync of each session.
+
+### Central mode & onboarding
+
+In central mode (v1.2.0) the config and authoritative files live in the shared memories repo, keeping the client repo clean. `references/team-bootstrap.sh` onboards a new member: clones/updates that repo, installs the skill + helper, and verifies the git identity that signs claims.
+
+### Limit — honest boundary
+
+Git is distributed: the index and claims only see what's **on the canonical branch**. A claim someone holds without pushing is invisible, just like any local commit. That's exactly why R14 forces the claim to be **published the instant you start** (before the first line of code) — "starting a task" and "everyone seeing it" become the same atomic act.
 
 ### Common behavior
 
